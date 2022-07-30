@@ -1,14 +1,14 @@
 import MainHeader from './header/MainHeader'
 
-type LayoutProps = {
+interface ILayout {
   children: React.ReactNode
 }
 
-const Layout = ({ children }: LayoutProps): JSX.Element => {
+const Layout = ({ children }: ILayout): JSX.Element => {
   return (
-    <div>
+    <div className="my-0 mx-auto flex min-h-screen w-full flex-col justify-between py-4 px-12">
       <MainHeader />
-      <main>{children}</main>
+      <main className="m-auto w-full max-w-5xl">{children}</main>
     </div>
   )
 }
