@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import MainNavigation from './navigation/MainNavigation'
+import MobileNavigation from './navigation/MobileNavigation'
 
-interface IMainHeader {
+export interface IMainHeader {
   name: string
   path: string
 }
@@ -19,16 +21,8 @@ const MainHeader = (): JSX.Element => {
       <Link href="/">
         <a>Logo</a>
       </Link>
-      <button className="sm:hidden">O</button>
-      <ul className="hidden sm:flex">
-        {NavItems.map((item) => (
-          <li className="capitalize" key={item.name}>
-            <Link href={item.path}>
-              <a>{item.name}</a>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <MainNavigation items={NavItems} />
+      <MobileNavigation items={NavItems} />
     </header>
   )
 }
