@@ -1,11 +1,14 @@
 import { Fragment, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { Dialog, Transition } from '@headlessui/react'
+import { HiMenu, HiX } from 'react-icons/hi'
 
 import type { IMainHeader } from '../MainHeader'
 
 const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
 
   function closeModal() {
     setIsOpen(false)
@@ -17,7 +20,7 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
   return (
     <>
       <button className="sm:hidden" onClick={openModal}>
-        O
+        <HiMenu />
       </button>
 
       <Transition appear show={isOpen} as={Fragment}>
@@ -41,7 +44,9 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                   <ul className="m-auto">
                     {items.map((item) => (
                       <li
-                        className="capitalize"
+                        className={`${
+                          router.asPath === item.path ? 'font-black' : ''
+                        } capitalize`}
                         key={item.name}
                         onClick={closeModal}
                       >
@@ -52,9 +57,9 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                     ))}
                   </ul>
 
-                  <div className="absolute right-0">
+                  <div className="absolute right-12 top-6">
                     <button type="button" onClick={closeModal}>
-                      X
+                      <HiX />
                     </button>
                   </div>
                 </Dialog.Panel>
