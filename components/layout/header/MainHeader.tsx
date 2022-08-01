@@ -21,7 +21,7 @@ const MainHeader = (): JSX.Element => {
       <Link href="/">
         <a className="h-9 w-9">Logo</a>
       </Link>
-      <div>
+      <div className="flex">
         <MainNavigation items={NavItems} />
         <MobileNavigation items={NavItems} />
       </div>

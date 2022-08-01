@@ -26,7 +26,7 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog
           as="div"
-          className="fixed inset-0 z-10 overflow-y-auto"
+          className="fixed inset-0 z-10 overflow-y-auto sm:hidden"
           onClose={closeModal}
         >
           <div className="fixed inset-0 overflow-y-auto">
@@ -41,7 +41,7 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="relative flex h-screen w-full transform overflow-hidden bg-white shadow-xl transition-all">
-                  <ul className="m-auto">
+                  <ul className="m-auto flex flex-col space-y-3">
                     {items.map((item) => (
                       <li
                         className={`${
@@ -51,13 +51,13 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                         onClick={closeModal}
                       >
                         <Link href={item.path}>
-                          <a>{item.name}</a>
+                          <a className="text-3xl">{item.name}</a>
                         </Link>
                       </li>
                     ))}
                   </ul>
 
-                  <div className="absolute right-12 top-6">
+                  <div className="absolute right-12 top-8 flex">
                     <button type="button" onClick={closeModal}>
                       <HiX />
                     </button>

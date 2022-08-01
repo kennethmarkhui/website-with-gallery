@@ -6,7 +6,7 @@ interface ILayout {
 
 const Layout = ({ children }: ILayout): JSX.Element => {
   return (
-    <div className="my-0 mx-auto flex min-h-screen w-full flex-col justify-between py-4 px-12">
+    <div className="my-0 mx-auto flex h-screen min-h-full w-full flex-col justify-between py-4 px-12">
       <MainHeader />
       <main className="m-auto w-full max-w-5xl">{children}</main>
     </div>
