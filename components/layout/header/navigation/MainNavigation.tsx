@@ -7,7 +7,7 @@ const MainNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
   const router = useRouter()
 
   return (
-    <ul className="hidden sm:my-4 sm:flex">
+    <ul className="hidden sm:flex">
       {items.map((item) => (
         <li
           className={`${

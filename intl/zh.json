@@ -1,0 +1,14 @@
+{
+  "navigation": {
+    "index": "zh home",
+    "about": "zh about"
+  },
+  "index": {
+    "title": "zh home",
+    "name": "chinese"
+  },
+  "about": {
+    "title": "zh about",
+    "description": "chinese about description"
+  }
+}

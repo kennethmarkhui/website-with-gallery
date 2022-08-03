@@ -1,0 +1,14 @@
+{
+  "navigation": {
+    "index": "home",
+    "about": "about"
+  },
+  "index": {
+    "title": "home",
+    "name": "english"
+  },
+  "about": {
+    "title": "about",
+    "description": "english about description"
+  }
+}
