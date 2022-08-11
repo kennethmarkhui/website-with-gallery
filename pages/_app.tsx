@@ -2,7 +2,7 @@ import type { AppProps } from 'next/app'
 import { NextIntlProvider } from 'next-intl'
 
 import '../styles/globals.css'
-import Layout from '@/components/layout'
+import Layout from '@/components/layout/Layout'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

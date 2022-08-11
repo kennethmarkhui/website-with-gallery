@@ -7,7 +7,7 @@ import { HiMenu, HiX } from 'react-icons/hi'
 import type { IMainHeader } from '../MainHeader'
 
 const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState<boolean>(false)
   const router = useRouter()
 
   function closeModal() {
@@ -42,19 +42,21 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
               >
                 <Dialog.Panel className="relative flex h-screen w-full transform overflow-hidden bg-white shadow-xl transition-all">
                   <ul className="m-auto flex flex-col space-y-3">
-                    {items.map((item) => (
-                      <li
-                        className={`${
-                          router.asPath === item.path ? 'font-black' : ''
-                        } capitalize`}
-                        key={item.name}
-                        onClick={closeModal}
-                      >
-                        <Link href={item.path}>
-                          <a className="text-3xl">{item.name}</a>
-                        </Link>
-                      </li>
-                    ))}
+                    {items.map(
+                      (item): JSX.Element => (
+                        <li
+                          className={`${
+                            router.asPath === item.path ? 'font-black' : ''
+                          } capitalize`}
+                          key={item.name}
+                          onClick={closeModal}
+                        >
+                          <Link href={item.path}>
+                            <a className="text-3xl">{item.name}</a>
+                          </Link>
+                        </li>
+                      )
+                    )}
                   </ul>
 
                   <div className="absolute right-12 top-8 flex">

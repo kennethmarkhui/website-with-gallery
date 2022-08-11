@@ -29,35 +29,32 @@ const LocaleSwitcher = (): JSX.Element => {
           leaveTo="opacity-0"
         >
           <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-            {router.locales?.map((locale) => (
-              <Listbox.Option
-                className={({ active }) =>
-                  `cursor-pointer py-2 pl-4 pr-4 text-gray-900 ${
-                    active ? 'bg-gray-100' : ''
-                  }`
-                }
-                key={locale}
-                value={locale}
-              >
-                {({ selected }) => (
-                  <>
-                    <span
-                      className={`block truncate ${
-                        selected ? 'font-medium' : 'font-normal'
-                      }`}
-                    >
-                      {locale}
-                    </span>
-                  </>
-                )}
-              </Listbox.Option>
-            ))}
+            {router.locales?.map(
+              (locale): JSX.Element => (
+                <Listbox.Option
+                  className={({ active }) =>
+                    `cursor-pointer py-2 pl-4 pr-4 text-gray-900 ${
+                      active ? 'bg-gray-100' : ''
+                    }`
+                  }
+                  key={locale}
+                  value={locale}
+                >
+                  {({ selected }): JSX.Element => (
+                    <>
+                      <span
+                        className={`block truncate ${
+                          selected ? 'font-medium' : 'font-normal'
+                        }`}
+                      >
+                        {locale}
+                      </span>
+                    </>
+                  )}
+                </Listbox.Option>
+              )
+            )}
           </Listbox.Options>
-          {/* {router.locales?.map((locale) => (
-        <option key={locale} value={locale}>
-          {locale}
-        </option>
-      ))} */}
         </Transition>
       </div>
     </Listbox>

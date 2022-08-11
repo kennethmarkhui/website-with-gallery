@@ -1,8 +1,10 @@
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+
 import LocaleSwitcher from './LocaleSwitcher'
 import MainNavigation from './navigation/MainNavigation'
 import MobileNavigation from './navigation/MobileNavigation'
+import Animated from '@/components/animated/Animated'
 
 export interface IMainHeader {
   name: 'index' | 'about'
@@ -28,9 +30,11 @@ const MainHeader = (): JSX.Element => {
 
   return (
     <header className="mx-auto mt-2 mb-0 flex w-full max-w-5xl items-center justify-between">
-      <Link href="/">
-        <a className="h-9 w-9">Logo</a>
-      </Link>
+      <Animated>
+        <Link href="/">
+          <a className="h-9 w-9">Logo</a>
+        </Link>
+      </Animated>
       <div className="flex sm:my-4">
         <LocaleSwitcher />
         <MainNavigation items={translatedNavItems} />

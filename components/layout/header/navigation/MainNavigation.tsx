@@ -8,18 +8,20 @@ const MainNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
 
   return (
     <ul className="hidden sm:flex">
-      {items.map((item) => (
-        <li
-          className={`${
-            router.asPath === item.path ? 'border-b-2 border-black' : ''
-          } p-2 capitalize`}
-          key={item.name}
-        >
-          <Link href={item.path}>
-            <a>{item.name}</a>
-          </Link>
-        </li>
-      ))}
+      {items.map(
+        (item): JSX.Element => (
+          <li
+            className={`${
+              router.asPath === item.path ? 'border-b-2 border-black' : ''
+            } p-2 capitalize`}
+            key={item.name}
+          >
+            <Link href={item.path}>
+              <a>{item.name}</a>
+            </Link>
+          </li>
+        )
+      )}
     </ul>
   )
 }

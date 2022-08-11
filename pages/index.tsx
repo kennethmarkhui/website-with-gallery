@@ -4,6 +4,7 @@ import type { GetStaticProps, GetStaticPropsContext, NextPage } from 'next'
 import { useTranslations } from 'next-intl'
 
 import { pick } from 'lib/utils'
+import Animated from '@/components/animated/Animated'
 
 const Home: NextPage = () => {
   const t = useTranslations('index')
@@ -29,7 +30,7 @@ const Home: NextPage = () => {
           />
         ))}
       </Head>
-      <h1 className="text-3xl font-bold underline">{t('name')}</h1>
+      <Animated>{t('name')}</Animated>
     </>
   )
 }
