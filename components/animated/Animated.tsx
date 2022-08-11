@@ -5,7 +5,7 @@ import AnimatedLetter from './AnimatedLetter'
 
 interface IAnimated {
   children: ReactNode
-  timeout: number
+  timeout?: number
 }
 
 const Animated = ({ children, timeout = 600 }: IAnimated) => {
