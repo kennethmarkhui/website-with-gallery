@@ -5,7 +5,9 @@
   },
   "index": {
     "title": "home",
-    "name": "english"
+    "name": "english",
+    "link1": "en link1",
+    "link2": "en link2"
   },
   "about": {
     "title": "about",

@@ -5,7 +5,9 @@
   },
   "index": {
     "title": "zh home",
-    "name": "chinese"
+    "name": "chinese",
+    "link1": "zh link",
+    "link2": "zh link2"
   },
   "about": {
     "title": "zh about",

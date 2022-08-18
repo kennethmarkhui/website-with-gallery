@@ -1,14 +1,21 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import type { GetStaticProps, GetStaticPropsContext, NextPage } from 'next'
+import { GetStaticProps, GetStaticPropsContext, NextPage } from 'next'
+import { HiPhotograph } from 'react-icons/hi'
 import { useTranslations } from 'next-intl'
 
 import { pick } from 'lib/utils'
 import Animated from '@/components/animated/Animated'
+import LinkList, { ILinkList } from '@/components/LinkList'
 
 const Home: NextPage = () => {
   const t = useTranslations('index')
   const router = useRouter()
+
+  const list: ILinkList[] = [
+    { name: t('link1'), Icon: HiPhotograph, to: '' },
+    { name: t('link2'), Icon: HiPhotograph, to: '' },
+  ]
 
   return (
     <>
@@ -31,6 +38,7 @@ const Home: NextPage = () => {
         ))}
       </Head>
       <Animated>{t('name')}</Animated>
+      <LinkList list={list} />
     </>
   )
 }
