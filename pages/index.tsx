@@ -37,7 +37,9 @@ const Home: NextPage = () => {
           />
         ))}
       </Head>
-      <Animated>{t('name')}</Animated>
+      <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl xl:text-7xl">
+        <Animated>{t('name')}</Animated>
+      </h1>
       <LinkList list={list} />
     </>
   )

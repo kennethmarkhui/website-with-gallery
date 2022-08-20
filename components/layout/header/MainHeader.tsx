@@ -35,11 +35,11 @@ const MainHeader = (): JSX.Element => {
           <a className="h-9 w-9">Logo</a>
         </Link>
       </Animated>
-      <div className="flex sm:my-4">
+      <nav className="flex sm:my-4">
         <LocaleSwitcher />
         <MainNavigation items={translatedNavItems} />
         <MobileNavigation items={translatedNavItems} />
-      </div>
+      </nav>
     </header>
   )
 }

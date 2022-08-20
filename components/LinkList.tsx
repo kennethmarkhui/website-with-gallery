@@ -8,13 +8,18 @@ export interface ILinkList {
 }
 
 const LinkList = ({ list }: { list: ILinkList[] }): JSX.Element => (
-  <ul className="flex flex-wrap">
+  <ul className="my-4 flex flex-wrap">
     {list.map(({ name, Icon, to }, index) => (
       <li key={`${name}-${index}`}>
-        <a href={to} className="group flex items-center gap-2 p-2">
+        <a
+          href={to}
+          rel="noreferrer"
+          target="_blank"
+          className="group flex items-center gap-2 p-2"
+        >
           <Icon />
           {name}
-          <HiExternalLink className="opacity-0 group-hover:opacity-100" />
+          <HiExternalLink className="hidden opacity-0 group-hover:opacity-100 sm:inline-block" />
         </a>
       </li>
     ))}
