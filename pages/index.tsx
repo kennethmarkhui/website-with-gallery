@@ -1,14 +1,17 @@
 import Head from 'next/head'
+import { ReactElement } from 'react'
+import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
-import { GetStaticProps, GetStaticPropsContext, NextPage } from 'next'
 import { HiPhotograph } from 'react-icons/hi'
 import { useTranslations } from 'next-intl'
 
 import { pick } from 'lib/utils'
 import Animated from '@/components/animated/Animated'
 import LinkList, { ILinkList } from '@/components/LinkList'
+import Layout from '@/components/layout/Layout'
+import { NextPageWithLayout } from './_app'
 
-const Home: NextPage = () => {
+const Home: NextPageWithLayout = () => {
   const t = useTranslations('index')
   const router = useRouter()
 
@@ -43,6 +46,10 @@ const Home: NextPage = () => {
       <LinkList list={list} />
     </>
   )
+}
+
+Home.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>
 }
 
 export const getStaticProps: GetStaticProps = async ({

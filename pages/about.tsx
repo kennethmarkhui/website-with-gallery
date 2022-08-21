@@ -1,11 +1,14 @@
 import Head from 'next/head'
+import { ReactElement } from 'react'
+import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
-import type { GetStaticProps, GetStaticPropsContext, NextPage } from 'next'
 import { useTranslations } from 'next-intl'
 
 import { pick } from 'lib/utils'
+import { NextPageWithLayout } from './_app'
+import Layout from '@/components/layout/Layout'
 
-const About: NextPage = () => {
+const About: NextPageWithLayout = () => {
   const t = useTranslations('about')
   const router = useRouter()
 
@@ -42,6 +45,10 @@ const About: NextPage = () => {
       </div>
     </>
   )
+}
+
+About.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>
 }
 
 export const getStaticProps: GetStaticProps = async ({
