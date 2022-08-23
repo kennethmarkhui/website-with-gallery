@@ -12,5 +12,8 @@
   "about": {
     "title": "zh about",
     "description": "chinese about description"
+  },
+  "gallery": {
+    "return": "zh Go Back"
   }
 }

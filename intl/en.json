@@ -12,5 +12,8 @@
   "about": {
     "title": "about",
     "description": "english about description"
+  },
+  "gallery": {
+    "return": "en Go Back"
   }
 }

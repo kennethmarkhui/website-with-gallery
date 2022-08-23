@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react'
 import type { NextPage } from 'next'
 import type { AppProps } from 'next/app'
 import { NextIntlProvider } from 'next-intl'
+import { SessionProvider } from 'next-auth/react'
 
 import '../styles/globals.css'
 
@@ -18,7 +19,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <NextIntlProvider messages={pageProps.messages}>
-      {getLayout(<Component {...pageProps} />)}
+      <SessionProvider session={pageProps.session}>
+        {getLayout(<Component {...pageProps} />)}
+      </SessionProvider>
     </NextIntlProvider>
   )
 }
