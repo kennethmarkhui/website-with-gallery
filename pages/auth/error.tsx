@@ -28,7 +28,7 @@ const AuthError = (): JSX.Element => {
 
   if (router.query.error === 'Configuration') {
     errorMessage = (
-      <h1 className="text-center text-xl  sm:text-2xl">
+      <h1 className="text-center text-xl sm:text-2xl">
         There is a problem with the server configuration.
       </h1>
     )
@@ -36,7 +36,7 @@ const AuthError = (): JSX.Element => {
 
   if (router.query.error === 'Verification') {
     errorMessage = (
-      <h1 className="text-center text-xl  sm:text-2xl">
+      <h1 className="text-center text-xl sm:text-2xl">
         Related to the Email provider. The token has expired or has already been
         used.
       </h1>
@@ -48,13 +48,12 @@ const AuthError = (): JSX.Element => {
   return (
     <div className="container mx-auto flex min-h-screen flex-col items-center justify-center px-6 py-12">
       {errorMessage}
-
       <div className="mt-8">
         <button
           className="font-semibold underline opacity-70 hover:opacity-100"
-          onClick={() => router.back()}
+          onClick={() => router.push('/gallery')}
         >
-          Go Back
+          Return to Gallery
         </button>
       </div>
     </div>

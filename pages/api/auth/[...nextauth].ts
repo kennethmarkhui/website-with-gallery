@@ -17,8 +17,8 @@ const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: { error: '/auth/error' },
 
-  // https://next-auth.js.org/configuration/callbacks#sign-in-callback
   callbacks: {
+    // https://next-auth.js.org/configuration/callbacks#sign-in-callback
     async signIn({ user }) {
       const isAllowedToSignIn = user.role === 'ADMIN'
       if (isAllowedToSignIn) {
@@ -29,6 +29,12 @@ const authOptions: NextAuthOptions = {
         // Or you can return a URL to redirect to:
         // return '/unauthorized'
       }
+    },
+
+    // https://next-auth.js.org/tutorials/role-based-login-strategy
+    async session({ session, user }) {
+      session.user.role = user.role as string
+      return session
     },
   },
 }
