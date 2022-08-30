@@ -1,7 +1,7 @@
 import { ReactElement } from 'react'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
 
-import { NextPageWithLayout } from './_app'
+import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import { pick } from 'lib/utils'
 
@@ -18,7 +18,7 @@ export const getStaticProps: GetStaticProps = async ({
 }: GetStaticPropsContext) => {
   return {
     props: {
-      messages: pick(await import(`../intl/${locale}.json`), ['gallery']),
+      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
     },
   }
 }
