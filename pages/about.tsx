@@ -18,14 +18,14 @@ const About: NextPageWithLayout = () => {
         <title>{t('title')}</title>
         <link
           rel="alternate"
-          href="https://huichingye.vercel.app/about"
+          href="https://website-with-gallery.vercel.app/about"
           hrefLang="x-default"
         />
         {router.locales?.map((locale) => (
           <link
             key={locale}
             rel="alternate"
-            href={`https://huichingye.vercel.app${
+            href={`https://website-with-gallery.vercel.app${
               locale === 'en' ? '/' : `/${locale}/`
             }about`}
             hrefLang={locale}

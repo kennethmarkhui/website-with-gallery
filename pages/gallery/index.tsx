@@ -6,7 +6,7 @@ import GalleryLayout from '@/components/layout/GalleryLayout'
 import { fetchItems, OmittedItem } from 'pages/api/gallery'
 import { pick } from 'lib/utils'
 
-type IGallery = {
+interface IGallery {
   data: OmittedItem[]
 }
 
