@@ -37,7 +37,7 @@ const Create: NextPageWithLayout = (): JSX.Element => {
     submitData()
   }
 
-  if (!session) {
+  if (!session || session.user.role !== 'ADMIN') {
     return <div>access denied</div>
   }
 

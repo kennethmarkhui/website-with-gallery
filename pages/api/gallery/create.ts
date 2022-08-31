@@ -32,7 +32,7 @@ export default async function handler(
     }
   }
 
-  res.send({
+  res.status(401).send({
     error: 'You must be an admin to view the protected content.',
   })
 }
