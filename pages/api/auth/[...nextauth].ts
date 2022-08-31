@@ -5,7 +5,7 @@ import { Role } from 'prisma/prisma-client'
 
 import { prisma } from 'lib/prisma'
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   // Configure one or more authentication providers
   providers: [
@@ -20,7 +20,7 @@ const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 1 * 60 * 60, // 1 hour
   },
-  pages: { error: '/auth/error' },
+  // pages: { error: '/auth/error' },
 
   callbacks: {
     // https://next-auth.js.org/configuration/callbacks#sign-in-callback

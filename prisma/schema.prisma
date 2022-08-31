@@ -58,3 +58,11 @@ enum Role {
   USER
   ADMIN
 }
+
+model Item {
+  id          Int       @id @default(autoincrement())
+  itemId      String    @unique
+  name        String?
+  storage     String?
+  dateAdded   DateTime  @default(now())
+}

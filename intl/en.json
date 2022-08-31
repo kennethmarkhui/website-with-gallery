@@ -14,6 +14,7 @@
     "description": "english about description"
   },
   "gallery": {
-    "return": "en Go Back"
+    "return": "en Go Back",
+    "return-gallery": "en Go Back Gallery"
   }
 }

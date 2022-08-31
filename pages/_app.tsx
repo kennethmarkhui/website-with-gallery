@@ -6,12 +6,13 @@ import { SessionProvider } from 'next-auth/react'
 
 import '../styles/globals.css'
 
-export type NextPageWithLayout = NextPage & {
+// https://dev.to/carloschida/comment/1h99b
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
 }
 
-type AppPropsWithLayout = AppProps & {
-  Component: NextPageWithLayout
+type AppPropsWithLayout<P = {}> = AppProps<P> & {
+  Component: NextPageWithLayout<P>
 }
 
 function MyApp({ Component, pageProps }: AppPropsWithLayout) {

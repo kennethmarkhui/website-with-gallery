@@ -1,5 +1,5 @@
 {
-  "name": "huichingye-nextjs",
+  "name": "website-with-gallery",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -20,6 +20,7 @@
     "next-intl": "^2.7.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hook-form": "^7.34.2",
     "react-icons": "^4.4.0"
   },
   "devDependencies": {
