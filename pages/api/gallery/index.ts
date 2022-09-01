@@ -11,6 +11,14 @@ export async function fetchItems(): Promise<OmittedItem[]> {
   return res
 }
 
+export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
+  const res = await prisma.item.findUnique({
+    where: { itemId },
+    select: { itemId: true, name: true, storage: true },
+  })
+  return res
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<OmittedItem[] | { error: string }>
