@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import { fetchItems, OmittedItem } from 'pages/api/gallery'
+import useGallery from 'hooks/use-gallery'
 import { pick } from 'lib/utils'
 
 interface IGallery {
@@ -13,7 +14,7 @@ interface IGallery {
 }
 
 const Gallery: NextPageWithLayout<IGallery> = ({ data }): JSX.Element => {
-  const [items, setItems] = useState<OmittedItem[]>(data ?? [])
+  const { items, deleteItem } = useGallery(data)
   const { data: session } = useSession()
 
   // useEffect(() => {
@@ -30,18 +31,6 @@ const Gallery: NextPageWithLayout<IGallery> = ({ data }): JSX.Element => {
   //   fetchItems()
   // }, [])
 
-  const handleDeleteItem = async (itemId: string) => {
-    try {
-      const res = await fetch(`/api/gallery/delete?itemId=${itemId}`, {
-        method: 'DELETE',
-      })
-      await res.json()
-      setItems((prev) => prev.filter((cur) => cur.itemId !== itemId))
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
   return (
     <ul>
       {items.map((item, index) => (
@@ -55,9 +44,7 @@ const Gallery: NextPageWithLayout<IGallery> = ({ data }): JSX.Element => {
               <Link href={`/gallery/update/${item.itemId}`}>
                 <a>update</a>
               </Link>
-              <button
-                onClick={(): Promise<void> => handleDeleteItem(item.itemId)}
-              >
+              <button onClick={(): Promise<void> => deleteItem(item.itemId)}>
                 delete
               </button>
             </>
