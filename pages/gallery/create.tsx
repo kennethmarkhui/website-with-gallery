@@ -3,10 +3,11 @@ import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { useSession } from 'next-auth/react'
 
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import GalleryForm, { FormValues } from '@/components/gallery/Form'
+import GalleryForm from '@/components/gallery/Form'
 import { NextPageWithLayout } from 'pages/_app'
 import { pick } from 'lib/utils'
 import useGallery from 'hooks/use-gallery'
+import { FormValues } from 'types/gallery'
 
 const Create: NextPageWithLayout = (): JSX.Element => {
   const { createItem, loading } = useGallery()
