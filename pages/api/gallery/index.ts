@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { Item } from 'prisma/prisma-client'
-import { prisma } from 'lib/prisma'
 
-export type OmittedItem = Omit<Item, 'id' | 'dateAdded'>
+import { prisma } from 'lib/prisma'
+import { OmittedItem } from 'types/gallery'
+
+type Data = OmittedItem[] | { message: string; error: boolean }
 
 export async function fetchItems(): Promise<OmittedItem[]> {
   const res = await prisma.item.findMany({
@@ -11,17 +12,9 @@ export async function fetchItems(): Promise<OmittedItem[]> {
   return res
 }
 
-export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
-  const res = await prisma.item.findUnique({
-    where: { itemId },
-    select: { itemId: true, name: true, storage: true },
-  })
-  return res
-}
-
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<OmittedItem[] | { error: string }>
+  res: NextApiResponse<Data>
 ) {
   try {
     const items = await fetchItems()
@@ -29,6 +22,6 @@ export default async function handler(
   } catch (error) {
     return res
       .status(500)
-      .json({ error: 'Failed to fetch data from the database.' })
+      .json({ message: 'Failed to fetch data from the database.', error: true })
   }
 }

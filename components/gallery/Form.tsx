@@ -1,11 +1,6 @@
-import { OmittedItem } from 'pages/api/gallery'
 import { useForm, SubmitHandler } from 'react-hook-form'
 
-export type FormValues = {
-  itemId: string
-  name?: string
-  storage?: string
-}
+import { FormValues, OmittedItem } from 'types/gallery'
 
 interface IGalleryForm {
   handleFormSubmit: (formData: FormValues) => void

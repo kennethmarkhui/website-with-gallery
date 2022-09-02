@@ -1,11 +1,12 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement } from 'react'
 import { GetServerSideProps, GetServerSidePropsContext } from 'next'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
 import { NextPageWithLayout } from 'pages/_app'
+import { fetchItems } from 'pages/api/gallery'
+import { OmittedItem } from 'types/gallery'
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import { fetchItems, OmittedItem } from 'pages/api/gallery'
 import useGallery from 'hooks/use-gallery'
 import { pick } from 'lib/utils'
 

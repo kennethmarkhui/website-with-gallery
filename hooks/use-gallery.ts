@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { OmittedItem } from 'pages/api/gallery'
 import { useRouter } from 'next/router'
 
-import { FormValues } from '@/components/gallery/Form'
+import { FormValues, OmittedItem } from 'types/gallery'
 
 const useGallery = (initialItems?: OmittedItem[]) => {
   const router = useRouter()
@@ -16,13 +15,15 @@ const useGallery = (initialItems?: OmittedItem[]) => {
       const res = await fetch(`/api/gallery/delete?itemId=${itemId}`, {
         method: 'DELETE',
       })
-      await res.json()
+      const data = await res.json()
+      if (!res.ok && data.hasOwnProperty('error')) {
+        throw new Error(data.message)
+      }
       setItems((prev) => prev.filter((cur) => cur.itemId !== itemId))
-      setLoading(false)
     } catch (error) {
       setError(error as any)
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   const createItem = async (data: FormValues): Promise<void> => {
@@ -35,12 +36,14 @@ const useGallery = (initialItems?: OmittedItem[]) => {
         },
         body: JSON.stringify(data),
       })
-      await res.json()
-      setLoading(false)
+      const resData = await res.json()
+      if (!res.ok && resData.hasOwnProperty('error')) {
+        throw new Error(resData.message)
+      }
     } catch (error) {
       setError(error as any)
-      setLoading(false)
     }
+    setLoading(false)
     router.push('/gallery')
   }
 
@@ -52,12 +55,14 @@ const useGallery = (initialItems?: OmittedItem[]) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      await res.json()
-      setLoading(false)
+      const resData = await res.json()
+      if (!res.ok && resData.hasOwnProperty('error')) {
+        throw new Error(resData.message)
+      }
     } catch (error) {
       setError(error as any)
-      setLoading(false)
     }
+    setLoading(false)
     router.push('/gallery')
   }
 

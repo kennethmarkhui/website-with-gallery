@@ -2,12 +2,13 @@ import { ReactElement } from 'react'
 import { GetServerSideProps, GetServerSidePropsContext } from 'next'
 import { useSession } from 'next-auth/react'
 
-import GalleryLayout from '@/components/layout/GalleryLayout'
-import GalleryForm, { FormValues } from '@/components/gallery/Form'
 import { NextPageWithLayout } from 'pages/_app'
-import { pick } from 'lib/utils'
-import { fetchItem, OmittedItem } from 'pages/api/gallery'
+import { FormValues, OmittedItem } from 'types/gallery'
+import GalleryLayout from '@/components/layout/GalleryLayout'
+import GalleryForm from '@/components/gallery/Form'
 import useGallery from 'hooks/use-gallery'
+import { fetchItem } from 'pages/api/gallery/[itemId]'
+import { pick } from 'lib/utils'
 
 interface IUpdate {
   data: OmittedItem
