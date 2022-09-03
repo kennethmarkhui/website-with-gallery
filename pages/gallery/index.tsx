@@ -1,53 +1,44 @@
-import { ReactElement } from 'react'
-import { GetServerSideProps, GetServerSidePropsContext } from 'next'
+import type { ReactElement } from 'react'
+import type { GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 
-import { NextPageWithLayout } from 'pages/_app'
-import { fetchItems } from 'pages/api/gallery'
-import { OmittedItem } from 'types/gallery'
+import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import useGallery from 'hooks/use-gallery'
+import { useDelete, useGallery } from 'hooks/gallery'
 import { pick } from 'lib/utils'
 
-interface IGallery {
-  data: OmittedItem[]
-}
+const Gallery: NextPageWithLayout = (): JSX.Element => {
+  const { data: items, status, error } = useGallery()
+  const { mutate } = useDelete()
 
-const Gallery: NextPageWithLayout<IGallery> = ({ data }): JSX.Element => {
-  const { items, deleteItem } = useGallery(data)
   const { data: session } = useSession()
 
-  // useEffect(() => {
-  //   const fetchItems = async () => {
-  //     try {
-  //       const res = await fetch('/api/gallery')
-  //       const data = await res.json()
-  //       setItems(data)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }
+  if (status === 'loading') {
+    return <p>loading</p>
+  }
 
-  //   fetchItems()
-  // }, [])
+  if (status === 'error' && error instanceof Error) {
+    return <p>{error.message}</p>
+  }
 
   return (
     <ul>
-      {items.map((item, index) => (
+      {items?.map((item, index) => (
         <li key={index}>
-          <span>itemId: {item.itemId}</span>
-          <span>name?: {item.name}</span>
-          <span>storage?: {item.storage}</span>
-
+          <span>itemId: {item.itemId}</span>&emsp;
+          <span>name?: {item.name === '' ? '--EMPTY--' : item.name}</span>&emsp;
+          <span>
+            storage?: {item.storage === '' ? '--EMPTY--' : item.storage}
+          </span>
+          &emsp;
           {session && session.user.role === 'ADMIN' && (
             <>
               <Link href={`/gallery/update/${item.itemId}`}>
                 <a>update</a>
               </Link>
-              <button onClick={(): Promise<void> => deleteItem(item.itemId)}>
-                delete
-              </button>
+              &emsp;
+              <button onClick={(): void => mutate(item.itemId)}>delete</button>
             </>
           )}
         </li>
@@ -60,21 +51,10 @@ Gallery.getLayout = function getLayout(page: ReactElement) {
   return <GalleryLayout>{page}</GalleryLayout>
 }
 
-export const getServerSideProps: GetServerSideProps = async ({
-  locale,
-}: GetServerSidePropsContext) => {
-  let data
-  try {
-    const resData = await fetchItems()
-    data = resData
-  } catch (error) {
-    console.error(error)
-  }
-
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
-      data,
     },
   }
 }

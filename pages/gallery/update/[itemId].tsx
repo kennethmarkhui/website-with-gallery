@@ -1,13 +1,14 @@
-import { ReactElement } from 'react'
-import { GetServerSideProps, GetServerSidePropsContext } from 'next'
+import type { ReactElement } from 'react'
+import type { GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 
+import type { FormValues, OmittedItem } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
-import { FormValues, OmittedItem } from 'types/gallery'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
-import useGallery from 'hooks/use-gallery'
 import { fetchItem } from 'pages/api/gallery/[itemId]'
+import { useUpdate } from 'hooks/gallery'
 import { pick } from 'lib/utils'
 
 interface IUpdate {
@@ -15,8 +16,9 @@ interface IUpdate {
 }
 
 const Update: NextPageWithLayout<IUpdate> = ({ data }) => {
-  const { updateItem, loading } = useGallery()
+  const router = useRouter()
   const { data: session } = useSession()
+  const { mutate, status } = useUpdate(() => router.push('/gallery'))
 
   if (!session || session.user.role !== 'ADMIN') {
     return <div>access denied</div>
@@ -24,8 +26,8 @@ const Update: NextPageWithLayout<IUpdate> = ({ data }) => {
 
   return (
     <GalleryForm
-      handleFormSubmit={(formData: FormValues) => updateItem(formData)}
-      loading={loading}
+      handleFormSubmit={(formData: FormValues) => mutate(formData)}
+      loading={status === 'loading'}
       updating
       defaultValues={{ ...data }}
     />
@@ -39,7 +41,7 @@ Update.getLayout = function getLayout(page: ReactElement) {
 export const getServerSideProps: GetServerSideProps = async ({
   locale,
   params,
-}: GetServerSidePropsContext) => {
+}) => {
   let data
   if (params?.itemId) {
     try {

@@ -1,17 +1,19 @@
-import { ReactElement } from 'react'
-import { GetStaticProps, GetStaticPropsContext } from 'next'
+import type { ReactElement } from 'react'
+import type { GetStaticProps } from 'next'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 
+import type { FormValues } from 'types/gallery'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
 import { NextPageWithLayout } from 'pages/_app'
+import { useCreate } from 'hooks/gallery'
 import { pick } from 'lib/utils'
-import useGallery from 'hooks/use-gallery'
-import { FormValues } from 'types/gallery'
 
 const Create: NextPageWithLayout = (): JSX.Element => {
-  const { createItem, loading } = useGallery()
-  const { data: session, status } = useSession()
+  const router = useRouter()
+  const { mutate, status, error } = useCreate(() => router.push('/gallery'))
+  const { data: session, status: sessionStatus } = useSession()
 
   if (!session || session.user.role !== 'ADMIN') {
     return <div>access denied</div>
@@ -19,8 +21,8 @@ const Create: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <GalleryForm
-      handleFormSubmit={(formData: FormValues) => createItem(formData)}
-      loading={loading}
+      handleFormSubmit={(formData: FormValues) => mutate(formData)}
+      loading={status === 'loading'}
     />
   )
 }
@@ -29,9 +31,7 @@ Create.getLayout = function getLayout(page: ReactElement) {
   return <GalleryLayout>{page}</GalleryLayout>
 }
 
-export const getStaticProps: GetStaticProps = async ({
-  locale,
-}: GetStaticPropsContext) => {
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
