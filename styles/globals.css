@@ -9,3 +9,18 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
 }
+
+/* NProgress styles */
+/* Make clicks pass-through */
+#nprogress {
+  @apply pointer-events-none;
+}
+
+#nprogress .bar {
+  @apply fixed top-0 left-0 z-[1031] h-0.5 w-full bg-black;
+}
+
+/* Fancy blur effect */
+#nprogress .peg {
+  @apply absolute right-0 block h-full w-24 translate-x-0 -translate-y-1 rotate-3 opacity-100 shadow shadow-black;
+}

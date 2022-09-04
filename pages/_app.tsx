@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode, useState } from 'react'
+import { ReactElement, ReactNode, useEffect, useState } from 'react'
 import type { NextPage } from 'next'
 import type { AppProps } from 'next/app'
 import { NextIntlProvider } from 'next-intl'
@@ -6,6 +6,7 @@ import { SessionProvider } from 'next-auth/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
+import { NProgressBar } from '@/components/NProgressBar'
 import { queryClient } from 'lib/query'
 import '../styles/globals.css'
 
@@ -27,6 +28,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       <NextIntlProvider messages={pageProps.messages}>
         <SessionProvider session={pageProps.session}>
           {getLayout(<Component {...pageProps} />)}
+          <NProgressBar />
         </SessionProvider>
       </NextIntlProvider>
       <ReactQueryDevtools />
