@@ -1,17 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { unstable_getServerSession } from 'next-auth'
 
+import type { MutateDataResponse, ErrorResponse } from 'types/gallery'
 import { authOptions } from '../auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 
-type Data = {
-  message: string
-  error?: boolean
-}
-
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<MutateDataResponse | ErrorResponse>
 ) {
   const session = await unstable_getServerSession(req, res, authOptions)
 
@@ -29,15 +25,17 @@ export default async function handler(
           .json({ message: `itemId ${item.itemId} has been deleted!` })
       } catch (error) {
         return res.status(422).json({
-          message: `Something went wrong. itemId ${req.query.itemId} was not deleted.`,
-          error: true,
+          error: {
+            message: `Something went wrong. itemId ${req.query.itemId} was not deleted.`,
+          },
         })
       }
     }
   }
 
   res.status(401).json({
-    message: 'You must be an admin to view the protected content.',
-    error: true,
+    error: {
+      message: 'You must be an admin to view the protected content.',
+    },
   })
 }

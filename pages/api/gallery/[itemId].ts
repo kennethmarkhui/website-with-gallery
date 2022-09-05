@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { prisma } from 'lib/prisma'
-import { OmittedItem } from 'types/gallery'
-
-type Data = OmittedItem | null | { message: string; error: true }
+import { ErrorResponse, OmittedItem } from 'types/gallery'
 
 export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
   const res = await prisma.item.findUnique({
@@ -15,7 +13,7 @@ export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<OmittedItem | null | ErrorResponse>
 ) {
   if (req.query.itemId) {
     try {
@@ -23,13 +21,12 @@ export default async function handler(
       if (item) res.status(200).json(item)
       return res
         .status(404)
-        .json({ message: 'Can not find data record in database.', error: true })
+        .json({ error: { message: 'Can not find data record in database.' } })
     } catch (error) {
       return res.status(500).json({
-        message: 'Failed to fetch data from the database.',
-        error: true,
+        error: { message: 'Failed to fetch data from the database.' },
       })
     }
   }
-  res.status(422).json({ message: 'Please provide an id.', error: true })
+  res.status(422).json({ error: { message: 'Please provide an id.' } })
 }

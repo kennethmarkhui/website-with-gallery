@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode, useEffect, useState } from 'react'
+import { ReactElement, ReactNode, useState } from 'react'
 import type { NextPage } from 'next'
 import type { AppProps } from 'next/app'
 import { NextIntlProvider } from 'next-intl'

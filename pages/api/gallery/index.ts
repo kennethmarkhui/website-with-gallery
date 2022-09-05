@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
+import type { ErrorResponse, OmittedItem } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { OmittedItem } from 'types/gallery'
-
-type Data = OmittedItem[] | { message: string; error: boolean }
 
 export async function fetchItems(): Promise<OmittedItem[]> {
   const res = await prisma.item.findMany({
@@ -14,7 +12,7 @@ export async function fetchItems(): Promise<OmittedItem[]> {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<OmittedItem[] | ErrorResponse>
 ) {
   try {
     const items = await fetchItems()
@@ -22,6 +20,6 @@ export default async function handler(
   } catch (error) {
     return res
       .status(500)
-      .json({ message: 'Failed to fetch data from the database.', error: true })
+      .json({ error: { message: 'Failed to fetch data from the database.' } })
   }
 }
