@@ -56,6 +56,15 @@ const GalleryForm = ({
             reset()
             router.push('/gallery')
           },
+          onError: ({ error }) => {
+            if (error?.target) {
+              setError(
+                error.target,
+                { message: error.message },
+                { shouldFocus: true }
+              )
+            }
+          },
         })
       : createMutate(formData, {
           onSuccess: () => {

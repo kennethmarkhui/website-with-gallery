@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { GalleryFormFields } from 'types/gallery'
+import type { GalleryErrorResponse, GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
 
 const useUpdate = () => {
@@ -12,15 +12,11 @@ const useUpdate = () => {
 
       const res = await fetch(`/api/gallery/update/${data.get('itemId')}`, {
         method: 'PUT',
-        // headers: {
-        //   'Content-Type': 'application/json',
-        // },
-        // body: JSON.stringify(data),
         body: data,
       })
       const resData = await res.json()
       if (!res.ok && resData.error) {
-        throw new Error(resData.error.message)
+        throw resData
       }
       return resData
     },
@@ -39,7 +35,9 @@ const useUpdate = () => {
         )
         return { snapshot }
       },
-      onError: (error, item, context) => {},
+      onError: (error: GalleryErrorResponse, item, context) => {
+        queryClient.setQueryData(['gallery'], context?.snapshot)
+      },
       onSuccess: (data, item, context) => {},
       onSettled: (data, error, item, context) => {
         queryClient.invalidateQueries(['gallery'])

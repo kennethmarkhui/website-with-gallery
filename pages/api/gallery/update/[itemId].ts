@@ -3,10 +3,11 @@ import { unstable_getServerSession } from 'next-auth'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 
 import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
-import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
-import { FormidableError, parseForm } from 'lib/formidable'
+import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
+import { formatBytes } from 'lib/utils'
+import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { fetchImage } from '../[itemId]'
 
 export const config = {
@@ -97,6 +98,16 @@ export default async function handler(
         .json({ message: `itemId ${item.itemId} has been updated!` })
     } catch (error) {
       if (error instanceof FormidableError) {
+        if (error.httpCode === 413) {
+          return res.status(413).json({
+            error: {
+              target: 'image',
+              message: `Must not exceed ${formatBytes(
+                formidableOptions.maxFileSize
+              )}.`,
+            },
+          })
+        }
         return res.status(400).json({
           error: {
             message: 'Something went wrong with parsing formdata.',
