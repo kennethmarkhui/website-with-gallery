@@ -48,6 +48,30 @@ CREATE TABLE "VerificationToken" (
     "expires" TIMESTAMP(3) NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "Item" (
+    "id" TEXT NOT NULL,
+    "itemId" TEXT NOT NULL,
+    "name" TEXT,
+    "storage" TEXT,
+    "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Item_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Image" (
+    "id" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "publicId" TEXT NOT NULL,
+    "itemId" TEXT NOT NULL,
+    "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
@@ -63,8 +87,17 @@ CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token"
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Item_itemId_key" ON "Item"("itemId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Image_itemId_key" ON "Image"("itemId");
+
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Image" ADD CONSTRAINT "Image_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("itemId") ON DELETE CASCADE ON UPDATE CASCADE;

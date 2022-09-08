@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 
-import type { FormValues } from 'types/gallery'
+import type { GalleryFormFields } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
@@ -10,7 +10,7 @@ import { fetchItem } from 'pages/api/gallery/[itemId]'
 import { pick } from 'lib/utils'
 
 interface IUpdate {
-  data: FormValues
+  data: GalleryFormFields
 }
 
 const Update: NextPageWithLayout<IUpdate> = ({ data }) => {

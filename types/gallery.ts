@@ -1,19 +1,38 @@
-import { Item } from 'prisma/prisma-client'
+import { Item, Image } from 'prisma/prisma-client'
 
-export type OmittedItem = Omit<Item, 'id' | 'dateAdded'>
+export type OmittedItem = Omit<Item, 'id' | 'dateAdded' | 'updatedAt'> & {
+  image: Omit<Image, 'id' | 'itemId' | 'dateAdded' | 'updatedAt'> | null
+}
 
 export type OmittedItemKeys = keyof OmittedItem
 
-export type FormValues = {
-  itemId: string
-  name?: string
-  storage?: string
+export type GalleryFormFields<ImageT = void> = Omit<
+  RecursivelyReplaceNullWithUndefined<Item>,
+  'id' | 'dateAdded' | 'updatedAt'
+> & {
+  image: ImageT extends void
+    ? Omit<
+        RecursivelyReplaceNullWithUndefined<Image>,
+        'id' | 'itemId' | 'publicId' | 'dateAdded' | 'updatedAt'
+      >
+    : ImageT
 }
 
-export type FormMode = 'create' | 'update'
+export type GalleryFormKeys = keyof GalleryFormFields
 
-export type MutateDataResponse = { message: string }
+export type GalleryFormMode = 'create' | 'update'
 
-export type ErrorResponse = {
-  error: { message: string; target?: OmittedItemKeys }
+export type GalleryMutateResponse = { message: string }
+
+export type GalleryErrorResponse = {
+  error: { message: string; target?: GalleryFormKeys }
 }
+
+// https://stackoverflow.com/a/72549576
+type RecursivelyReplaceNullWithUndefined<T> = T extends null
+  ? undefined
+  : T extends (infer U)[]
+  ? RecursivelyReplaceNullWithUndefined<U>[]
+  : T extends Record<string, unknown>
+  ? { [K in keyof T]: RecursivelyReplaceNullWithUndefined<T[K]> }
+  : T

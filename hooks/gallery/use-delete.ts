@@ -1,14 +1,19 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { type FormValues } from 'types/gallery'
+import type { GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
 
 const useDelete = () => {
   return useMutation(
-    async (itemId: string) => {
-      const res = await fetch(`/api/gallery/delete?itemId=${itemId}`, {
-        method: 'DELETE',
-      })
+    async (variables: { itemId: string; publicId?: string }) => {
+      const res = await fetch(
+        `/api/gallery/delete?itemId=${variables.itemId}${
+          variables.publicId ? `&publicId=${variables.publicId}` : ''
+        }`,
+        {
+          method: 'DELETE',
+        }
+      )
       const resData = await res.json()
       if (!res.ok && resData.hasOwnProperty('error')) {
         throw new Error(resData.message)
@@ -16,11 +21,15 @@ const useDelete = () => {
       return resData
     },
     {
-      onMutate: async (itemId) => {
+      onMutate: async ({ itemId }) => {
         await queryClient.cancelQueries(['gallery'])
-        const snapshot = queryClient.getQueryData<FormValues[]>(['gallery'])
-        queryClient.setQueryData<FormValues[]>(['gallery'], (prevItems) =>
-          prevItems?.filter((current) => current.itemId !== itemId)
+        const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
+          'gallery',
+        ])
+        queryClient.setQueryData<GalleryFormFields[]>(
+          ['gallery'],
+          (prevItems) =>
+            prevItems?.filter((current) => current.itemId !== itemId)
         )
         return { snapshot }
       },

@@ -26,13 +26,12 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <ul>
+      {items?.length === 0 && <p>empty list</p>}
       {items?.map((item, index) => (
         <li key={index}>
           <span>itemId: {item.itemId}</span>&emsp;
-          <span>name?: {item.name === '' ? '--EMPTY--' : item.name}</span>&emsp;
-          <span>
-            storage?: {item.storage === '' ? '--EMPTY--' : item.storage}
-          </span>
+          <span>name?: {!!item.name ? item.name : '--EMPTY--'}</span>&emsp;
+          <span>storage?: {!!item.storage ? item.storage : '--EMPTY--'}</span>
           &emsp;
           {session && session.user.role === 'ADMIN' && (
             <>
@@ -40,7 +39,16 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
                 <a>update</a>
               </Link>
               &emsp;
-              <button onClick={(): void => mutate(item.itemId)}>delete</button>
+              <button
+                onClick={(): void =>
+                  mutate({
+                    itemId: item.itemId,
+                    publicId: item.image ? item.image.publicId : undefined,
+                  })
+                }
+              >
+                delete
+              </button>
             </>
           )}
         </li>

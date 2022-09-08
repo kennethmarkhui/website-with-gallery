@@ -14,3 +14,13 @@ export const pick = <
     })
   )
 }
+
+// https://stackoverflow.com/a/18650828
+export const formatBytes = (bytes: number): string => {
+  if (bytes === 0) '0 Bytes'
+
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(0)) + ' ' + sizes[i]
+}

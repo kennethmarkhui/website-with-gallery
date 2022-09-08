@@ -1,18 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import type { ErrorResponse, OmittedItem } from 'types/gallery'
+import type { GalleryErrorResponse, OmittedItem } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 
 export async function fetchItems(): Promise<OmittedItem[]> {
-  const res = await prisma.item.findMany({
-    select: { itemId: true, name: true, storage: true },
+  return await prisma.item.findMany({
+    select: {
+      itemId: true,
+      name: true,
+      storage: true,
+      image: {
+        select: {
+          url: true,
+          publicId: true,
+        },
+      },
+    },
   })
-  return res
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<OmittedItem[] | ErrorResponse>
+  res: NextApiResponse<OmittedItem[] | GalleryErrorResponse>
 ) {
   try {
     const items = await fetchItems()

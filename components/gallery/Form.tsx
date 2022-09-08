@@ -1,13 +1,13 @@
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
-import type { FormMode, FormValues } from 'types/gallery'
+import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCreate from 'hooks/gallery/use-create'
-import useUpdate from 'hooks/gallery/useUpdate'
+import useUpdate from 'hooks/gallery/use-update'
 
 interface IGalleryForm {
-  mode?: FormMode
-  defaults?: FormValues
+  mode?: GalleryFormMode
+  defaults?: GalleryFormFields
 }
 
 const GalleryForm = ({
@@ -22,11 +22,11 @@ const GalleryForm = ({
     formState: { errors, isDirty },
     setError,
     reset,
-  } = useForm<FormValues>({
+  } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
-      itemId: defaults ? defaults.itemId : '',
-      name: defaults ? defaults.name : '',
-      storage: defaults ? defaults.storage : '',
+      itemId: defaults ? defaults.itemId ?? '' : '',
+      name: defaults ? defaults.name ?? '' : '',
+      storage: defaults ? defaults.storage ?? '' : '',
     },
   })
 
@@ -34,15 +34,29 @@ const GalleryForm = ({
 
   const { mutate: updateMutate, status: updateStatus } = useUpdate()
 
-  const onSubmit: SubmitHandler<FormValues> = (data) =>
-    mode === 'update'
-      ? updateMutate(data, {
+  const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
+    const formData = new FormData()
+    formData.append('itemId', data.itemId)
+    formData.append('name', data.name ? data.name : '')
+    formData.append('storage', data.storage ? data.storage : '')
+    if (data.image.length !== 0) {
+      formData.append('image', data.image[0])
+    }
+    // Object.keys(data).forEach((key) => {
+    //   if (key === 'image' && data.image.length !== 0) {
+    //     return formData.append(key, data[key][0])
+    //   }
+    //   formData.append(key, data[key])
+    // })
+
+    return mode === 'update'
+      ? updateMutate(formData, {
           onSuccess: () => {
             reset()
             router.push('/gallery')
           },
         })
-      : createMutate(data, {
+      : createMutate(formData, {
           onSuccess: () => {
             reset()
             router.push('/gallery')
@@ -57,6 +71,7 @@ const GalleryForm = ({
             }
           },
         })
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -78,6 +93,14 @@ const GalleryForm = ({
       <input id="name" {...register('name')} />
       <label htmlFor="storage">Storage</label>
       <input id="storage" {...register('storage')} />
+      <label htmlFor="image">Image</label>
+      <input
+        type="file"
+        hidden
+        id="image"
+        {...register('image')}
+        accept="image/*"
+      />
       <button
         type="submit"
         disabled={
