@@ -97,9 +97,11 @@ export default async function handler(
             const target = error.meta?.target as GalleryFormKeys[]
             if (target.includes('itemId')) {
               // DESTROY CLOUDINARY IMAGE UPLOADED IF PRISMA FAILS
-              await cloudinary.uploader.destroy(
-                cloudinaryResponse?.public_id as string
-              )
+              if (image) {
+                await cloudinary.uploader.destroy(
+                  cloudinaryResponse?.public_id as string
+                )
+              }
               return res.status(422).json({
                 error: {
                   target: 'itemId',
