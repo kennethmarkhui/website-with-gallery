@@ -64,10 +64,14 @@ export default async function handler(
                 create: {
                   url: cloudinaryResponse.secure_url,
                   publicId: cloudinaryResponse.public_id,
+                  width: cloudinaryResponse.width,
+                  height: cloudinaryResponse.height,
                 },
                 update: {
                   url: cloudinaryResponse.secure_url,
                   publicId: cloudinaryResponse.public_id,
+                  width: cloudinaryResponse.width,
+                  height: cloudinaryResponse.height,
                 },
               },
             },

@@ -41,27 +41,47 @@ export default async function handler(
       } = await parseForm(req)
 
       let cloudinaryResponse
-      if (image) {
-        const filepath = Array.isArray(image)
-          ? image.map((f) => f.filepath)
-          : image.filepath
-        cloudinaryResponse = await cloudinary.uploader.upload(
-          filepath as string,
-          {
-            folder: process.env.CLOUDINARY_FOLDER,
-          }
-        )
+      try {
+        if (image) {
+          const filepath = Array.isArray(image)
+            ? image.map((f) => f.filepath)
+            : image.filepath
+          cloudinaryResponse = await cloudinary.uploader.upload(
+            filepath as string,
+            {
+              folder: process.env.CLOUDINARY_FOLDER,
+            }
+          )
+
+          const item = await prisma.item.create({
+            data: {
+              itemId: fields.itemId as string,
+              name: fields.name ? (fields.name as string) : null,
+              storage: fields.storage ? (fields.storage as string) : null,
+              image: {
+                create: {
+                  url: cloudinaryResponse.secure_url,
+                  publicId: cloudinaryResponse.public_id,
+                  width: cloudinaryResponse.width,
+                  height: cloudinaryResponse.height,
+                },
+              },
+            },
+            select: {
+              itemId: true,
+            },
+          })
+          return res
+            .status(201)
+            .json({ message: `itemId ${item.itemId} has been created!` })
+        }
+
         const item = await prisma.item.create({
           data: {
+            // ...req.body,
             itemId: fields.itemId as string,
             name: fields.name ? (fields.name as string) : null,
             storage: fields.storage ? (fields.storage as string) : null,
-            image: {
-              create: {
-                url: cloudinaryResponse.secure_url,
-                publicId: cloudinaryResponse.public_id,
-              },
-            },
           },
           select: {
             itemId: true,
@@ -70,22 +90,35 @@ export default async function handler(
         return res
           .status(201)
           .json({ message: `itemId ${item.itemId} has been created!` })
+      } catch (error) {
+        if (error instanceof PrismaClientKnownRequestError) {
+          // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
+          if (error.code === 'P2002') {
+            const target = error.meta?.target as GalleryFormKeys[]
+            if (target.includes('itemId')) {
+              // DESTROY CLOUDINARY IMAGE UPLOADED IF PRISMA FAILS
+              await cloudinary.uploader.destroy(
+                cloudinaryResponse?.public_id as string
+              )
+              return res.status(422).json({
+                error: {
+                  target: 'itemId',
+                  message: `"${fields.itemId}" already exist.`,
+                },
+              })
+            }
+          }
+          return res.status(422).json({
+            error: {
+              message: 'Something went wrong with prisma.',
+            },
+          })
+        }
+        // console.log(error)
+        return res
+          .status(400)
+          .json({ error: { message: 'Something went wrong.' } })
       }
-
-      const item = await prisma.item.create({
-        data: {
-          // ...req.body,
-          itemId: fields.itemId as string,
-          name: fields.name ? (fields.name as string) : null,
-          storage: fields.storage ? (fields.storage as string) : null,
-        },
-        select: {
-          itemId: true,
-        },
-      })
-      return res
-        .status(201)
-        .json({ message: `itemId ${item.itemId} has been created!` })
     } catch (error) {
       if (error instanceof FormidableError) {
         if (error.httpCode === 413) {
@@ -104,29 +137,6 @@ export default async function handler(
           },
         })
       }
-      if (error instanceof PrismaClientKnownRequestError) {
-        // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
-        if (error.code === 'P2002') {
-          const target = error.meta?.target as GalleryFormKeys[]
-          if (target.includes('itemId')) {
-            return res.status(422).json({
-              error: {
-                target: 'itemId',
-                message: `"${req.body.itemId}" already exist.`,
-              },
-            })
-          }
-        }
-        return res.status(422).json({
-          error: {
-            message: 'Something went wrong with prisma.',
-          },
-        })
-      }
-      // console.log(error)
-      return res
-        .status(400)
-        .json({ error: { message: 'Something went wrong.' } })
     }
   }
 }

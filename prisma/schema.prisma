@@ -74,6 +74,8 @@ model Image {
   id            String     @id @default(cuid())
   url           String
   publicId      String
+  width         Int
+  height        Int
   item          Item       @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
   itemId        String     @unique
   dateAdded     DateTime   @default(now())

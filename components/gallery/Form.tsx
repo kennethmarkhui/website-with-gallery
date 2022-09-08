@@ -24,9 +24,9 @@ const GalleryForm = ({
     reset,
   } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
-      itemId: defaults ? defaults.itemId ?? '' : '',
-      name: defaults ? defaults.name ?? '' : '',
-      storage: defaults ? defaults.storage ?? '' : '',
+      itemId: defaults ? defaults.itemId : '',
+      name: defaults ? (defaults.name ? defaults.name : '') : '',
+      storage: defaults ? (defaults.storage ? defaults.storage : '') : '',
     },
   })
 
@@ -42,6 +42,7 @@ const GalleryForm = ({
     if (data.image.length !== 0) {
       formData.append('image', data.image[0])
     }
+
     // Object.keys(data).forEach((key) => {
     //   if (key === 'image' && data.image.length !== 0) {
     //     return formData.append(key, data[key][0])
@@ -94,6 +95,7 @@ const GalleryForm = ({
       <label htmlFor="storage">Storage</label>
       <input id="storage" {...register('storage')} />
       <label htmlFor="image">Image</label>
+      {errors.image && <p>{errors.image.message}</p>}
       <input
         type="file"
         hidden

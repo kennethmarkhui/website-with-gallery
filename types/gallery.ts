@@ -6,25 +6,22 @@ export type OmittedItem = Omit<Item, 'id' | 'dateAdded' | 'updatedAt'> & {
 
 export type OmittedItemKeys = keyof OmittedItem
 
-export type GalleryFormFields<ImageT = void> = Omit<
+export type GalleryFormFields<TImage = void> = Omit<
   RecursivelyReplaceNullWithUndefined<Item>,
   'id' | 'dateAdded' | 'updatedAt'
 > & {
-  image: ImageT extends void
-    ? Omit<
-        RecursivelyReplaceNullWithUndefined<Image>,
-        'id' | 'itemId' | 'publicId' | 'dateAdded' | 'updatedAt'
-      >
-    : ImageT
+  image: TImage extends void ? Extract<Image, 'url'> : TImage
 }
 
 export type GalleryFormKeys = keyof GalleryFormFields
 
 export type GalleryFormMode = 'create' | 'update'
 
-export type GalleryMutateResponse = { message: string }
+export interface GalleryMutateResponse {
+  message: string
+}
 
-export type GalleryErrorResponse = {
+export interface GalleryErrorResponse {
   error: { message: string; target?: GalleryFormKeys }
 }
 

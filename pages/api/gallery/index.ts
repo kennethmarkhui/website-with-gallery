@@ -13,6 +13,8 @@ export async function fetchItems(): Promise<OmittedItem[]> {
         select: {
           url: true,
           publicId: true,
+          width: true,
+          height: true,
         },
       },
     },

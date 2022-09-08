@@ -14,6 +14,8 @@ export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
         select: {
           url: true,
           publicId: true,
+          width: true,
+          height: true,
         },
       },
     },
