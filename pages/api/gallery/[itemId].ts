@@ -10,6 +10,7 @@ export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
       itemId: true,
       name: true,
       storage: true,
+      category: true,
       image: {
         select: {
           url: true,

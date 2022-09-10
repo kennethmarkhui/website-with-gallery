@@ -60,13 +60,15 @@ enum Role {
 }
 
 model Item {
-  id            String    @id @default(cuid())
-  itemId        String    @unique
+  id            String      @id @default(cuid())
+  itemId        String      @unique
   name          String?
   storage       String?
+  category      String?
+  categoryRef   Category?   @relation(fields: [category],references: [name])
   image         Image?
-  dateAdded     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  dateAdded     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 
@@ -80,4 +82,12 @@ model Image {
   itemId        String     @unique
   dateAdded     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+}
+
+model Category {
+  id            String      @id @default(cuid())
+  name          String      @unique
+  dateAdded     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         Item[]
 }

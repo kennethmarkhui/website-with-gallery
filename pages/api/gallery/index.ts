@@ -9,6 +9,7 @@ export async function fetchItems(): Promise<OmittedItem[]> {
       itemId: true,
       name: true,
       storage: true,
+      category: true,
       image: {
         select: {
           url: true,
