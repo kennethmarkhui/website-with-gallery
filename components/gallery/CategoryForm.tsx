@@ -39,7 +39,7 @@ const CategoryForm = ({ categories }: ICategoryForm): JSX.Element => {
           { old: initialUpdateInput, new: data },
           {
             onError: ({ error }, variables, context) => {
-              if (error.target === 'category') {
+              if (error?.target === 'category') {
                 setError(
                   error.target,
                   { message: error.message },
