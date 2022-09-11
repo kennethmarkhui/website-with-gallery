@@ -1,22 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { unstable_getServerSession } from 'next-auth'
-import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse } from 'types/gallery'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 
-export const fetchCategories = async (): Promise<Pick<Category, 'name'>[]> => {
-  return await prisma.category.findMany({
+export const fetchCategories = async (): Promise<string[]> => {
+  const res = await prisma.category.findMany({
     select: {
       name: true,
     },
   })
+  return res.map((c) => c.name)
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Pick<Category, 'name'>[] | GalleryErrorResponse>
+  res: NextApiResponse<string[] | GalleryErrorResponse>
 ) {
   const session = await unstable_getServerSession(req, res, authOptions)
 

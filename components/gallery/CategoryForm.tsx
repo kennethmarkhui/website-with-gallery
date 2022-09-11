@@ -5,14 +5,10 @@ import type { GalleryFormMode } from 'types/gallery'
 import useCreateCategory from 'hooks/gallery/category/use-create-category'
 import useUpdateCategory from 'hooks/gallery/category/use-update-category'
 import useDeleteCategory from 'hooks/gallery/category/use-delete-category'
+import useCategory from 'hooks/gallery/category/use-category'
 
-interface ICategoryForm {
-  categories: string[]
-}
-
-const CategoryForm = ({ categories }: ICategoryForm): JSX.Element => {
-  // TODO use react-query for caching categories with ISR ?hydration?
-  const [categoryList, setCategoryList] = useState<string[]>(categories)
+const CategoryForm = (): JSX.Element => {
+  const { data: categories, status, error } = useCategory()
 
   const [formMode, setFormMode] = useState<GalleryFormMode>('create')
 
@@ -49,11 +45,8 @@ const CategoryForm = ({ categories }: ICategoryForm): JSX.Element => {
             },
             onSuccess: (data, variables, context) => {
               reset()
-              setCategoryList((prev) =>
-                prev.map((current) =>
-                  current === variables.old ? variables.new.category : current
-                )
-              )
+              setFormMode('create')
+              setInitialUpdateInput('')
             },
           }
         )
@@ -69,7 +62,6 @@ const CategoryForm = ({ categories }: ICategoryForm): JSX.Element => {
           },
           onSuccess: (data, variables, context) => {
             reset()
-            setCategoryList((prev) => [...prev, variables.category])
           },
         })
   }
@@ -91,39 +83,34 @@ const CategoryForm = ({ categories }: ICategoryForm): JSX.Element => {
         </button>
       </form>
       <ul>
-        {categoryList.length === 0 && <p>empty category list</p>}
-        {categoryList.map((category, index) => (
-          <li key={`${category}-${index}`}>
-            <span>
-              {category}
-              &emsp;
-              <button
-                onClick={() => {
-                  reset()
-                  setValue('category', category)
-                  setFormMode('update')
-                  setInitialUpdateInput(category)
-                }}
-              >
-                update
-              </button>
-              &emsp;
-              <button
-                onClick={() =>
-                  deleteCategoryMutate(category, {
-                    onSuccess: (data, variables, context) => {
-                      setCategoryList((prev) =>
-                        prev.filter((current) => current !== variables)
-                      )
-                    },
-                  })
-                }
-              >
-                delete
-              </button>
-            </span>
-          </li>
-        ))}
+        {status === 'loading' && <p>loading</p>}
+        {status === 'error' && error instanceof Error && <p>{error.message}</p>}
+        {status === 'success' && categories.length === 0 && (
+          <p>empty category list</p>
+        )}
+        {status === 'success' &&
+          categories.map((category, index) => (
+            <li key={`${category}-${index}`}>
+              <span>
+                {category}
+                &emsp;
+                <button
+                  onClick={() => {
+                    reset()
+                    setValue('category', category)
+                    setFormMode('update')
+                    setInitialUpdateInput(category)
+                  }}
+                >
+                  update
+                </button>
+                &emsp;
+                <button onClick={() => deleteCategoryMutate(category)}>
+                  delete
+                </button>
+              </span>
+            </li>
+          ))}
       </ul>
     </>
   )

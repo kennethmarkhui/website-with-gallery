@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
 import type { GalleryErrorResponse } from 'types/gallery'
+import { queryClient } from 'lib/query'
 
 const useCreateCategory = () => {
   return useMutation(
@@ -17,10 +18,23 @@ const useCreateCategory = () => {
       return resData
     },
     {
-      onMutate: (variables) => {},
-      onError: (error: GalleryErrorResponse, variables, context) => {},
+      onMutate: async (variables) => {
+        await queryClient.cancelQueries(['categories'])
+        const snapshot = queryClient.getQueryData<string[]>(['categories'])
+        queryClient.setQueryData<string[]>(['categories'], (prev) => [
+          ...(prev as []),
+          variables.category,
+        ])
+        // Return a context object with the snapshotted value
+        return { snapshot }
+      },
+      onError: (error: GalleryErrorResponse, variables, context) => {
+        queryClient.setQueryData(['categories'], context?.snapshot)
+      },
       onSuccess: (data, variables, context) => {},
-      onSettled: (data, error, variables, context) => {},
+      onSettled: (data, error, variables, context) => {
+        queryClient.invalidateQueries(['categories'])
+      },
     }
   )
 }
