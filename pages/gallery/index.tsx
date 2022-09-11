@@ -33,6 +33,10 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           <span>name?: {!!item.name ? item.name : '--EMPTY--'}</span>&emsp;
           <span>storage?: {!!item.storage ? item.storage : '--EMPTY--'}</span>
           &emsp;
+          <span>
+            category?: {!!item.category ? item.category : '--EMPTY--'}
+          </span>
+          &emsp;
           {session && session.user.role === 'ADMIN' && (
             <>
               <Link href={`/gallery/update/${item.itemId}`}>

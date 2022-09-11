@@ -19,10 +19,10 @@ export default async function handler(
     })
   }
 
-  const { name } = req.query
-  const { category } = req.body
+  const { id } = req.query
+  const { name: newName, oldName } = req.body
 
-  if (name === category) {
+  if (oldName === newName) {
     return res.status(422).json({
       error: {
         message: 'Provide a different value.',
@@ -34,14 +34,14 @@ export default async function handler(
   if (req.method === 'PUT') {
     try {
       await prisma.category.update({
-        where: { name: name as string },
+        where: { id: id as string },
         data: {
-          name: category,
+          name: newName,
         },
       })
       return res
         .status(200)
-        .json({ message: `${name} was updated to ${category}.` })
+        .json({ message: `${oldName} was updated to ${newName}.` })
     } catch (error) {
       console.log(error)
     }

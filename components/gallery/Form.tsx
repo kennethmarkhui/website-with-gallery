@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCreate from 'hooks/gallery/use-create'
 import useUpdate from 'hooks/gallery/use-update'
+import useCategory from 'hooks/gallery/category/use-category'
 
 interface IGalleryForm {
   mode?: GalleryFormMode
@@ -27,8 +28,11 @@ const GalleryForm = ({
       itemId: defaults ? defaults.itemId : '',
       name: defaults ? (defaults.name ? defaults.name : '') : '',
       storage: defaults ? (defaults.storage ? defaults.storage : '') : '',
+      category: defaults ? (defaults.category ? defaults.category : '') : '',
     },
   })
+
+  const { data: categories, status: categoryStatus } = useCategory()
 
   const { mutate: createMutate, status: createStatus } = useCreate()
 
@@ -39,6 +43,7 @@ const GalleryForm = ({
     formData.append('itemId', data.itemId)
     formData.append('name', data.name ? data.name : '')
     formData.append('storage', data.storage ? data.storage : '')
+    formData.append('category', data.category ? data.category : '')
     if (data.image.length !== 0) {
       formData.append('image', data.image[0])
     }
@@ -103,6 +108,22 @@ const GalleryForm = ({
       <input id="name" {...register('name')} />
       <label htmlFor="storage">Storage</label>
       <input id="storage" {...register('storage')} />
+      <label htmlFor="category">Category</label>
+      <select id="category" {...register('category')}>
+        {categoryStatus === 'loading' && <option>loading</option>}
+        {categoryStatus === 'success' && (
+          <>
+            <option value=""></option>
+            {categories.map(({ id, name }) => {
+              return (
+                <option key={id} value={name}>
+                  {name}
+                </option>
+              )
+            })}
+          </>
+        )}
+      </select>
       <label htmlFor="image">Image</label>
       {errors.image && <p>{errors.image.message}</p>}
       <input

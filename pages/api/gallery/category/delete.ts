@@ -19,13 +19,13 @@ export default async function handler(
     })
   }
 
-  const { name } = req.query
+  const { id } = req.query
 
-  if (req.method === 'DELETE' && name) {
+  if (req.method === 'DELETE' && id) {
     try {
       const deleteResponse = await prisma.category.delete({
         where: {
-          name: name as string,
+          id: id as string,
         },
         select: {
           name: true,

@@ -60,6 +60,11 @@ export default async function handler(
           data: {
             name: fields.name ? (fields.name as string) : null,
             storage: fields.storage ? (fields.storage as string) : null,
+            categoryRef: {
+              connect: {
+                name: fields.category ? (fields.category as string) : undefined,
+              },
+            },
             image: {
               upsert: {
                 create: {
@@ -90,6 +95,11 @@ export default async function handler(
         data: {
           name: fields.name ? (fields.name as string) : null,
           storage: fields.storage ? (fields.storage as string) : null,
+          categoryRef: {
+            connect: {
+              name: fields.category ? (fields.category as string) : undefined,
+            },
+          },
         },
         select: { itemId: true },
       })

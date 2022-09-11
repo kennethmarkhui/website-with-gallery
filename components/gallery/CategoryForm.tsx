@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { Category } from 'prisma/prisma-client'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCreateCategory from 'hooks/gallery/category/use-create-category'
@@ -12,7 +13,10 @@ const CategoryForm = (): JSX.Element => {
 
   const [formMode, setFormMode] = useState<GalleryFormMode>('create')
 
-  const [initialUpdateInput, setInitialUpdateInput] = useState<string>('')
+  const [categoryToUpdate, setCategoryToUpdate] = useState<Pick<
+    Category,
+    'id' | 'name'
+  > | null>(null)
 
   const {
     register,
@@ -32,7 +36,11 @@ const CategoryForm = (): JSX.Element => {
   const onSubmit: SubmitHandler<{ category: string }> = (data) => {
     return formMode === 'update'
       ? updateCategoryMutate(
-          { old: initialUpdateInput, new: data },
+          {
+            id: categoryToUpdate?.id as string,
+            name: data.category,
+            oldName: categoryToUpdate?.name as string,
+          },
           {
             onError: ({ error }, variables, context) => {
               if (error?.target === 'category') {
@@ -46,7 +54,7 @@ const CategoryForm = (): JSX.Element => {
             onSuccess: (data, variables, context) => {
               reset()
               setFormMode('create')
-              setInitialUpdateInput('')
+              setCategoryToUpdate(null)
             },
           }
         )
@@ -89,25 +97,24 @@ const CategoryForm = (): JSX.Element => {
           <p>empty category list</p>
         )}
         {status === 'success' &&
-          categories.map((category, index) => (
-            <li key={`${category}-${index}`}>
+          categories.map(({ id, name }) => (
+            <li key={id}>
               <span>
-                {category}
+                {name}
                 &emsp;
                 <button
                   onClick={() => {
                     reset()
-                    setValue('category', category)
+                    setValue('category', name)
                     setFormMode('update')
-                    setInitialUpdateInput(category)
+                    setCategoryToUpdate({ id, name })
                   }}
+                  disabled={categoryToUpdate?.id === id}
                 >
-                  update
+                  {categoryToUpdate?.id === id ? 'updating' : 'update'}
                 </button>
                 &emsp;
-                <button onClick={() => deleteCategoryMutate(category)}>
-                  delete
-                </button>
+                <button onClick={() => deleteCategoryMutate(id)}>delete</button>
               </span>
             </li>
           ))}
