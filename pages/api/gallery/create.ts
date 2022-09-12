@@ -58,13 +58,15 @@ export default async function handler(
               itemId: fields.itemId as string,
               name: fields.name ? (fields.name as string) : null,
               storage: fields.storage ? (fields.storage as string) : null,
-              categoryRef: {
-                connect: {
-                  name: fields.category
-                    ? (fields.category as string)
-                    : undefined,
+              ...(fields.category !== '' && {
+                categoryRef: {
+                  connect: {
+                    name: fields.category
+                      ? (fields.category as string)
+                      : undefined,
+                  },
                 },
-              },
+              }),
               image: {
                 create: {
                   url: cloudinaryResponse.secure_url,
@@ -85,15 +87,18 @@ export default async function handler(
 
         const item = await prisma.item.create({
           data: {
-            // ...req.body,
             itemId: fields.itemId as string,
             name: fields.name ? (fields.name as string) : null,
             storage: fields.storage ? (fields.storage as string) : null,
-            categoryRef: {
-              connect: {
-                name: fields.category ? (fields.category as string) : undefined,
+            ...(fields.category !== '' && {
+              categoryRef: {
+                connect: {
+                  name: fields.category
+                    ? (fields.category as string)
+                    : undefined,
+                },
               },
-            },
+            }),
           },
           select: {
             itemId: true,
