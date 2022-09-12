@@ -3,13 +3,17 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
 
 import type { GalleryFormMode } from 'types/gallery'
-import useCreateCategory from 'hooks/gallery/category/use-create-category'
-import useUpdateCategory from 'hooks/gallery/category/use-update-category'
-import useDeleteCategory from 'hooks/gallery/category/use-delete-category'
-import useCategory from 'hooks/gallery/category/use-category'
+import useCategory from 'hooks/gallery/category/useCategory'
 
 const CategoryForm = (): JSX.Element => {
-  const { data: categories, status, error } = useCategory()
+  const {
+    query: { data: categories, status, error },
+    mutation: {
+      create: { mutate: createCategoryMutate },
+      update: { mutate: updateCategoryMutate },
+      delete: { mutate: deleteCategoryMutate },
+    },
+  } = useCategory()
 
   const [formMode, setFormMode] = useState<GalleryFormMode>('create')
 
@@ -26,12 +30,6 @@ const CategoryForm = (): JSX.Element => {
     setError,
     reset,
   } = useForm<{ category: string }>()
-
-  const { mutate: createCategoryMutate } = useCreateCategory()
-
-  const { mutate: updateCategoryMutate } = useUpdateCategory()
-
-  const { mutate: deleteCategoryMutate } = useDeleteCategory()
 
   const onSubmit: SubmitHandler<{ category: string }> = (data) => {
     return formMode === 'update'
@@ -93,11 +91,11 @@ const CategoryForm = (): JSX.Element => {
       <ul>
         {status === 'loading' && <p>loading</p>}
         {status === 'error' && error instanceof Error && <p>{error.message}</p>}
-        {status === 'success' && categories.length === 0 && (
+        {status === 'success' && categories?.length === 0 && (
           <p>empty category list</p>
         )}
         {status === 'success' &&
-          categories.map(({ id, name }) => (
+          categories?.map(({ id, name }) => (
             <li key={id}>
               <span>
                 {name}
@@ -114,7 +112,12 @@ const CategoryForm = (): JSX.Element => {
                   {categoryToUpdate?.id === id ? 'updating' : 'update'}
                 </button>
                 &emsp;
-                <button onClick={() => deleteCategoryMutate(id)}>delete</button>
+                <button
+                  disabled={formMode === 'update'}
+                  onClick={() => deleteCategoryMutate(id)}
+                >
+                  delete
+                </button>
               </span>
             </li>
           ))}

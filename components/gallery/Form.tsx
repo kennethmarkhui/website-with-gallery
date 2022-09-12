@@ -2,9 +2,8 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import { useRouter } from 'next/router'
 
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
-import useCreate from 'hooks/gallery/use-create'
-import useUpdate from 'hooks/gallery/use-update'
-import useCategory from 'hooks/gallery/category/use-category'
+import useCategory from 'hooks/gallery/category/useCategory'
+import useGallery from 'hooks/gallery/useGallery'
 
 interface IGalleryForm {
   mode?: GalleryFormMode
@@ -32,11 +31,16 @@ const GalleryForm = ({
     },
   })
 
-  const { data: categories, status: categoryStatus } = useCategory()
+  const {
+    query: { data: categories, status: categoryStatus },
+  } = useCategory()
 
-  const { mutate: createMutate, status: createStatus } = useCreate()
-
-  const { mutate: updateMutate, status: updateStatus } = useUpdate()
+  const {
+    mutation: {
+      create: { mutate: createMutate, status: createStatus },
+      update: { mutate: updateMutate, status: updateStatus },
+    },
+  } = useGallery()
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
     const formData = new FormData()
@@ -114,7 +118,7 @@ const GalleryForm = ({
         {categoryStatus === 'success' && (
           <>
             <option value=""></option>
-            {categories.map(({ id, name }) => {
+            {categories?.map(({ id, name }) => {
               return (
                 <option key={id} value={name}>
                   {name}

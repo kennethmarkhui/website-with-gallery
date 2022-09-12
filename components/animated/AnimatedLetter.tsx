@@ -1,4 +1,4 @@
-import useActiveAnimation from 'hooks/use-active-animation'
+import useActiveAnimation from 'hooks/useActiveAnimation'
 
 interface IAnimatedLetter {
   letter: string

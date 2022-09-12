@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 
-import useActiveAnimation from 'hooks/use-active-animation'
+import useActiveAnimation from 'hooks/useActiveAnimation'
 import AnimatedLetter from './AnimatedLetter'
 
 interface IAnimated {

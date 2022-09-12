@@ -3,21 +3,16 @@ import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse } from 'types/gallery'
 import { queryClient } from 'lib/query'
+import fetcher from 'lib/fetcher'
 
-const useCreateCategory = () => {
+const useUpdateCategory = () => {
   return useMutation(
-    async (data: { category: string }) => {
-      const res = await fetch('/api/gallery/category/create', {
-        method: 'POST',
+    (data: { id: string; name: string; oldName?: string }) =>
+      fetcher(`/api/gallery/category/update?id=${data.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      const resData = await res.json()
-      if (!res.ok && resData.hasOwnProperty('error')) {
-        throw resData
-      }
-      return resData
-    },
+        body: JSON.stringify({ name: data.name, oldName: data.oldName }),
+      }),
     {
       onMutate: async (variables) => {
         await queryClient.cancelQueries(['categories'])
@@ -26,10 +21,12 @@ const useCreateCategory = () => {
         >(['categories'])
         queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
           ['categories'],
-          (prev) => [
-            ...(prev as []),
-            { id: Math.random().toString(), name: variables.category },
-          ]
+          (prev) =>
+            prev?.map((current) =>
+              current.id === variables.id
+                ? { id: variables.id, name: variables.name }
+                : current
+            )
         )
         return { snapshot }
       },
@@ -44,4 +41,4 @@ const useCreateCategory = () => {
   )
 }
 
-export default useCreateCategory
+export default useUpdateCategory

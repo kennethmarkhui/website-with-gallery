@@ -3,21 +3,12 @@ import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse } from 'types/gallery'
 import { queryClient } from 'lib/query'
+import fetcher from 'lib/fetcher'
 
-const useUpdateCategory = () => {
+const useDeleteCategory = () => {
   return useMutation(
-    async (data: { id: string; name: string; oldName?: string }) => {
-      const res = await fetch(`/api/gallery/category/update?id=${data.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: data.name, oldName: data.oldName }),
-      })
-      const resData = await res.json()
-      if (!res.ok && resData.error) {
-        throw resData
-      }
-      return resData
-    },
+    (id: string) =>
+      fetcher(`/api/gallery/category/delete?id=${id}`, { method: 'DELETE' }),
     {
       onMutate: async (variables) => {
         await queryClient.cancelQueries(['categories'])
@@ -26,12 +17,7 @@ const useUpdateCategory = () => {
         >(['categories'])
         queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
           ['categories'],
-          (prev) =>
-            prev?.map((current) =>
-              current.id === variables.id
-                ? { id: variables.id, name: variables.name }
-                : current
-            )
+          (prev) => prev?.filter((current) => current.id !== variables)
         )
         return { snapshot }
       },
@@ -41,9 +27,10 @@ const useUpdateCategory = () => {
       onSuccess: (data, variables, context) => {},
       onSettled: (data, error, variables, context) => {
         queryClient.invalidateQueries(['categories'])
+        queryClient.invalidateQueries(['gallery'])
       },
     }
   )
 }
 
-export default useUpdateCategory
+export default useDeleteCategory

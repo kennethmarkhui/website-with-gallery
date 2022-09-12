@@ -2,24 +2,16 @@ import { useMutation } from '@tanstack/react-query'
 
 import type { GalleryErrorResponse, GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
+import fetcher from 'lib/fetcher'
 
 const useCreate = () => {
   return useMutation(
-    async (data: any) => {
-      // for (var pair of data.entries()) {
-      //   console.log(pair[0] + ', ' + pair[1])
-      // }
-
-      const res = await fetch('/api/gallery/create', {
-        method: 'POST',
-        body: data,
-      })
-      const resData = await res.json()
-      if (!res.ok && resData.hasOwnProperty('error')) {
-        throw resData
-      }
-      return resData
-    },
+    (data: any) =>
+      fetcher('/api/gallery/create', { method: 'POST', body: data }),
+    //  loop over FormData
+    // for (var pair of data.entries()) {
+    //   console.log(pair[0] + ', ' + pair[1])
+    // }
     {
       onMutate: async (item) => {
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)

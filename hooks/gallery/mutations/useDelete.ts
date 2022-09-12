@@ -2,24 +2,17 @@ import { useMutation } from '@tanstack/react-query'
 
 import type { GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
+import fetcher from 'lib/fetcher'
 
 const useDelete = () => {
   return useMutation(
-    async (variables: { itemId: string; publicId?: string }) => {
-      const res = await fetch(
+    (variables: { itemId: string; publicId?: string }) =>
+      fetcher(
         `/api/gallery/delete?itemId=${variables.itemId}${
           variables.publicId ? `&publicId=${variables.publicId}` : ''
         }`,
-        {
-          method: 'DELETE',
-        }
-      )
-      const resData = await res.json()
-      if (!res.ok && resData.hasOwnProperty('error')) {
-        throw new Error(resData.message)
-      }
-      return resData
-    },
+        { method: 'DELETE' }
+      ),
     {
       onMutate: async ({ itemId }) => {
         await queryClient.cancelQueries(['gallery'])

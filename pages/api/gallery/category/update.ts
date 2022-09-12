@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { unstable_getServerSession } from 'next-auth'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
@@ -43,7 +45,25 @@ export default async function handler(
         .status(200)
         .json({ message: `${oldName} was updated to ${newName}.` })
     } catch (error) {
-      console.log(error)
+      if (error instanceof PrismaClientKnownRequestError) {
+        // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
+        if (error.code === 'P2002') {
+          const target = error.meta?.target as keyof Pick<Category, 'name'>
+          if (target.includes('name')) {
+            return res.status(422).json({
+              error: {
+                message: `"${newName}" already exist.`,
+                target: 'category',
+              },
+            })
+          }
+        }
+        return res.status(422).json({
+          error: {
+            message: 'Something went wrong with prisma.',
+          },
+        })
+      }
     }
   }
   return res.status(400).json({ error: { message: 'Something went wrong.' } })

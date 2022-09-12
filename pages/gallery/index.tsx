@@ -5,14 +5,16 @@ import { useSession } from 'next-auth/react'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import useGallery from 'hooks/gallery/use-gallery'
-import useDelete from 'hooks/gallery/use-delete'
+import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
-  const { data: items, status, error } = useGallery()
-
-  const { mutate } = useDelete()
+  const {
+    query: { data: items, status, error },
+    mutation: {
+      delete: { mutate },
+    },
+  } = useGallery()
 
   const { data: session } = useSession()
 
