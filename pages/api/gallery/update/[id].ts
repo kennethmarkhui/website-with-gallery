@@ -8,7 +8,7 @@ import cloudinary from 'lib/cloudinary'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { fetchImage } from '../[itemId]'
+import { fetchImage } from '../[id]'
 
 export const config = {
   api: {
@@ -30,7 +30,7 @@ export default async function handler(
     })
   }
 
-  if (req.method === 'PUT' && req.query.itemId) {
+  if (req.method === 'PUT' && req.query.id) {
     try {
       const {
         fields,
@@ -50,19 +50,19 @@ export default async function handler(
           }
         )
 
-        const existingImage = await fetchImage(fields.itemId as string) // return null if no image
+        const existingImage = await fetchImage(fields.id as string) // return null if no image
         if (!!existingImage) {
           await cloudinary.uploader.destroy(existingImage.publicId)
         }
 
         const item = await prisma.item.update({
-          where: { itemId: fields.itemId as string },
+          where: { id: fields.id as string },
           data: {
             name: fields.name ? (fields.name as string) : null,
             storage: fields.storage ? (fields.storage as string) : null,
             ...(fields.category !== ''
               ? {
-                  categoryRef: {
+                  categoryRelation: {
                     connect: {
                       name: fields.category
                         ? (fields.category as string)
@@ -71,7 +71,7 @@ export default async function handler(
                   },
                 }
               : {
-                  categoryRef: {
+                  categoryRelation: {
                     disconnect: true,
                   },
                 }),
@@ -92,22 +92,22 @@ export default async function handler(
               },
             },
           },
-          select: { itemId: true },
+          select: { id: true },
         })
         return res
           .status(200)
-          .json({ message: `itemId ${item.itemId} has been updated!` })
+          .json({ message: `id ${item.id} has been updated!` })
       }
 
       // NO IMAGE PROVIDED
       const item = await prisma.item.update({
-        where: { itemId: fields.itemId as string },
+        where: { id: fields.id as string },
         data: {
           name: fields.name ? (fields.name as string) : null,
           storage: fields.storage ? (fields.storage as string) : null,
           ...(fields.category !== ''
             ? {
-                categoryRef: {
+                categoryRelation: {
                   connect: {
                     name: fields.category
                       ? (fields.category as string)
@@ -116,16 +116,16 @@ export default async function handler(
                 },
               }
             : {
-                categoryRef: {
+                categoryRelation: {
                   disconnect: true,
                 },
               }),
         },
-        select: { itemId: true },
+        select: { id: true },
       })
       return res
         .status(200)
-        .json({ message: `itemId ${item.itemId} has been updated!` })
+        .json({ message: `id ${item.id} has been updated!` })
     } catch (error) {
       if (error instanceof FormidableError) {
         if (error.httpCode === 413) {
@@ -153,7 +153,7 @@ export default async function handler(
       }
       return res.status(422).json({
         error: {
-          message: `Something went wrong. itemId ${req.query.itemId} was not updated.`,
+          message: `Something went wrong. id ${req.query.id} was not updated.`,
         },
       })
     }

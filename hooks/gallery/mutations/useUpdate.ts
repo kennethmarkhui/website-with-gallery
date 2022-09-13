@@ -7,7 +7,7 @@ import fetcher from 'lib/fetcher'
 const useUpdate = () => {
   return useMutation(
     (data: any) =>
-      fetcher(`/api/gallery/update/${data.get('itemId')}`, {
+      fetcher(`/api/gallery/update/${data.get('id')}`, {
         method: 'PUT',
         body: data,
       }),
@@ -21,7 +21,7 @@ const useUpdate = () => {
           ['gallery'],
           (prevItems) =>
             prevItems?.map((current) =>
-              current.itemId === item.itemId ? item : current
+              current.id === item.id ? item : current
             )
         )
         return { snapshot }

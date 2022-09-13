@@ -31,7 +31,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
       {items?.length === 0 && <p>empty list</p>}
       {items?.map((item, index) => (
         <li key={index}>
-          <span>itemId: {item.itemId}</span>&emsp;
+          <span>id: {item.id}</span>&emsp;
           <span>name?: {!!item.name ? item.name : '--EMPTY--'}</span>&emsp;
           <span>storage?: {!!item.storage ? item.storage : '--EMPTY--'}</span>
           &emsp;
@@ -41,14 +41,14 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           &emsp;
           {session && session.user.role === 'ADMIN' && (
             <>
-              <Link href={`/gallery/update/${item.itemId}`}>
+              <Link href={`/gallery/update/${item.id}`}>
                 <a>update</a>
               </Link>
               &emsp;
               <button
                 onClick={(): void =>
                   mutate({
-                    itemId: item.itemId,
+                    id: item.id,
                     publicId: item.image ? item.image.publicId : undefined,
                   })
                 }

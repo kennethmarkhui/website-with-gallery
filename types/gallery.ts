@@ -1,6 +1,6 @@
 import { Item, Image } from 'prisma/prisma-client'
 
-export type OmittedItem = Omit<Item, 'id' | 'dateAdded' | 'updatedAt'> & {
+export type OmittedItem = Omit<Item, 'dateAdded' | 'updatedAt'> & {
   image: Omit<Image, 'id' | 'itemId' | 'dateAdded' | 'updatedAt'> | null
 }
 
@@ -8,7 +8,7 @@ export type OmittedItemKeys = keyof OmittedItem
 
 export type GalleryFormFields<TImage = void> = Omit<
   RecursivelyReplaceNullWithUndefined<Item>,
-  'id' | 'dateAdded' | 'updatedAt'
+  'dateAdded' | 'updatedAt'
 > & {
   image: TImage extends void ? Pick<Image, 'url' | 'width' | 'height'> : TImage
 }

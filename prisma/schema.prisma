@@ -60,15 +60,14 @@ enum Role {
 }
 
 model Item {
-  id            String      @id @default(cuid())
-  itemId        String      @unique
-  name          String?
-  storage       String?
-  category      String?
-  categoryRef   Category?   @relation(fields: [category],references: [name],onDelete: SetNull )
-  image         Image?
-  dateAdded     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                String      @id 
+  name              String?
+  storage           String?
+  category          String?
+  categoryRelation  Category?   @relation(fields: [category],references: [name],onDelete: SetNull )
+  image             Image?
+  dateAdded         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 
@@ -78,7 +77,7 @@ model Image {
   publicId      String
   width         Int
   height        Int
-  item          Item       @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+  item          Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId        String     @unique
   dateAdded     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt

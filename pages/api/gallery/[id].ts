@@ -3,11 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import type { GalleryErrorResponse, OmittedItem } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 
-export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
+export async function fetchItem(id: string): Promise<OmittedItem | null> {
   return await prisma.item.findUnique({
-    where: { itemId },
+    where: { id },
     select: {
-      itemId: true,
+      id: true,
       name: true,
       storage: true,
       category: true,
@@ -23,9 +23,9 @@ export async function fetchItem(itemId: string): Promise<OmittedItem | null> {
   })
 }
 
-export async function fetchImage(itemId: string) {
+export async function fetchImage(id: string) {
   return await prisma.image.findFirst({
-    where: { itemId },
+    where: { id },
     select: {
       url: true,
       publicId: true,
@@ -37,9 +37,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<OmittedItem | null | GalleryErrorResponse>
 ) {
-  if (req.query.itemId) {
+  if (req.query.id) {
     try {
-      const item = await fetchItem(req.query.itemId as string)
+      const item = await fetchItem(req.query.id as string)
       if (item) res.status(200).json(item)
       return res
         .status(404)

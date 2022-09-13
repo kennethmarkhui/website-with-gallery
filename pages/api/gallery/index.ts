@@ -6,7 +6,7 @@ import { prisma } from 'lib/prisma'
 export async function fetchItems(): Promise<OmittedItem[]> {
   return await prisma.item.findMany({
     select: {
-      itemId: true,
+      id: true,
       name: true,
       storage: true,
       category: true,

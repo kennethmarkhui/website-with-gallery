@@ -40,6 +40,15 @@ export default async function handler(
         files: { image }, // image from type GalleryForm
       } = await parseForm(req)
 
+      if (fields.id === '') {
+        return res.status(422).json({
+          error: {
+            target: 'id',
+            message: 'id is required.',
+          },
+        })
+      }
+
       let cloudinaryResponse
       try {
         if (image) {
@@ -55,11 +64,11 @@ export default async function handler(
 
           const item = await prisma.item.create({
             data: {
-              itemId: fields.itemId as string,
+              id: fields.id as string,
               name: fields.name ? (fields.name as string) : null,
               storage: fields.storage ? (fields.storage as string) : null,
               ...(fields.category !== '' && {
-                categoryRef: {
+                categoryRelation: {
                   connect: {
                     name: fields.category
                       ? (fields.category as string)
@@ -77,21 +86,21 @@ export default async function handler(
               },
             },
             select: {
-              itemId: true,
+              id: true,
             },
           })
           return res
             .status(201)
-            .json({ message: `itemId ${item.itemId} has been created!` })
+            .json({ message: `id ${item.id} has been created!` })
         }
 
         const item = await prisma.item.create({
           data: {
-            itemId: fields.itemId as string,
+            id: fields.id as string,
             name: fields.name ? (fields.name as string) : null,
             storage: fields.storage ? (fields.storage as string) : null,
             ...(fields.category !== '' && {
-              categoryRef: {
+              categoryRelation: {
                 connect: {
                   name: fields.category
                     ? (fields.category as string)
@@ -101,18 +110,18 @@ export default async function handler(
             }),
           },
           select: {
-            itemId: true,
+            id: true,
           },
         })
         return res
           .status(201)
-          .json({ message: `itemId ${item.itemId} has been created!` })
+          .json({ message: `id ${item.id} has been created!` })
       } catch (error) {
         if (error instanceof PrismaClientKnownRequestError) {
           // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
           if (error.code === 'P2002') {
             const target = error.meta?.target as GalleryFormKeys[]
-            if (target.includes('itemId')) {
+            if (target.includes('id')) {
               // DESTROY CLOUDINARY IMAGE UPLOADED IF PRISMA FAILS
               if (image) {
                 await cloudinary.uploader.destroy(
@@ -121,8 +130,8 @@ export default async function handler(
               }
               return res.status(422).json({
                 error: {
-                  target: 'itemId',
-                  message: `"${fields.itemId}" already exist.`,
+                  target: 'id',
+                  message: `"${fields.id}" already exist.`,
                 },
               })
             }

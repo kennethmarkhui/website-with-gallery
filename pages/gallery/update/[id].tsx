@@ -6,7 +6,7 @@ import type { GalleryFormFields } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
-import { fetchItem } from 'pages/api/gallery/[itemId]'
+import { fetchItem } from 'pages/api/gallery/[id]'
 import { pick } from 'lib/utils'
 
 interface IUpdate {
@@ -32,9 +32,9 @@ export const getServerSideProps: GetServerSideProps = async ({
   params,
 }) => {
   let data
-  if (params?.itemId) {
+  if (params?.id) {
     try {
-      const resData = await fetchItem(params.itemId as string)
+      const resData = await fetchItem(params.id as string)
       data = resData
     } catch (error) {
       console.error(error)

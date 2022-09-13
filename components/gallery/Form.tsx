@@ -24,7 +24,7 @@ const GalleryForm = ({
     reset,
   } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
-      itemId: defaults ? defaults.itemId : '',
+      id: defaults ? defaults.id : '',
       name: defaults ? (defaults.name ? defaults.name : '') : '',
       storage: defaults ? (defaults.storage ? defaults.storage : '') : '',
       category: defaults ? (defaults.category ? defaults.category : '') : '',
@@ -44,7 +44,7 @@ const GalleryForm = ({
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
     const formData = new FormData()
-    formData.append('itemId', data.itemId)
+    formData.append('id', data.id)
     formData.append('name', data.name ? data.name : '')
     formData.append('storage', data.storage ? data.storage : '')
     formData.append('category', data.category ? data.category : '')
@@ -95,11 +95,11 @@ const GalleryForm = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <h1>Form</h1>
-      <label htmlFor="itemId">ItemId</label>
+      <label htmlFor="id">id</label>
       <input
-        id="itemId"
-        {...register('itemId', {
-          required: 'ItemId is required.',
+        id="id"
+        {...register('id', {
+          required: 'id is required.',
           pattern: {
             value: /^[a-zA-Z\d]+$/,
             message: 'Alphanumerics only.',
@@ -107,7 +107,7 @@ const GalleryForm = ({
         })}
         readOnly={mode === 'update'}
       />
-      {errors.itemId && <p>{errors.itemId.message}</p>}
+      {errors.id && <p>{errors.id.message}</p>}
       <label htmlFor="name">Name</label>
       <input id="name" {...register('name')} />
       <label htmlFor="storage">Storage</label>

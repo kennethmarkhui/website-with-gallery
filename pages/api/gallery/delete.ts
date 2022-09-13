@@ -20,25 +20,25 @@ export default async function handler(
     })
   }
 
-  if (req.method === 'DELETE' && req.query.itemId) {
+  if (req.method === 'DELETE' && req.query.id) {
     try {
       if (req.query.publicId) {
         await cloudinary.uploader.destroy(req.query.publicId as string)
       }
 
       const item = await prisma.item.delete({
-        where: { itemId: req.query.itemId as string },
+        where: { id: req.query.id as string },
         select: {
-          itemId: true,
+          id: true,
         },
       })
       return res
         .status(200)
-        .json({ message: `itemId ${item.itemId} has been deleted!` })
+        .json({ message: `id ${item.id} has been deleted!` })
     } catch (error) {
       return res.status(422).json({
         error: {
-          message: `Something went wrong. itemId ${req.query.itemId} was not deleted.`,
+          message: `Something went wrong. id ${req.query.id} was not deleted.`,
         },
       })
     }

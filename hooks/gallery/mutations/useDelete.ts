@@ -6,30 +6,29 @@ import fetcher from 'lib/fetcher'
 
 const useDelete = () => {
   return useMutation(
-    (variables: { itemId: string; publicId?: string }) =>
+    (variables: { id: string; publicId?: string }) =>
       fetcher(
-        `/api/gallery/delete?itemId=${variables.itemId}${
+        `/api/gallery/delete?id=${variables.id}${
           variables.publicId ? `&publicId=${variables.publicId}` : ''
         }`,
         { method: 'DELETE' }
       ),
     {
-      onMutate: async ({ itemId }) => {
+      onMutate: async ({ id }) => {
         await queryClient.cancelQueries(['gallery'])
         const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
           'gallery',
         ])
         queryClient.setQueryData<GalleryFormFields[]>(
           ['gallery'],
-          (prevItems) =>
-            prevItems?.filter((current) => current.itemId !== itemId)
+          (prevItems) => prevItems?.filter((current) => current.id !== id)
         )
         return { snapshot }
       },
-      onError: (error, itemId, context) => {
+      onError: (error, id, context) => {
         queryClient.setQueryData(['gallery'], context?.snapshot)
       },
-      onSuccess: (data, itemId, context) => {},
+      onSuccess: (data, id, context) => {},
       onSettled: (data, error, item, context) => {
         queryClient.invalidateQueries(['gallery'])
       },
