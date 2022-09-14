@@ -117,7 +117,7 @@ const GalleryForm = ({
         {categoryStatus === 'loading' && <option>loading</option>}
         {categoryStatus === 'success' && (
           <>
-            <option value=""></option>
+            <option value="">Please select</option>
             {categories?.map(({ id, name }) => {
               return (
                 <option key={id} value={name}>
