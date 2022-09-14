@@ -4,11 +4,14 @@ import { useRouter } from 'next/router'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
+import { formatBytes } from 'lib/utils'
 
 interface IGalleryForm {
   mode?: GalleryFormMode
   defaults?: GalleryFormFields
 }
+
+const maxFileSize = 2 * 1024 * 1024 // 2MB
 
 const GalleryForm = ({
   mode = 'create',
@@ -134,7 +137,13 @@ const GalleryForm = ({
         type="file"
         hidden
         id="image"
-        {...register('image')}
+        {...register('image', {
+          validate: {
+            fileSize: (files) =>
+              files[0]?.size < maxFileSize ||
+              `Max filesize ${formatBytes(maxFileSize)}.`,
+          },
+        })}
         accept="image/*"
       />
       <button
