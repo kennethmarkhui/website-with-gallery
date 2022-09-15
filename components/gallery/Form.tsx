@@ -1,6 +1,10 @@
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import { HiPhotograph } from 'react-icons/hi'
 
+import { FloatingLabelInput } from '../FloatingLabelInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
@@ -17,6 +21,8 @@ const GalleryForm = ({
   mode = 'create',
   defaults,
 }: IGalleryForm): JSX.Element => {
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const router = useRouter()
 
   const {
@@ -95,12 +101,37 @@ const GalleryForm = ({
         })
   }
 
+  const imageChangeHandler: ChangeEventHandler<HTMLInputElement> = (
+    e
+  ): void => {
+    const file = e.currentTarget.files?.[0]
+    if (!file || !file.type.startsWith('image/')) {
+      return
+    }
+    setImageFile(file)
+  }
+
+  useEffect(() => {
+    if (!imageFile) {
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+    }
+    reader.readAsDataURL(imageFile)
+
+    return () => {
+      setImageFile(null)
+      setImagePreview(null)
+    }
+  }, [imageFile])
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <h1>Form</h1>
-      <label htmlFor="id">id</label>
-      <input
+    <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <FloatingLabelInput
         id="id"
+        readOnly={mode === 'update'}
         {...register('id', {
           required: 'id is required.',
           pattern: {
@@ -108,51 +139,94 @@ const GalleryForm = ({
             message: 'Alphanumerics only.',
           },
         })}
-        readOnly={mode === 'update'}
+        errorMessage={errors.id?.message}
       />
-      {errors.id && <p>{errors.id.message}</p>}
-      <label htmlFor="name">Name</label>
-      <input id="name" {...register('name')} />
-      <label htmlFor="storage">Storage</label>
-      <input id="storage" {...register('storage')} />
-      <label htmlFor="category">Category</label>
-      <select id="category" {...register('category')}>
-        {categoryStatus === 'loading' && <option>loading</option>}
-        {categoryStatus === 'success' && (
-          <>
-            <option value="">Please select</option>
-            {categories?.map(({ id, name }) => {
-              return (
-                <option key={id} value={name}>
-                  {name}
-                </option>
-              )
-            })}
-          </>
+      <FloatingLabelInput id="name" {...register('name')} />
+      <FloatingLabelInput id="storage" {...register('storage')} />
+      <div className="group relative z-0 mb-6 w-full">
+        <select
+          id="category"
+          className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
+          {...register('category')}
+        >
+          {categoryStatus === 'loading' && <option>loading</option>}
+          {categoryStatus === 'success' && (
+            <>
+              <option value=""></option>
+              {categories?.map(({ id, name }) => {
+                return (
+                  <option key={id} value={name}>
+                    {name}
+                  </option>
+                )
+              })}
+            </>
+          )}
+        </select>
+        <label
+          htmlFor="category"
+          className="absolute top-3 -z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:left-0 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:font-medium peer-focus:text-black"
+        >
+          Category
+        </label>
+      </div>
+      <div className="relative mb-4 w-full">
+        <input
+          type="file"
+          hidden
+          id="image"
+          {...register('image', {
+            onChange: (event) => imageChangeHandler(event),
+            validate: {
+              fileSize: (files) => {
+                if (!files[0]) return true
+                return (
+                  files[0]?.size < maxFileSize ||
+                  `Max filesize ${formatBytes(maxFileSize)}.`
+                )
+              },
+            },
+          })}
+          accept="image/*"
+        />
+        <label
+          htmlFor="image"
+          className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
+        >
+          {imagePreview ? (
+            <Image
+              src={imagePreview}
+              height={250}
+              width={250}
+              objectFit="cover"
+              alt="preview"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <HiPhotograph className="mb-3 h-10 w-10 text-gray-400" />
+              <p className="mb-2 text-sm text-gray-500">
+                <span className="font-semibold">Click to upload</span>
+              </p>
+              <p className="text-xs text-gray-500">
+                {`Image only. (MAX. ${formatBytes(maxFileSize)})`}
+              </p>
+            </div>
+          )}
+        </label>
+        {errors.image && (
+          <p className="absolute text-sm text-red-500">
+            {errors.image.message}
+          </p>
         )}
-      </select>
-      <label htmlFor="image">Image</label>
-      {errors.image && <p>{errors.image.message}</p>}
-      <input
-        type="file"
-        hidden
-        id="image"
-        {...register('image', {
-          validate: {
-            fileSize: (files) =>
-              files[0]?.size < maxFileSize ||
-              `Max filesize ${formatBytes(maxFileSize)}.`,
-          },
-        })}
-        accept="image/*"
-      />
+      </div>
       <button
         type="submit"
+        className="mt-4 w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
         disabled={
           createStatus === 'loading' || updateStatus === 'loading' || !isDirty
         }
       >
-        submit
+        Submit
       </button>
     </form>
   )

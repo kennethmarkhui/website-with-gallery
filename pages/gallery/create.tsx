@@ -22,29 +22,29 @@ const Create: NextPageWithLayout = (): JSX.Element => {
   }
 
   return (
-    <div className="mt-4 sm:mt-8 md:mt-16">
-      <Tab.Group>
-        <Tab.List className="flex w-full justify-around space-x-1 rounded-xl p-1">
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.name}
-              className={({ selected }) =>
-                `w-full border-b-2 text-xl ${
-                  selected && 'border-black font-bold'
-                }`
-              }
-            >
-              {tab.name}
-            </Tab>
-          ))}
-        </Tab.List>
-        <Tab.Panels className="mt-2">
-          {tabs.map((tab, index) => (
-            <Tab.Panel key={index}>{tab.node}</Tab.Panel>
-          ))}
-        </Tab.Panels>
-      </Tab.Group>
-    </div>
+    <Tab.Group as={'div'} className="mt-4 sm:mt-8 md:mt-16" defaultIndex={0}>
+      <Tab.List className="flex w-full justify-around space-x-1 p-1">
+        {tabs.map((tab) => (
+          <Tab
+            key={tab.name}
+            className={({ selected }) =>
+              `w-full border-b-2 text-xl focus:outline-none ${
+                selected && 'border-black font-bold'
+              }`
+            }
+          >
+            {tab.name}
+          </Tab>
+        ))}
+      </Tab.List>
+      <Tab.Panels className="mt-2">
+        {tabs.map((tab, index) => (
+          <Tab.Panel key={index} className="focus:outline-none">
+            {tab.node}
+          </Tab.Panel>
+        ))}
+      </Tab.Panels>
+    </Tab.Group>
   )
 }
 
