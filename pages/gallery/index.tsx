@@ -2,11 +2,13 @@ import type { ReactElement } from 'react'
 import type { GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import PhotoAlbum from 'react-photo-album'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
+import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const {
@@ -15,6 +17,20 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
       delete: { mutate },
     },
   } = useGallery()
+
+  const photos: ExtendedPhoto[] =
+    items?.map((item) => ({
+      key: item.id,
+      title: item.id,
+      src: item.image?.url ?? '/placeholder.png',
+      width: item.image?.width ?? 1665,
+      height: item.image?.height ?? 2048,
+      onDelete: () =>
+        mutate({
+          id: item.id,
+          publicId: item.image ? item.image.publicId : undefined,
+        }),
+    })) || []
 
   const { data: session } = useSession()
 
@@ -28,6 +44,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <ul>
+      <PhotoAlbum layout="rows" photos={photos} renderPhoto={ImageCard} />
       {items?.length === 0 && <p>empty list</p>}
       {items?.map((item, index) => (
         <li key={index}>
