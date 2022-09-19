@@ -22,8 +22,8 @@ const useCreateCategory = () => {
         queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
           ['categories'],
           (prev) => [
-            ...(prev as []),
             { id: Math.random().toString(), name: variables.category },
+            ...(prev as []),
           ]
         )
         return { snapshot }

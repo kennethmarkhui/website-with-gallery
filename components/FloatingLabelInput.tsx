@@ -1,12 +1,16 @@
-import { forwardRef } from 'react'
+import { forwardRef, InputHTMLAttributes } from 'react'
+import { HiPlus } from 'react-icons/hi'
 
-type InputProps = React.DetailedHTMLProps<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  HTMLInputElement
-> & { errorMessage?: string }
+type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+  errorMessage?: string
+  withSubmitButton?: boolean
+}
 
-export const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
-  function FloatingLabelInput(props, ref) {
+const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
+  function FloatingLabelInput(
+    { errorMessage, withSubmitButton, ...rest },
+    ref
+  ) {
     return (
       <div className="group relative z-0 mb-6 w-full">
         <input
@@ -14,18 +18,25 @@ export const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
           className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
           autoComplete="off"
           placeholder=" "
-          {...props}
-        ></input>
+          {...rest}
+        />
         <label
-          htmlFor={props.id}
+          htmlFor={rest.id}
           className="absolute top-3 -z-10 origin-[0] -translate-y-6 scale-75 transform text-sm capitalize text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:left-0 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:font-medium peer-focus:text-black"
         >
-          {props.name}
+          {rest.name}
         </label>
-        {props.errorMessage && (
-          <p className="absolute text-sm text-red-500">{props.errorMessage}</p>
+        {withSubmitButton && (
+          <button type="submit" className="absolute top-3 right-0">
+            <HiPlus className="text-gray-500 hover:text-black focus:text-black" />
+          </button>
+        )}
+        {errorMessage && (
+          <p className="absolute text-sm text-red-500">{errorMessage}</p>
         )}
       </div>
     )
   }
 )
+
+export default FloatingLabelInput

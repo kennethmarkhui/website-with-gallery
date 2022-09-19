@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
@@ -15,23 +14,29 @@ const useDelete = () => {
       ),
     {
       onMutate: async ({ id }) => {
-        await queryClient.cancelQueries(['gallery'])
-        const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
-          'gallery',
-        ])
-        queryClient.setQueryData<GalleryFormFields[]>(
-          ['gallery'],
-          (prevItems) => prevItems?.filter((current) => current.id !== id)
-        )
-        return { snapshot }
+        // await queryClient.cancelQueries(['gallery'])
+        // const snapshot = queryClient.getQueryData<
+        //   InfiniteData<{
+        //     items: OmittedItem[]
+        //     nextCursor: NextCursor
+        //   }>
+        // >(['gallery'])
+        // queryClient.setQueryData<InfiniteData<{
+        //   items: OmittedItem[]
+        //   nextCursor: NextCursor
+        // }>>(
+        //   ['gallery'],
+        //   (prevItems) => prevItems?.filter((current) => current.id !== id)
+        // )
+        // return { snapshot }
       },
       onError: (error, id, context) => {
-        queryClient.setQueryData(['gallery'], context?.snapshot)
+        // queryClient.setQueryData(['gallery'], context?.snapshot)
       },
-      onSuccess: (data, id, context) => {},
-      onSettled: (data, error, item, context) => {
+      onSuccess: (data, id, context) => {
         queryClient.invalidateQueries(['gallery'])
       },
+      onSettled: (data, error, item, context) => {},
     }
   )
 }

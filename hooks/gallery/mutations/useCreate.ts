@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { GalleryErrorResponse, GalleryFormFields } from 'types/gallery'
-import { queryClient } from 'lib/query'
+import type { GalleryErrorResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
+import { queryClient } from 'lib/query'
 
 const useCreate = () => {
   return useMutation(
@@ -14,19 +14,27 @@ const useCreate = () => {
     // }
     {
       onMutate: async (item) => {
+        // item is in FormData
+        // const dataObject = Object.fromEntries(item)
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-        await queryClient.cancelQueries(['gallery'])
+        // await queryClient.cancelQueries(['gallery'])
         // Snapshot the previous value
-        const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
-          'gallery',
-        ])
+        // const snapshot = queryClient.getQueryData<
+        //   InfiniteData<{
+        //     items: OmittedItem[]
+        //     nextCursor: NextCursor
+        //   }>
+        // >(['gallery'])
         // Optimistically update to the new value
-        queryClient.setQueryData<GalleryFormFields[]>(
-          ['gallery'],
-          (prevItems) => [...(prevItems as []), item]
-        )
+        // queryClient.setQueryData<
+        //   InfiniteData<{
+        //     items: OmittedItem[]
+        //     nextCursor: NextCursor
+        //   }>
+        // >(['gallery'], (prevItems) => [item, ...(prevItems as [])]
+        // )
         // Return a context object with the snapshotted value
-        return { snapshot }
+        // return { snapshot }
       },
       // If the mutation fails, use the context returned from onMutate to roll back
       onError: (error: GalleryErrorResponse, item, context) => {
@@ -34,12 +42,12 @@ const useCreate = () => {
         // console.log('error: ', error)
         // console.log('items: ', items)
         // console.log('context:', context)
-        queryClient.setQueryData(['gallery'], context?.snapshot)
+        // queryClient.setQueryData(['gallery'], context?.snapshot)
       },
-      onSuccess: (data, item, context) => {},
-      onSettled: (data, error, item, context) => {
+      onSuccess: (data, item, context) => {
         queryClient.invalidateQueries(['gallery'])
       },
+      onSettled: (data, error, item, context) => {},
     }
   )
 }

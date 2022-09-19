@@ -3,8 +3,9 @@ import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { HiPhotograph } from 'react-icons/hi'
+import { FaSpinner } from 'react-icons/fa'
 
-import { FloatingLabelInput } from '../FloatingLabelInput'
+import FloatingLabelInput from '../FloatingLabelInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
@@ -48,6 +49,7 @@ const GalleryForm = ({
     mutation: {
       create: { mutate: createMutate, status: createStatus },
       update: { mutate: updateMutate, status: updateStatus },
+      delete: { mutate: deleteMutate, status: deleteStatus },
     },
   } = useGallery()
 
@@ -104,6 +106,7 @@ const GalleryForm = ({
   const imageChangeHandler: ChangeEventHandler<HTMLInputElement> = (
     e
   ): void => {
+    setImageFile(null)
     const file = e.currentTarget.files?.[0]
     if (!file || !file.type.startsWith('image/')) {
       return
@@ -219,15 +222,63 @@ const GalleryForm = ({
           </p>
         )}
       </div>
-      <button
-        type="submit"
-        className="mt-4 w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
-        disabled={
-          createStatus === 'loading' || updateStatus === 'loading' || !isDirty
-        }
-      >
-        Submit
-      </button>
+      <div className="mt-4 flex gap-4 ">
+        <button
+          type="submit"
+          className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
+          disabled={
+            createStatus === 'loading' ||
+            updateStatus === 'loading' ||
+            deleteStatus === 'loading' ||
+            !isDirty
+          }
+        >
+          {createStatus === 'loading' || updateStatus === 'loading' ? (
+            <span className="flex items-center justify-center gap-1">
+              Submitting
+              <FaSpinner className="animate-spin" />
+            </span>
+          ) : (
+            'Submit'
+          )}
+        </button>
+        {mode === 'update' && (
+          <button
+            type="button"
+            className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
+            disabled={
+              createStatus === 'loading' ||
+              updateStatus === 'loading' ||
+              deleteStatus === 'loading'
+            }
+            onClick={() =>
+              deleteMutate(
+                {
+                  id: defaults?.id as string,
+                  publicId: defaults?.image
+                    ? defaults?.image.publicId
+                    : undefined,
+                },
+                {
+                  onSuccess: () => {
+                    reset()
+                    router.push('/gallery')
+                  },
+                }
+              )
+            }
+          >
+            {deleteStatus === 'loading' ? (
+              <span className="flex items-center justify-center gap-1">
+                Deleting
+                <FaSpinner className="animate-spin" />
+              </span>
+            ) : (
+              'Delete'
+            )}
+          </button>
+        )}
+      </div>
     </form>
   )
 }

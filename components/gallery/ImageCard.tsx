@@ -1,22 +1,18 @@
 import React from 'react'
 import Image from 'next/image'
 import { Photo, PhotoProps } from 'react-photo-album'
-import { HiPencil, HiTrash } from 'react-icons/hi'
+import { HiPencil } from 'react-icons/hi'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
-export interface ExtendedPhoto extends Photo {
-  onDelete: () => void
-}
-
-type ImageCardProps = PhotoProps<ExtendedPhoto> & {
+type ImageCardProps = PhotoProps<Photo> & {
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>
 }
 
 const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
   const { data: session } = useSession()
 
-  const { width, height, onDelete } = photo
+  const { width, height } = photo
   const { src, alt, title, style, sizes, className, onClick } = imageProps
   const { style: wrapperStyle, ...restWrapperProps } = wrapperProps ?? {}
 
@@ -49,7 +45,6 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
               <HiPencil />
             </a>
           </Link>
-          <HiTrash onClick={onDelete} />
         </span>
       )}
     </div>

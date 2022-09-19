@@ -14,6 +14,9 @@ export const fetchCategories = async (): Promise<
       id: true,
       name: true,
     },
+    orderBy: {
+      updatedAt: 'desc',
+    },
   })
 }
 

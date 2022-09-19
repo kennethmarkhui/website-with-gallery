@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
-import { HiPlus, HiX, HiTrash } from 'react-icons/hi'
+import { HiX, HiTrash } from 'react-icons/hi'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
+import FloatingLabelInput from '../FloatingLabelInput'
 
 const CategoryForm = (): JSX.Element => {
   const {
@@ -29,6 +30,7 @@ const CategoryForm = (): JSX.Element => {
     handleSubmit,
     setValue,
     setError,
+    setFocus,
     reset,
   } = useForm<{ category: string }>()
 
@@ -77,37 +79,23 @@ const CategoryForm = (): JSX.Element => {
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="relative mx-auto mt-4 flex flex-col items-center justify-center sm:mt-8 md:mt-16"
+        className="mx-auto mt-4 w-full sm:mt-8 sm:w-1/2 md:mt-16 lg:w-1/3"
       >
-        <div>
-          <label htmlFor="category" className="sr-only" />
-          <input
-            id="category"
-            {...register('category', {
-              required: 'Must not be empty.',
-              maxLength: { value: 20, message: 'Max character of 20.' },
-            })}
-            placeholder="Add a Category"
-            title="Add a Category"
-            className={`border-grey-300 -mr-8 w-full transform rounded-full border px-6 py-2 shadow transition-colors duration-300 focus:outline-none focus:ring-1 focus:ring-black ${
-              errors.category && 'border-red-500 focus:ring-red-500'
-            }`}
-          />
-          <button
-            type="submit"
-            disabled={!isDirty}
-            className="transform"
-            title="Submit"
-          >
-            <HiPlus className="text-gray-500 duration-200 hover:text-black focus:text-black" />
-          </button>
-        </div>
-        {errors.category && (
-          <span className="absolute top-10 text-red-500">
-            {errors.category.message}
-          </span>
-        )}
+        <FloatingLabelInput
+          id="category"
+          {...register('category', {
+            required: 'Must not be empty.',
+            maxLength: { value: 20, message: 'Max character of 20.' },
+            pattern: {
+              value: /^[a-zA-Z\d]+$/,
+              message: 'Alphanumerics only.',
+            },
+          })}
+          errorMessage={errors.category?.message}
+          withSubmitButton
+        />
       </form>
+
       <ul className="mt-8 flex flex-wrap gap-4 md:mt-16">
         {status === 'loading' && <p>loading</p>}
         {status === 'error' && error instanceof Error && <p>{error.message}</p>}
@@ -125,10 +113,11 @@ const CategoryForm = (): JSX.Element => {
                 <button
                   className="hover:underline"
                   onClick={() => {
-                    reset()
+                    // reset()
                     setValue('category', name)
                     setFormMode('update')
                     setCategoryToUpdate({ id, name })
+                    setFocus('category', { shouldSelect: true })
                   }}
                   title={`Update ${name}`}
                 >

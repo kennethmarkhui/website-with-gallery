@@ -10,7 +10,9 @@ export type GalleryFormFields<TImage = void> = Omit<
   RecursivelyReplaceNullWithUndefined<Item>,
   'dateAdded' | 'updatedAt'
 > & {
-  image: TImage extends void ? Pick<Image, 'url' | 'width' | 'height'> : TImage
+  image: TImage extends void
+    ? Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
+    : TImage
 }
 
 export type GalleryFormKeys = keyof GalleryFormFields
