@@ -5,7 +5,9 @@ import { HiPencil, HiTrash } from 'react-icons/hi'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
-export type ExtendedPhoto = Photo & { onDelete: () => void }
+export interface ExtendedPhoto extends Photo {
+  onDelete: () => void
+}
 
 type ImageCardProps = PhotoProps<ExtendedPhoto> & {
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>
@@ -38,6 +40,7 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
         height={height}
         className={className}
         onClick={onClick}
+        unoptimized
       />
       {session && session.user.role === 'ADMIN' && (
         <span className="absolute right-0 top-0 flex cursor-pointer">
