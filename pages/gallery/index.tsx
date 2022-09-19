@@ -1,6 +1,7 @@
-import type { ReactElement } from 'react'
+import { ReactElement, useMemo } from 'react'
 import type { GetStaticProps } from 'next'
 import PhotoAlbum, { Photo } from 'react-photo-album'
+import { FaSpinner } from 'react-icons/fa'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
@@ -20,16 +21,19 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     },
   } = useGallery()
 
-  const photos: Photo[] =
-    data?.pages.flatMap(({ items }) =>
-      items.map((item) => ({
-        key: item.id,
-        title: item.id,
-        src: item.image?.url ?? '/placeholder.png',
-        width: item.image?.width ?? 1665,
-        height: item.image?.height ?? 2048,
-      }))
-    ) || []
+  const photos: Photo[] = useMemo(
+    () =>
+      data?.pages.flatMap(({ items }) =>
+        items.map((item) => ({
+          key: item.id,
+          title: item.id,
+          src: item.image?.url ?? '/placeholder.png',
+          width: item.image?.width ?? 1665,
+          height: item.image?.height ?? 2048,
+        }))
+      ) || [],
+    [data]
+  )
 
   if (status === 'loading') {
     return <p>loading</p>
@@ -42,12 +46,18 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   return (
     <>
       <PhotoAlbum layout="rows" photos={photos} renderPhoto={ImageCard} />
-      <button disabled={!hasNextPage} onClick={() => fetchNextPage()}>
-        {isFetchingNextPage
-          ? 'Loading more...'
-          : hasNextPage
-          ? 'Load More'
-          : 'Nothing more to load'}
+      <button
+        className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
+        disabled={!hasNextPage}
+        onClick={() => fetchNextPage()}
+      >
+        {isFetchingNextPage ? (
+          <FaSpinner className="animate-spin" />
+        ) : hasNextPage ? (
+          'Load More'
+        ) : (
+          'Nothing more to load'
+        )}
       </button>
     </>
   )

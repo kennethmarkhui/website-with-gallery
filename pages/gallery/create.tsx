@@ -22,7 +22,7 @@ const Create: NextPageWithLayout = (): JSX.Element => {
   }
 
   return (
-    <Tab.Group as={'div'} className="mt-4 sm:mt-8 md:mt-16" defaultIndex={0}>
+    <Tab.Group as={'div'} defaultIndex={0}>
       <Tab.List className="flex w-full justify-around space-x-1 p-1">
         {tabs.map((tab) => (
           <Tab
