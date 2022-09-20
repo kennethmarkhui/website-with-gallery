@@ -54,52 +54,8 @@ export default async function handler(
         if (!!existingImage) {
           await cloudinary.uploader.destroy(existingImage.publicId)
         }
-
-        const item = await prisma.item.update({
-          where: { id: fields.id as string },
-          data: {
-            name: fields.name ? (fields.name as string) : null,
-            storage: fields.storage ? (fields.storage as string) : null,
-            ...(fields.category !== ''
-              ? {
-                  categoryRelation: {
-                    connect: {
-                      name: fields.category
-                        ? (fields.category as string)
-                        : undefined,
-                    },
-                  },
-                }
-              : {
-                  categoryRelation: {
-                    disconnect: true,
-                  },
-                }),
-            image: {
-              upsert: {
-                create: {
-                  url: cloudinaryResponse.secure_url,
-                  publicId: cloudinaryResponse.public_id,
-                  width: cloudinaryResponse.width,
-                  height: cloudinaryResponse.height,
-                },
-                update: {
-                  url: cloudinaryResponse.secure_url,
-                  publicId: cloudinaryResponse.public_id,
-                  width: cloudinaryResponse.width,
-                  height: cloudinaryResponse.height,
-                },
-              },
-            },
-          },
-          select: { id: true },
-        })
-        return res
-          .status(200)
-          .json({ message: `id ${item.id} has been updated!` })
       }
 
-      // NO IMAGE PROVIDED
       const item = await prisma.item.update({
         where: { id: fields.id as string },
         data: {
@@ -120,6 +76,33 @@ export default async function handler(
                   disconnect: true,
                 },
               }),
+          ...(image && {
+            image: {
+              upsert: {
+                create: {
+                  url: cloudinary.url(cloudinaryResponse?.public_id as string, {
+                    fetch_format: 'auto',
+                    quality: 'auto',
+                  }),
+                  publicId: cloudinaryResponse?.public_id as string,
+                  width: cloudinaryResponse?.width as number,
+                  height: cloudinaryResponse?.height as number,
+                },
+                update: {
+                  url: cloudinary.url(
+                    cloudinaryResponse?.public_id as string as string,
+                    {
+                      fetch_format: 'auto',
+                      quality: 'auto',
+                    }
+                  ),
+                  publicId: cloudinaryResponse?.public_id as string,
+                  width: cloudinaryResponse?.width as number,
+                  height: cloudinaryResponse?.height as number,
+                },
+              },
+            },
+          }),
         },
         select: { id: true },
       })

@@ -61,37 +61,6 @@ export default async function handler(
               folder: process.env.CLOUDINARY_FOLDER,
             }
           )
-
-          const item = await prisma.item.create({
-            data: {
-              id: fields.id as string,
-              name: fields.name ? (fields.name as string) : null,
-              storage: fields.storage ? (fields.storage as string) : null,
-              ...(fields.category !== '' && {
-                categoryRelation: {
-                  connect: {
-                    name: fields.category
-                      ? (fields.category as string)
-                      : undefined,
-                  },
-                },
-              }),
-              image: {
-                create: {
-                  url: cloudinaryResponse.secure_url,
-                  publicId: cloudinaryResponse.public_id,
-                  width: cloudinaryResponse.width,
-                  height: cloudinaryResponse.height,
-                },
-              },
-            },
-            select: {
-              id: true,
-            },
-          })
-          return res
-            .status(201)
-            .json({ message: `id ${item.id} has been created!` })
         }
 
         const item = await prisma.item.create({
@@ -105,6 +74,20 @@ export default async function handler(
                   name: fields.category
                     ? (fields.category as string)
                     : undefined,
+                },
+              },
+            }),
+            ...(image && {
+              image: {
+                create: {
+                  url: cloudinary.url(cloudinaryResponse?.public_id as string, {
+                    // https://cloudinary.com/documentation/image_transformations#delivering_optimized_and_responsive_mediahttps://cloudinary.com/documentation/image_transformations#delivering_optimized_and_responsive_media
+                    fetch_format: 'auto',
+                    quality: 'auto',
+                  }),
+                  publicId: cloudinaryResponse?.public_id as string,
+                  width: cloudinaryResponse?.width as number,
+                  height: cloudinaryResponse?.height as number,
                 },
               },
             }),
