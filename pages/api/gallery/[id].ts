@@ -25,7 +25,7 @@ export async function fetchItem(id: string): Promise<OmittedItem | null> {
 
 export async function fetchImage(id: string) {
   return await prisma.image.findFirst({
-    where: { id },
+    where: { itemId: id },
     select: {
       url: true,
       publicId: true,
