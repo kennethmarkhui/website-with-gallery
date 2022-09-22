@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { HiPhotograph } from 'react-icons/hi'
+import { HiPhotograph, HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 
 import FloatingLabelInput from '../FloatingLabelInput'
@@ -30,6 +30,7 @@ const GalleryForm = ({
     watch,
     handleSubmit,
     reset,
+    resetField,
     setError,
   } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
@@ -54,10 +55,11 @@ const GalleryForm = ({
 
   const imageFileList = watch('image')
 
-  const { preview: imagePreview, fileListRef } = useFilePreview(
-    imageFileList,
-    defaults?.image.url
-  )
+  const {
+    preview: imagePreview,
+    fileListRef,
+    removeFile,
+  } = useFilePreview(imageFileList, defaults?.image && defaults.image.url)
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
     if (fileListRef.current) {
@@ -149,7 +151,7 @@ const GalleryForm = ({
           {...register('image', {
             validate: {
               fileSize: (files) => {
-                if (!files[0]) return true
+                if (!files || !files[0]) return true
                 return (
                   files[0]?.size < maxFileSize ||
                   `Max filesize ${formatBytes(maxFileSize)}.`
@@ -183,6 +185,16 @@ const GalleryForm = ({
             </div>
           )}
         </label>
+        {imagePreview && fileListRef.current && (
+          <button
+            type="button"
+            className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 "
+            onClick={() => removeFile(() => resetField('image'))}
+          >
+            <HiX />
+          </button>
+        )}
+
         {errors.image && (
           <p className="absolute text-sm text-red-500">
             {errors.image.message}

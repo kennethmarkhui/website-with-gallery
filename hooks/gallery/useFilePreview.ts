@@ -1,17 +1,32 @@
-import { MutableRefObject, useEffect, useRef, useState } from 'react'
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
+// This hook rely on react-hook-form to handle fileList state
 const useFilePreview = (
   fileList: FileList | undefined,
   defaultPreview?: string
 ): {
   preview: string | null
   fileListRef: MutableRefObject<FileList | undefined>
+  removeFile: (callback: () => void) => void
 } => {
   const [preview, setPreview] = useState<string | null>(null)
   const fileListRef = useRef<FileList>()
   if (fileList?.length === 1) {
     fileListRef.current = fileList
   }
+
+  const removeFile = useCallback((callback: () => void): void => {
+    setPreview(null)
+    fileListRef.current = undefined
+    // callback to call react-hook-form's resetField
+    callback()
+  }, [])
 
   useEffect(() => {
     if (!defaultPreview) {
@@ -35,7 +50,7 @@ const useFilePreview = (
     }
   }, [fileList])
 
-  return { preview, fileListRef }
+  return { preview, fileListRef, removeFile }
 }
 
 export default useFilePreview

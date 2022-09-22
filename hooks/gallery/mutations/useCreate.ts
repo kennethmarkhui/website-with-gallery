@@ -12,7 +12,7 @@ const useCreate = () => {
       formData.append('name', data.name ? data.name : '')
       formData.append('storage', data.storage ? data.storage : '')
       formData.append('category', data.category ? data.category : '')
-      if (data.image.length !== 0) {
+      if (data.image && data.image.length !== 0) {
         formData.append('image', data.image[0])
       }
       // Object.keys(data).forEach((key) => {
