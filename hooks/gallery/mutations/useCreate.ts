@@ -1,21 +1,39 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { GalleryErrorResponse } from 'types/gallery'
+import type { GalleryErrorResponse, GalleryFormFields } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 import { queryClient } from 'lib/query'
 
 const useCreate = () => {
   return useMutation(
-    (data: any) =>
-      fetcher('/api/gallery/create', { method: 'POST', body: data }),
-    //  loop over FormData
-    // for (var pair of data.entries()) {
-    //   console.log(pair[0] + ', ' + pair[1])
-    // }
+    async (data: GalleryFormFields<FileList>) => {
+      const formData = new FormData()
+      formData.append('id', data.id)
+      formData.append('name', data.name ? data.name : '')
+      formData.append('storage', data.storage ? data.storage : '')
+      formData.append('category', data.category ? data.category : '')
+      if (data.image.length !== 0) {
+        formData.append('image', data.image[0])
+      }
+      // Object.keys(data).forEach((key) => {
+      //   if (key === 'image' && data.image.length !== 0) {
+      //     return formData.append(key, data[key][0])
+      //   }
+      //   formData.append(key, data[key])
+      // })
+
+      //  loop over FormData
+      // for (var pair of data.entries()) {
+      //   console.log(pair[0] + ', ' + pair[1])
+      // }
+
+      return await fetcher('/api/gallery/create', {
+        method: 'POST',
+        body: formData,
+      })
+    },
     {
       onMutate: async (item) => {
-        // item is in FormData
-        // const dataObject = Object.fromEntries(item)
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
         // await queryClient.cancelQueries(['gallery'])
         // Snapshot the previous value

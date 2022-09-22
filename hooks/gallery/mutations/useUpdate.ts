@@ -1,16 +1,26 @@
 import { useMutation } from '@tanstack/react-query'
 
-import type { GalleryErrorResponse } from 'types/gallery'
+import type { GalleryErrorResponse, GalleryFormFields } from 'types/gallery'
 import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
 const useUpdate = () => {
   return useMutation(
-    (data: any) =>
-      fetcher(`/api/gallery/update/${data.get('id')}`, {
+    async (data: GalleryFormFields<FileList>) => {
+      const formData = new FormData()
+      formData.append('id', data.id)
+      formData.append('name', data.name ? data.name : '')
+      formData.append('storage', data.storage ? data.storage : '')
+      formData.append('category', data.category ? data.category : '')
+      if (data.image.length !== 0) {
+        formData.append('image', data.image[0])
+      }
+
+      return await fetcher(`/api/gallery/update/${data.id}`, {
         method: 'PUT',
-        body: data,
-      }),
+        body: formData,
+      })
+    },
     {
       onMutate: async (item) => {
         // await queryClient.cancelQueries(['gallery'])

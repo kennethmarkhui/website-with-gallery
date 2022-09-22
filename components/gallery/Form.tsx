@@ -1,4 +1,3 @@
-import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -9,6 +8,7 @@ import FloatingLabelInput from '../FloatingLabelInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
+import useFilePreview from 'hooks/gallery/useFilePreview'
 import { formatBytes } from 'lib/utils'
 
 interface IGalleryForm {
@@ -22,16 +22,15 @@ const GalleryForm = ({
   mode = 'create',
   defaults,
 }: IGalleryForm): JSX.Element => {
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const router = useRouter()
 
   const {
     register,
-    handleSubmit,
     formState: { errors, isDirty },
-    setError,
+    watch,
+    handleSubmit,
     reset,
+    setError,
   } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
       id: defaults ? defaults.id : '',
@@ -53,25 +52,21 @@ const GalleryForm = ({
     },
   } = useGallery()
 
-  const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
-    const formData = new FormData()
-    formData.append('id', data.id)
-    formData.append('name', data.name ? data.name : '')
-    formData.append('storage', data.storage ? data.storage : '')
-    formData.append('category', data.category ? data.category : '')
-    if (data.image.length !== 0) {
-      formData.append('image', data.image[0])
-    }
+  const imageFileList = watch('image')
 
-    // Object.keys(data).forEach((key) => {
-    //   if (key === 'image' && data.image.length !== 0) {
-    //     return formData.append(key, data[key][0])
-    //   }
-    //   formData.append(key, data[key])
-    // })
+  const { preview: imagePreview, fileListRef } = useFilePreview(
+    imageFileList,
+    defaults?.image.url
+  )
+
+  const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
+    if (fileListRef.current) {
+      // persist file when user select a file then tried to select a new file but chose to cancel
+      data.image = fileListRef.current
+    }
 
     return mode === 'update'
-      ? updateMutate(formData, {
+      ? updateMutate(data, {
           onSuccess: () => {
             reset()
             router.push('/gallery')
@@ -86,7 +81,7 @@ const GalleryForm = ({
             }
           },
         })
-      : createMutate(formData, {
+      : createMutate(data, {
           onSuccess: () => {
             reset()
             router.push('/gallery')
@@ -102,33 +97,6 @@ const GalleryForm = ({
           },
         })
   }
-
-  const imageChangeHandler: ChangeEventHandler<HTMLInputElement> = (
-    e
-  ): void => {
-    setImageFile(null)
-    const file = e.currentTarget.files?.[0]
-    if (!file || !file.type.startsWith('image/')) {
-      return
-    }
-    setImageFile(file)
-  }
-
-  useEffect(() => {
-    if (!imageFile) {
-      return
-    }
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string)
-    }
-    reader.readAsDataURL(imageFile)
-
-    return () => {
-      setImageFile(null)
-      setImagePreview(null)
-    }
-  }, [imageFile])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
@@ -179,7 +147,6 @@ const GalleryForm = ({
           hidden
           id="image"
           {...register('image', {
-            onChange: (event) => imageChangeHandler(event),
             validate: {
               fileSize: (files) => {
                 if (!files[0]) return true

@@ -1,24 +1,17 @@
 import { ReactElement, useMemo } from 'react'
 import type { GetStaticProps } from 'next'
 import PhotoAlbum, { Photo } from 'react-photo-album'
-import { FaSpinner } from 'react-icons/fa'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
 import ImageCard from '@/components/gallery/ImageCard'
+import GalleryContainer from '@/components/gallery/GalleryContainer'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const {
-    query: {
-      data,
-      status,
-      error,
-      fetchNextPage,
-      hasNextPage,
-      isFetchingNextPage,
-    },
+    query: { data, status, error },
   } = useGallery()
 
   const photos: Photo[] = useMemo(
@@ -44,22 +37,12 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   }
 
   return (
-    <>
-      <PhotoAlbum layout="rows" photos={photos} renderPhoto={ImageCard} />
-      <button
-        className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
-        disabled={!hasNextPage}
-        onClick={() => fetchNextPage()}
-      >
-        {isFetchingNextPage ? (
-          <FaSpinner className="animate-spin" />
-        ) : hasNextPage ? (
-          'Load More'
-        ) : (
-          'Nothing more to load'
-        )}
-      </button>
-    </>
+    <PhotoAlbum
+      layout="rows"
+      photos={photos}
+      renderPhoto={ImageCard}
+      renderContainer={GalleryContainer}
+    />
   )
 }
 
