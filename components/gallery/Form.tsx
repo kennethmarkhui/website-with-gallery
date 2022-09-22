@@ -172,6 +172,7 @@ const GalleryForm = ({
               width={250}
               objectFit="cover"
               alt="preview"
+              unoptimized
             />
           ) : (
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
