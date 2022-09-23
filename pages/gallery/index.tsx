@@ -6,7 +6,7 @@ import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
-import ImageCard from '@/components/gallery/ImageCard'
+import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
@@ -14,7 +14,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     query: { data, status, error },
   } = useGallery()
 
-  const photos: Photo[] = useMemo(
+  const photos: ExtendedPhoto[] = useMemo(
     () =>
       data?.pages.flatMap(({ items }) =>
         items.map((item) => ({
@@ -23,6 +23,10 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           src: item.image?.url ?? '/placeholder.png',
           width: item.image?.width ?? 1665,
           height: item.image?.height ?? 2048,
+          name: item.name ?? '',
+          storage: item.storage ?? '',
+          category: item.category ?? '',
+          publicId: item.image?.publicId ?? '',
         }))
       ) || [],
     [data]

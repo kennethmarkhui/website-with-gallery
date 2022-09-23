@@ -1,12 +1,13 @@
 import useGallery from 'hooks/gallery/useGallery'
 import { RenderContainerProps } from 'react-photo-album'
 import { FaSpinner } from 'react-icons/fa'
+import { ExtendedPhoto } from './ImageCard'
 
 const GalleryContainer = ({
   containerProps,
   children,
   containerRef,
-}: RenderContainerProps) => {
+}: RenderContainerProps<ExtendedPhoto>) => {
   const {
     query: { isFetchingNextPage, hasNextPage, fetchNextPage },
   } = useGallery()

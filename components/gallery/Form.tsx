@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -32,18 +33,27 @@ const GalleryForm = ({
     reset,
     resetField,
     setError,
-  } = useForm<GalleryFormFields<FileList>>({
-    defaultValues: {
-      id: defaults ? defaults.id : '',
-      name: defaults ? (defaults.name ? defaults.name : '') : '',
-      storage: defaults ? (defaults.storage ? defaults.storage : '') : '',
-      category: defaults ? (defaults.category ? defaults.category : '') : '',
-    },
-  })
+    setValue,
+  } = useForm<GalleryFormFields<FileList>>()
 
   const {
     query: { data: categories, status: categoryStatus },
   } = useCategory()
+
+  useEffect(() => {
+    if (
+      mode !== 'update' ||
+      categoryStatus === 'loading' ||
+      categoryStatus === 'error' ||
+      !defaults
+    ) {
+      return
+    }
+    setValue('id', defaults.id)
+    setValue('name', defaults.name)
+    setValue('storage', defaults.storage)
+    setValue('category', defaults.category)
+  }, [categoryStatus, defaults, setValue, mode])
 
   const {
     mutation: {

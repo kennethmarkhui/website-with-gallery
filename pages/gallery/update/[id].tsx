@@ -29,15 +29,23 @@ Update.getLayout = function getLayout(page: ReactElement) {
 
 export const getServerSideProps: GetServerSideProps = async ({
   locale,
-  params,
+  query,
 }) => {
   let data
-  if (params?.id) {
+  if (query.data) {
+    data = JSON.parse(query.data as string)
+    data.id = query.id
+  }
+  if (!query.data) {
+    // fetch item if no query data provided
     try {
-      const resData = await fetchItem(params.id as string)
+      const resData = await fetchItem(query.id as string)
       data = resData
     } catch (error) {
       console.error(error)
+      return {
+        redirect: { destination: '/gallery', permanent: false },
+      }
     }
   }
 
