@@ -6,6 +6,7 @@ import { HiPhotograph, HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 
 import FloatingLabelInput from '../FloatingLabelInput'
+import FloatingLabelSelect from '../FloatingLabelSelect'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
@@ -126,33 +127,13 @@ const GalleryForm = ({
       />
       <FloatingLabelInput id="name" {...register('name')} />
       <FloatingLabelInput id="storage" {...register('storage')} />
-      <div className="group relative z-0 mb-6 w-full">
-        <select
-          id="category"
-          className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
-          {...register('category')}
-        >
-          {categoryStatus === 'loading' && <option>loading</option>}
-          {categoryStatus === 'success' && (
-            <>
-              <option value=""></option>
-              {categories?.map(({ id, name }) => {
-                return (
-                  <option key={id} value={name}>
-                    {name}
-                  </option>
-                )
-              })}
-            </>
-          )}
-        </select>
-        <label
-          htmlFor="category"
-          className="absolute top-3 -z-10 origin-[0] -translate-y-6 scale-75 transform text-sm text-gray-500 duration-300 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:left-0 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:font-medium peer-focus:text-black"
-        >
-          Category
-        </label>
-      </div>
+      <FloatingLabelSelect
+        id="category"
+        {...register('category')}
+        defaultSelected={defaults?.category}
+        options={categories}
+        loading={categoryStatus === 'loading'}
+      />
       <div className="relative mb-4 w-full">
         <input
           type="file"
