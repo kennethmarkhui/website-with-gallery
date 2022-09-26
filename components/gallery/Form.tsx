@@ -1,12 +1,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import { HiPhotograph, HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 
 import FloatingLabelInput from '../FloatingLabelInput'
 import FloatingLabelSelect from '../FloatingLabelSelect'
+import ImagePreviewInput, { maxFileSize } from '../ImagePreviewInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useGallery from 'hooks/gallery/useGallery'
@@ -17,8 +16,6 @@ interface IGalleryForm {
   mode?: GalleryFormMode
   defaults?: GalleryFormFields
 }
-
-const maxFileSize = 2 * 1024 * 1024 // 2MB
 
 const GalleryForm = ({
   mode = 'create',
@@ -63,6 +60,11 @@ const GalleryForm = ({
       delete: { mutate: deleteMutate, status: deleteStatus },
     },
   } = useGallery()
+
+  const formIsLoading =
+    createStatus === 'loading' ||
+    updateStatus === 'loading' ||
+    deleteStatus === 'loading'
 
   const imageFileList = watch('image')
 
@@ -134,75 +136,29 @@ const GalleryForm = ({
         options={categories}
         loading={categoryStatus === 'loading'}
       />
-      <div className="relative mb-4 w-full">
-        <input
-          type="file"
-          hidden
-          id="image"
-          {...register('image', {
-            validate: {
-              fileSize: (files) => {
-                if (!files || !files[0]) return true
-                return (
-                  files[0]?.size < maxFileSize ||
-                  `Max filesize ${formatBytes(maxFileSize)}.`
-                )
-              },
+      <ImagePreviewInput
+        id="image"
+        {...register('image', {
+          validate: {
+            fileSize: (files) => {
+              if (!files || !files[0]) return true
+              return (
+                files[0]?.size < maxFileSize ||
+                `Max filesize ${formatBytes(maxFileSize)}.`
+              )
             },
-          })}
-          accept="image/*"
-        />
-        <label
-          htmlFor="image"
-          className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
-        >
-          {imagePreview ? (
-            <Image
-              src={imagePreview}
-              height={250}
-              width={250}
-              objectFit="cover"
-              alt="preview"
-              unoptimized
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <HiPhotograph className="mb-3 h-10 w-10 text-gray-400" />
-              <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span>
-              </p>
-              <p className="text-xs text-gray-500">
-                {`Image only. (MAX. ${formatBytes(maxFileSize)})`}
-              </p>
-            </div>
-          )}
-        </label>
-        {imagePreview && fileListRef.current && (
-          <button
-            type="button"
-            className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 "
-            onClick={() => removeFile(() => resetField('image'))}
-          >
-            <HiX />
-          </button>
-        )}
-
-        {errors.image && (
-          <p className="absolute text-sm text-red-500">
-            {errors.image.message}
-          </p>
-        )}
-      </div>
+          },
+        })}
+        imagePreview={imagePreview}
+        fileListRef={fileListRef}
+        removeFile={() => removeFile(() => resetField('image'))}
+        errorMessage={errors.image?.message}
+      />
       <div className="mt-4 flex gap-4 ">
         <button
           type="submit"
           className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
-          disabled={
-            createStatus === 'loading' ||
-            updateStatus === 'loading' ||
-            deleteStatus === 'loading' ||
-            !isDirty
-          }
+          disabled={formIsLoading || !isDirty}
         >
           {createStatus === 'loading' || updateStatus === 'loading' ? (
             <span className="flex items-center justify-center gap-1">
@@ -217,11 +173,7 @@ const GalleryForm = ({
           <button
             type="button"
             className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
-            disabled={
-              createStatus === 'loading' ||
-              updateStatus === 'loading' ||
-              deleteStatus === 'loading'
-            }
+            disabled={formIsLoading}
             onClick={() =>
               deleteMutate(
                 {
