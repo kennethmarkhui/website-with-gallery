@@ -1,6 +1,6 @@
-import { ReactElement, useMemo } from 'react'
+import { ReactElement, useMemo, useState } from 'react'
 import type { GetStaticProps } from 'next'
-import PhotoAlbum, { Photo } from 'react-photo-album'
+import PhotoAlbum from 'react-photo-album'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
@@ -8,8 +8,11 @@ import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
+import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
+  const [modalData, setModalData] = useState<ExtendedPhoto | null>(null)
+
   const {
     query: { data, status, error },
   } = useGallery()
@@ -41,12 +44,18 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   }
 
   return (
-    <PhotoAlbum
-      layout="rows"
-      photos={photos}
-      renderPhoto={ImageCard}
-      renderContainer={GalleryContainer}
-    />
+    <>
+      <PhotoAlbum
+        layout="rows"
+        photos={photos}
+        renderPhoto={ImageCard}
+        renderContainer={GalleryContainer}
+        onClick={(event, photo, index) => setModalData(photo)}
+      />
+      {modalData && (
+        <ImageViewerModal data={modalData} close={() => setModalData(null)} />
+      )}
+    </>
   )
 }
 
