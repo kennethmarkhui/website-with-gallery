@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/future/image'
 import { useSession } from 'next-auth/react'
 import { Dialog } from '@headlessui/react'
-import { HiPencil, HiX, HiZoomIn } from 'react-icons/hi'
+import { HiPencil, HiX, HiZoomIn, HiZoomOut } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 
 import { ExtendedPhoto } from './ImageCard'
@@ -15,7 +15,45 @@ interface IImageViewerModal {
 
 const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
   const [loaded, setLoaded] = useState(false)
+  const [isZoomedIn, setIsZoomedIn] = useState(false)
+  const imageContainerRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
+
+  // TODO drag image while zoomed in
+
+  const zoomInHandler = () => {
+    if (!imageContainerRef.current) return
+
+    const divElement = imageContainerRef.current
+    const divElementRect = divElement.getBoundingClientRect()
+
+    const scale =
+      data.width > divElementRect.width
+        ? data.width / divElementRect.width
+        : '1.5'
+
+    //TODO find a better way to zoom the image
+    if (!isZoomedIn) {
+      divElement.animate([{ transform: `scale(${scale}` }], {
+        duration: 400,
+        fill: 'forwards',
+        easing: 'ease-out',
+      })
+      setIsZoomedIn(true)
+    }
+
+    if (isZoomedIn) {
+      divElement.animate(
+        [
+          {
+            transform: `scale(1)`,
+          },
+        ],
+        { duration: 200, easing: 'ease-out', fill: 'forwards' }
+      )
+      setIsZoomedIn(false)
+    }
+  }
 
   return (
     <Dialog
@@ -26,7 +64,7 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
     >
       {/* header */}
       <header className="absolute z-10 flex w-full items-center justify-between px-6 py-3">
-        <p className="bg-black/40 p-1 text-gray-300 backdrop-blur-md">
+        <p className="rounded-xl bg-black/40 p-2 text-gray-300 backdrop-blur-md">
           {data.title}
         </p>
         {/* buttons */}
@@ -48,20 +86,26 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
                 },
               }}
             >
-              <a className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/40 backdrop-blur-md">
-                <HiPencil className="text-gray-500 hover:text-gray-300" />
+              <a className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md">
+                <HiPencil className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
               </a>
             </Link>
           )}
-          {/* TODO ZOOM FUNCTIONALITY */}
-          <button className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/40 backdrop-blur-md">
-            <HiZoomIn className="text-gray-500 hover:text-gray-300" />
+          <button
+            className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md"
+            onClick={zoomInHandler}
+          >
+            {!isZoomedIn ? (
+              <HiZoomIn className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
+            ) : (
+              <HiZoomOut className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
+            )}
           </button>
           <button
-            className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/40 backdrop-blur-md"
+            className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md"
             onClick={close}
           >
-            <HiX className="text-gray-500 hover:text-gray-300" />
+            <HiX className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
           </button>
         </div>
       </header>
@@ -78,14 +122,17 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
         </footer> */}
       <main className="fixed inset-0 overflow-hidden bg-black">
         <div className="absolute inset-0 h-screen">
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            ref={imageContainerRef}
+            className="absolute inset-0 flex items-center justify-center"
+          >
             {/* loading state */}
             <div
               className={`${
                 loaded ? 'opacity-0' : 'opacity-100'
               } absolute inset-0 flex items-center justify-center`}
             >
-              <FaSpinner className="animate-spin text-gray-300" />
+              <FaSpinner className="h-8 w-8 animate-spin text-gray-300" />
             </div>
             <Image
               src={data.src}
