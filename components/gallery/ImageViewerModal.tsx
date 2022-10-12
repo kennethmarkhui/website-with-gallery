@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/future/image'
 import { useSession } from 'next-auth/react'
@@ -13,9 +13,102 @@ interface IImageViewerModal {
   close: () => void
 }
 
+interface IHandler {
+  onDown?: (e: PointerEvent) => void
+  onMove?: (e: PointerEvent) => void
+  onUp?: (e: PointerEvent) => void
+  onCancel?: (e: PointerEvent) => void
+}
+
+const usePointerEventHandler = <Element extends HTMLElement>(
+  ref: Element | null,
+  ...handlers: IHandler[]
+) => {
+  const [isDragging, setIsDragging] = useState(false)
+
+  useEffect(() => {
+    const onPointerDownHandler = (event: PointerEvent) => {
+      console.log(event)
+
+      setIsDragging(true)
+      handlers.forEach((handler) => {
+        handler.onDown && handler.onDown(event)
+      })
+      const currentTarget = event.currentTarget as Element
+      currentTarget.setPointerCapture(event.pointerId)
+    }
+
+    const onPointerMoveHandler = (event: PointerEvent) => {
+      if (isDragging && event.buttons % 2 !== 1) {
+        onPointerUpHandler(event)
+      }
+      if (isDragging) {
+        handlers.forEach((handler) => {
+          handler.onMove && handler.onMove(event)
+        })
+      }
+      const currentTarget = event.currentTarget as Element
+      currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const onPointerUpHandler = (event: PointerEvent) => {
+      setIsDragging(false)
+      handlers.forEach((handler) => {
+        handler.onUp && handler.onUp(event)
+      })
+    }
+
+    const onPointerCancelHandler = (event: PointerEvent) => {
+      setIsDragging(false)
+      handlers.forEach((handler) => {
+        handler.onCancel && handler.onCancel(event)
+      })
+      const currentTarget = event.currentTarget as Element
+      currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const onBlurHandler = (event: FocusEvent) => {
+      setIsDragging(false)
+    }
+    const onDragStartHandler = (event: DragEvent) => {
+      event.preventDefault()
+    }
+    const onClickHandler = (event: MouseEvent) => {
+      event.preventDefault()
+    }
+
+    if (ref) {
+      ref.addEventListener('pointerdown', onPointerDownHandler)
+      ref.addEventListener('pointermove', onPointerMoveHandler)
+      ref.addEventListener('pointerup', onPointerUpHandler)
+      ref.addEventListener('pointercancel', onPointerCancelHandler)
+      ref.addEventListener('blur', onBlurHandler)
+      ref.addEventListener('dragstart', onDragStartHandler)
+      ref.addEventListener('click', onClickHandler)
+    }
+    return () => {
+      if (ref) {
+        ref.removeEventListener('pointerdown', onPointerDownHandler)
+        ref.removeEventListener('pointermove', onPointerMoveHandler)
+        ref.removeEventListener('pointerup', onPointerUpHandler)
+        ref.removeEventListener('pointercancel', onPointerCancelHandler)
+        ref.removeEventListener('blur', onBlurHandler)
+        ref.removeEventListener('dragstart', onDragStartHandler)
+        ref.removeEventListener('click', onClickHandler)
+      }
+    }
+  }, [ref, isDragging, handlers])
+}
+
 const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
   const [loaded, setLoaded] = useState(false)
   const [isZoomedIn, setIsZoomedIn] = useState(false)
+  const [initialPosition, setInitialPosition] = useState<[number, number]>([
+    0, 0,
+  ])
+  const [cumulativeTranslate, setCumulativeTranslate] = useState<
+    [number, number]
+  >([0, 0])
   const imageContainerRef = useRef<HTMLDivElement>(null)
   const { data: session } = useSession()
 
@@ -24,17 +117,20 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
   const zoomInHandler = () => {
     if (!imageContainerRef.current) return
 
-    const divElement = imageContainerRef.current
-    const divElementRect = divElement.getBoundingClientRect()
+    const imageContainerElement = imageContainerRef.current
+    const imgElement = imageContainerElement.querySelector('img')
+
+    const imageContainerElementRect =
+      imageContainerElement.getBoundingClientRect()
 
     const scale =
-      data.width > divElementRect.width
-        ? data.width / divElementRect.width
+      data.width > imageContainerElementRect.width
+        ? data.width / imageContainerElementRect.width
         : '1.5'
 
     //TODO find a better way to zoom the image
-    if (!isZoomedIn) {
-      divElement.animate([{ transform: `scale(${scale}` }], {
+    if (!isZoomedIn && imgElement) {
+      imgElement.animate([{ transform: `scale(${scale}` }], {
         duration: 400,
         fill: 'forwards',
         easing: 'ease-out',
@@ -43,17 +139,68 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
     }
 
     if (isZoomedIn) {
-      divElement.animate(
-        [
-          {
-            transform: `scale(1)`,
-          },
-        ],
-        { duration: 200, easing: 'ease-out', fill: 'forwards' }
-      )
-      setIsZoomedIn(false)
+      imageContainerElement.animate([{ transform: 'translate(0,0)' }], {
+        duration: 400,
+        fill: 'forwards',
+        easing: 'ease-out',
+      })
+      if (imgElement) {
+        imgElement.animate(
+          [
+            {
+              transform: `scale(1)`,
+            },
+          ],
+          { duration: 200, easing: 'ease-out', fill: 'forwards' }
+        )
+        setIsZoomedIn(false)
+      }
     }
   }
+
+  const initalImagePosition: IHandler = {
+    onDown(event) {
+      setInitialPosition([event.clientX, event.clientY])
+    },
+  }
+
+  const dragImageHandler: IHandler = {
+    onMove(event) {
+      const imageContainerElement = imageContainerRef.current
+
+      if (imageContainerElement && isZoomedIn) {
+        const translate = `translate(${
+          cumulativeTranslate[0] + event.clientX - (initialPosition?.at(0) ?? 0)
+        }px,${
+          cumulativeTranslate[1] + event.clientY - (initialPosition?.at(1) ?? 0)
+        }px)`
+        const ani = imageContainerElement.animate(
+          [{ transform: translate, offset: 1 }],
+          {
+            duration: 50,
+            fill: 'forwards',
+          }
+        )
+        ani.play()
+      }
+    },
+    onUp(event) {
+      if (initialPosition) {
+        if (isZoomedIn) {
+          setCumulativeTranslate([
+            event.clientX - initialPosition[0] + cumulativeTranslate[0],
+            event.clientY - initialPosition[1] + cumulativeTranslate[1],
+          ])
+        }
+      }
+    },
+  }
+
+  usePointerEventHandler(
+    imageContainerRef.current,
+    dragImageHandler,
+    initalImagePosition
+  )
 
   return (
     <Dialog
@@ -124,7 +271,7 @@ const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
         <div className="absolute inset-0 h-screen">
           <div
             ref={imageContainerRef}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex touch-none items-center justify-center"
           >
             {/* loading state */}
             <div
