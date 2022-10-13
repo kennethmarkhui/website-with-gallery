@@ -1,304 +1,499 @@
-import { useEffect, useRef, useState } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  MouseEvent,
+  useCallback,
+} from 'react'
 import Link from 'next/link'
-import Image from 'next/future/image'
 import { useSession } from 'next-auth/react'
+import { useSpring, animated } from '@react-spring/web'
+import { useGesture } from '@use-gesture/react'
+import { HiPencil, HiX } from 'react-icons/hi'
 import { Dialog } from '@headlessui/react'
-import { HiPencil, HiX, HiZoomIn, HiZoomOut } from 'react-icons/hi'
-import { FaSpinner } from 'react-icons/fa'
 
 import { ExtendedPhoto } from './ImageCard'
 
-interface IImageViewerModal {
+// taken from https://github.com/rkusa/react-image-viewer-hook with some changes
+
+export interface ImageViewerProps {
   data: ExtendedPhoto
   close: () => void
 }
 
-interface IHandler {
-  onDown?: (e: PointerEvent) => void
-  onMove?: (e: PointerEvent) => void
-  onUp?: (e: PointerEvent) => void
-  onCancel?: (e: PointerEvent) => void
-}
-
-const usePointerEventHandler = <Element extends HTMLElement>(
-  ref: Element | null,
-  ...handlers: IHandler[]
-) => {
-  const [isDragging, setIsDragging] = useState(false)
-
-  useEffect(() => {
-    const onPointerDownHandler = (event: PointerEvent) => {
-      console.log(event)
-
-      setIsDragging(true)
-      handlers.forEach((handler) => {
-        handler.onDown && handler.onDown(event)
-      })
-      const currentTarget = event.currentTarget as Element
-      currentTarget.setPointerCapture(event.pointerId)
-    }
-
-    const onPointerMoveHandler = (event: PointerEvent) => {
-      if (isDragging && event.buttons % 2 !== 1) {
-        onPointerUpHandler(event)
-      }
-      if (isDragging) {
-        handlers.forEach((handler) => {
-          handler.onMove && handler.onMove(event)
-        })
-      }
-      const currentTarget = event.currentTarget as Element
-      currentTarget.releasePointerCapture(event.pointerId)
-    }
-
-    const onPointerUpHandler = (event: PointerEvent) => {
-      setIsDragging(false)
-      handlers.forEach((handler) => {
-        handler.onUp && handler.onUp(event)
-      })
-    }
-
-    const onPointerCancelHandler = (event: PointerEvent) => {
-      setIsDragging(false)
-      handlers.forEach((handler) => {
-        handler.onCancel && handler.onCancel(event)
-      })
-      const currentTarget = event.currentTarget as Element
-      currentTarget.releasePointerCapture(event.pointerId)
-    }
-
-    const onBlurHandler = (event: FocusEvent) => {
-      setIsDragging(false)
-    }
-    const onDragStartHandler = (event: DragEvent) => {
-      event.preventDefault()
-    }
-    const onClickHandler = (event: MouseEvent) => {
-      event.preventDefault()
-    }
-
-    if (ref) {
-      ref.addEventListener('pointerdown', onPointerDownHandler)
-      ref.addEventListener('pointermove', onPointerMoveHandler)
-      ref.addEventListener('pointerup', onPointerUpHandler)
-      ref.addEventListener('pointercancel', onPointerCancelHandler)
-      ref.addEventListener('blur', onBlurHandler)
-      ref.addEventListener('dragstart', onDragStartHandler)
-      ref.addEventListener('click', onClickHandler)
-    }
-    return () => {
-      if (ref) {
-        ref.removeEventListener('pointerdown', onPointerDownHandler)
-        ref.removeEventListener('pointermove', onPointerMoveHandler)
-        ref.removeEventListener('pointerup', onPointerUpHandler)
-        ref.removeEventListener('pointercancel', onPointerCancelHandler)
-        ref.removeEventListener('blur', onBlurHandler)
-        ref.removeEventListener('dragstart', onDragStartHandler)
-        ref.removeEventListener('click', onClickHandler)
-      }
-    }
-  }, [ref, isDragging, handlers])
-}
-
-const ImageViewerModal = ({ data, close }: IImageViewerModal) => {
-  const [loaded, setLoaded] = useState(false)
-  const [isZoomedIn, setIsZoomedIn] = useState(false)
-  const [initialPosition, setInitialPosition] = useState<[number, number]>([
-    0, 0,
-  ])
-  const [cumulativeTranslate, setCumulativeTranslate] = useState<
-    [number, number]
-  >([0, 0])
-  const imageContainerRef = useRef<HTMLDivElement>(null)
+const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
   const { data: session } = useSession()
 
-  // TODO drag image while zoomed in
+  // Track whether the close animation is running. This is used to disable any interactions.
+  const [isClosing, setClosing] = useState(false)
 
-  const zoomInHandler = () => {
-    if (!imageContainerRef.current) return
+  // The current modality the image viewer is in.
+  const mode = useRef<null | 'dismiss' | 'pinch'>(null)
 
-    const imageContainerElement = imageContainerRef.current
-    const imgElement = imageContainerElement.querySelector('img')
+  // Keep track of previous position changes when lifting fingers in between pinching and panning
+  // an image.
+  const offset = useRef<[number, number]>([0, 0])
 
-    const imageContainerElementRect =
-      imageContainerElement.getBoundingClientRect()
+  const dialogInitialFocusRef = useRef(null)
 
-    const scale =
-      data.width > imageContainerElementRect.width
-        ? data.width / imageContainerElementRect.width
-        : '1.5'
+  // Keep track of the window size (and changes to it).
+  const [[windowWidth, windowHeight], setWindowSize] = useState([
+    window.innerWidth,
+    window.innerHeight,
+  ])
 
-    //TODO find a better way to zoom the image
-    if (!isZoomedIn && imgElement) {
-      imgElement.animate([{ transform: `scale(${scale}` }], {
-        duration: 400,
-        fill: 'forwards',
-        easing: 'ease-out',
-      })
-      setIsZoomedIn(true)
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize([window.innerWidth, window.innerHeight])
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // The animation for the black backdrop behind the image viewer. Used to fade the backdrop in and
+  // out.
+  const [backdropProps, backdropApi] = useSpring(() => ({
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+  }))
+
+  // The animation for all control buttons (close, next, prev). Used to hide them on enter, exit and
+  // while in `pinch` mode.
+  const [headerProps, headerApi] = useSpring(() => ({
+    display: 'none',
+  }))
+
+  const [props, api] = useSpring(() => ({
+    h: 0,
+    x: 0,
+    y: 0,
+    scale: 0.2,
+    opacity: 0,
+    display: 'flex',
+  }))
+
+  // Kick off the enter animation once the viewer is first rendered.
+  useEffect(() => {
+    // Fly in the currently active image.
+    // TODO: wait for the image being loaded?
+    api.start(() => {
+      return {
+        opacity: 1,
+        scale: 1,
+      }
+    })
+
+    // Fade the backdrop to black.
+    backdropApi.start({
+      backgroundColor: `rgba(0, 0, 0, 1)`,
+    })
+
+    // Show the control buttons.
+    headerApi.start({
+      display: 'block',
+    })
+  }, [api, backdropApi, headerApi])
+
+  // Close the image viewer (awaits the exit animation before actually closing the viewer).
+  const handleClose = useCallback(() => {
+    if (isClosing) {
+      return
     }
 
-    if (isZoomedIn) {
-      imageContainerElement.animate([{ transform: 'translate(0,0)' }], {
-        duration: 400,
-        fill: 'forwards',
-        easing: 'ease-out',
-      })
-      if (imgElement) {
-        imgElement.animate(
-          [
-            {
-              transform: `scale(1)`,
-            },
-          ],
-          { duration: 200, easing: 'ease-out', fill: 'forwards' }
-        )
-        setIsZoomedIn(false)
+    setClosing(true)
+
+    let onCloseCalled = false
+    function onRest() {
+      if (onCloseCalled) {
+        return
+      }
+
+      onCloseCalled = true
+      close()
+    }
+
+    // Speed up close animation
+    const config = {
+      mass: 0.5,
+      friction: 10,
+    }
+
+    api.start(() => {
+      return {
+        opacity: 0,
+        scale: 0.2,
+        x: 0,
+        y: 0,
+        sx: 0,
+        sy: 0,
+        onRest,
+        config,
+      }
+    })
+
+    // Fade backdrop out.
+    backdropApi.start({
+      backgroundColor: `rgba(0, 0, 0, 0)`,
+      onRest,
+      config,
+    })
+
+    // Hide the control buttons.
+    headerApi.start({
+      display: 'none',
+    })
+  }, [api, backdropApi, headerApi, isClosing, close])
+
+  //   Close the viewer if image have been removed
+  useEffect(() => {
+    if (!data && !isClosing) {
+      handleClose()
+    }
+  }, [data, handleClose, isClosing])
+
+  // Close image viewer when Escape is pressed.
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      switch (e.code) {
+        case 'Escape':
+          handleClose()
+          break
       }
     }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleClose])
+
+  function startPinch() {
+    mode.current = 'pinch'
+    // Hide the buttons while pinching.
+    headerApi.start({ display: 'none' })
   }
 
-  const initalImagePosition: IHandler = {
-    onDown(event) {
-      setInitialPosition([event.clientX, event.clientY])
-    },
+  function stopPinch() {
+    // When the image is reset back to the center and initial scale, also end the `pinch` mode.
+    offset.current = [0, 0]
+    mode.current = null
+
+    // Show the buttons again.
+    headerApi.start({ display: 'block' })
   }
 
-  const dragImageHandler: IHandler = {
-    onMove(event) {
-      const imageContainerElement = imageContainerRef.current
+  function handleDoubleClick(e: MouseEvent) {
+    if (isClosing) {
+      return
+    }
 
-      if (imageContainerElement && isZoomedIn) {
-        const translate = `translate(${
-          cumulativeTranslate[0] + event.clientX - (initialPosition?.at(0) ?? 0)
-        }px,${
-          cumulativeTranslate[1] + event.clientY - (initialPosition?.at(1) ?? 0)
-        }px)`
-        const ani = imageContainerElement.animate(
-          [{ transform: translate, offset: 1 }],
-          {
-            duration: 50,
-            fill: 'forwards',
-          }
-        )
-        ani.play()
+    let img: HTMLImageElement | null = e.target as HTMLImageElement
+    if (!img || !(img instanceof HTMLImageElement)) {
+      img = e.currentTarget.querySelector(`img[src="${data.src}"]`)
+    }
+    if (!img || !(img instanceof HTMLImageElement)) {
+      console.warn('Failed to determine active image during double tap')
+      return
+    }
+
+    api.start((i, ctrl) => {
+      // make typescript happy
+      if (!img) {
+        return
       }
-    },
-    onUp(event) {
-      if (initialPosition) {
-        if (isZoomedIn) {
-          setCumulativeTranslate([
-            event.clientX - initialPosition[0] + cumulativeTranslate[0],
-            event.clientY - initialPosition[1] + cumulativeTranslate[1],
-          ])
+
+      if (mode.current === 'pinch') {
+        stopPinch()
+        return { scale: 1, x: 0, y: 0 }
+      } else {
+        // Scale the image to its actual size.
+        const newScale = img.naturalWidth / img.width
+        if (newScale < 1.0) {
+          // No need to scale if the image is smaller than the screen size.
+          return
+        }
+
+        // Calculate the image movement to zoom at the location the user tapped clicked at.
+        const originOffsetX = e.clientX - (windowWidth / 2 + offset.current[0])
+        const originOffsetY = e.clientY - (windowHeight / 2 + offset.current[1])
+
+        const scale = ctrl.get().scale
+        const refX = originOffsetX / scale
+        const refY = originOffsetY / scale
+
+        const transformOriginX = refX * newScale - originOffsetX
+        const transformOriginY = refY * newScale - originOffsetY
+
+        offset.current[0] -= transformOriginX
+        offset.current[1] -= transformOriginY
+
+        startPinch()
+
+        return {
+          scale: newScale,
+          x: offset.current[0],
+          y: offset.current[1],
         }
       }
-    },
+    })
   }
 
-  usePointerEventHandler(
-    imageContainerRef.current,
-    dragImageHandler,
-    initalImagePosition
+  // Setup all gestures.
+  const bind = useGesture(
+    {
+      onDrag({ last, active, movement: [mx, my], cancel, pinching }) {
+        // When pinching, the `onPinch` handles moving the image around.
+        if (pinching) {
+          cancel()
+          return
+        }
+
+        // Determine the current mode based on the drag amount and direction.
+        if (mode.current === null) {
+          mode.current = my > 0 && my > Math.abs(mx) ? 'dismiss' : null
+        }
+
+        switch (mode.current) {
+          case 'dismiss':
+            // Close the image viewer is the image got released after dragging it at least 10% down.
+            if (last && my > 0 && my / windowHeight > 0.1) {
+              handleClose()
+              return
+            }
+            // Fade out the backdrop depending on the drag distance otherwise.
+            else {
+              backdropApi.start({
+                backgroundColor: `rgba(0, 0, 0, ${Math.max(
+                  0,
+                  1 - (Math.abs(my) / windowHeight) * 2
+                )})`,
+              })
+            }
+
+            break
+        }
+
+        // Update the animation state of all images.
+        api.start((i) => {
+          // Calculate the new horizontal position.
+          const h = active ? mx : 0
+
+          switch (mode.current) {
+            // While dismissing (sliding down), animate both the position and scale (scale down)
+            // depending on how far the image is dragged away from the center.
+            case 'dismiss':
+              const y = active ? my : 0
+              const scale = active
+                ? Math.max(1 - Math.abs(my) / windowHeight / 2, 0.8)
+                : 1
+              return { h, y, scale, display: 'flex', immediate: active }
+
+            // When lifting a pinch and continuing to track the image with one touch point, animate
+            // the position of the image accordingly.
+            case 'pinch':
+              return {
+                x: offset.current[0] + mx,
+                y: offset.current[1] + my,
+                display: 'flex',
+                immediate: active,
+              }
+          }
+        })
+
+        if (last) {
+          if (mode.current === 'pinch') {
+            // Keep track of the current drag position. Don't reset the mode so that the user can
+            // continue dragging the image with another drag or pinch gesture.
+            offset.current = [offset.current[0] + mx, offset.current[1] + my]
+          } else {
+            // Reset the mode.
+            mode.current = null
+          }
+
+          // Reset the backdrop back to being fully black.
+          backdropApi.start({ backgroundColor: 'rgba(0, 0, 0, 1)' })
+        }
+      },
+
+      onPinch({
+        origin: [ox, oy],
+        first,
+        last,
+        offset: [scale],
+        memo,
+        cancel,
+      }) {
+        // The pinch mode can only be initiated from no active mode, while starting to slide, or by
+        // continuing and still active pinch.
+        if (mode.current !== null && mode.current !== 'pinch') {
+          cancel()
+          return
+        }
+
+        if (mode.current !== 'pinch') {
+          startPinch()
+        }
+
+        // Keep track of the offset when first starting to pinch.
+        if (first || !memo) {
+          // This is the offset between the image's origin (in its center) and the pinch origin.
+          const originOffsetX = ox - (windowWidth / 2 + offset.current[0])
+          const originOffsetY = oy - (windowHeight / 2 + offset.current[1])
+
+          memo = {
+            origin: {
+              x: ox,
+              y: oy,
+            },
+            offset: {
+              refX: originOffsetX / scale,
+              refY: originOffsetY / scale,
+              x: originOffsetX,
+              y: originOffsetY,
+            },
+          }
+        }
+
+        // Calculate the current drag x and y movements taking the pinch origin into account (when
+        // pinching outside of the center of the image, the image needs to be moved accordingly to
+        // scale below the pinch origin).
+        const transformOriginX = memo.offset.refX * scale - memo.offset.x
+        const transformOriginY = memo.offset.refY * scale - memo.offset.y
+        const mx = ox - memo.origin.x - transformOriginX
+        const my = oy - memo.origin.y - transformOriginY
+
+        // Update the animation state of all images.
+        api.start(() => {
+          // If the user stopped the pinch gesture and the scale is below 110%, reset the image back
+          // to the center and to fit the screen.
+          if (last && scale <= 1.1) {
+            return {
+              x: 0,
+              y: 0,
+              scale: 1,
+            }
+          }
+          // Otherwise, update the scale and position of the image accordingly.
+          else {
+            return {
+              h: 0,
+              scale,
+              x: offset.current[0] + mx,
+              y: offset.current[1] + my,
+              immediate: true,
+            }
+          }
+        })
+
+        if (last) {
+          if (scale <= 1.1) {
+            stopPinch()
+          } else {
+            // Keep track of the current drag position so that the user can continue manipulating
+            // the current position in a follow-up drag or pinch.
+            offset.current = [offset.current[0] + mx, offset.current[1] + my]
+          }
+        }
+
+        return memo
+      },
+    },
+    {
+      drag: {
+        enabled: !isClosing,
+      },
+      pinch: {
+        enabled: !isClosing,
+        scaleBounds: { min: 1.0, max: Infinity },
+        from: () => [api.current[0].get().scale, 0],
+      },
+    }
   )
 
   return (
     <Dialog
-      as={'div'}
-      className="fixed inset-0 overflow-hidden"
       open={!!data}
-      onClose={close}
+      aria-label="image viewer"
+      className="fixed inset-0 z-50 flex overflow-hidden"
+      initialFocus={dialogInitialFocusRef}
+      onDoubleClick={handleDoubleClick}
+      onClose={handleClose}
     >
-      {/* header */}
-      <header className="absolute z-10 flex w-full items-center justify-between px-6 py-3">
-        <p className="rounded-xl bg-black/40 p-2 text-gray-300 backdrop-blur-md">
+      {/* BACKDROP */}
+      <animated.div
+        className="fixed inset-0"
+        style={{
+          ...backdropProps,
+          pointerEvents: isClosing ? 'none' : 'auto',
+        }}
+      ></animated.div>
+
+      {/* HEADER */}
+      <animated.header
+        className="fixed top-0 left-0 z-50"
+        style={{ ...headerProps }}
+        aria-hidden="true"
+      >
+        <animated.p className="fixed top-4 left-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
           {data.title}
-        </p>
-        {/* buttons */}
-        <div className="flex flex-row items-center gap-4">
-          {session && session.user.role === 'ADMIN' && (
-            <Link
-              href={{
-                pathname: `/gallery/update/${data.title}`,
-                query: {
-                  data: JSON.stringify({
-                    name: data.name,
-                    storage: data.storage,
-                    category: data.category,
-                    image: {
-                      url: data.src, // if no image this should be the placeholder image
-                      publicId: data.publicId,
-                    },
-                  }),
-                },
-              }}
+        </animated.p>
+        {session && session.user.role === 'ADMIN' && (
+          <Link
+            href={{
+              pathname: `/gallery/update/${data.title}`,
+              query: {
+                data: JSON.stringify({
+                  name: data.name,
+                  storage: data.storage,
+                  category: data.category,
+                  image: {
+                    url: data.src, // if no image this should be the placeholder image
+                    publicId: data.publicId,
+                  },
+                }),
+              },
+            }}
+          >
+            <animated.a
+              aria-label="edit image"
+              className="fixed top-4 right-16 flex h-10 w-10 cursor-pointer items-center justify-center rounded border-none bg-black/30 p-0 text-white"
             >
-              <a className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md">
-                <HiPencil className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
-              </a>
-            </Link>
-          )}
-          <button
-            className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md"
-            onClick={zoomInHandler}
-          >
-            {!isZoomedIn ? (
-              <HiZoomIn className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
-            ) : (
-              <HiZoomOut className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
-            )}
-          </button>
-          <button
-            className="group flex items-center justify-center rounded-xl bg-black/40 p-2 backdrop-blur-md"
-            onClick={close}
-          >
-            <HiX className="h-8 w-8 text-gray-500 group-hover:text-gray-300" />
-          </button>
-        </div>
-      </header>
-      {/* footer */}
-      {/* <footer className="absolute z-10 grid place-items-center text-center inset-inline-0 block-end-0">
-          <div className="absolute block-end-0">
-            <p className="mlb-0 inline-end-0">link</p>
-          </div>
-          <div className="grid grid-cols-[auto_auto] grid-rows-[auto_fit-content] place-items-center gap-8">
-            <h1>h1</h1>
-            <p>p</p>
-          </div>
-          <div></div>
-        </footer> */}
-      <main className="fixed inset-0 overflow-hidden bg-black">
-        <div className="absolute inset-0 h-screen">
-          <div
-            ref={imageContainerRef}
-            className="absolute inset-0 flex touch-none items-center justify-center"
-          >
-            {/* loading state */}
-            <div
-              className={`${
-                loaded ? 'opacity-0' : 'opacity-100'
-              } absolute inset-0 flex items-center justify-center`}
-            >
-              <FaSpinner className="h-8 w-8 animate-spin text-gray-300" />
-            </div>
-            <Image
-              src={data.src}
-              width={data.width}
-              height={data.height}
-              quality={100}
-              alt="test"
-              className="max-h-screen max-w-full object-contain"
-              onLoadingComplete={(result) => {
-                setLoaded(true)
-              }}
-              priority
-              unoptimized
-            />
-          </div>
-        </div>
-      </main>
+              <HiPencil />
+            </animated.a>
+          </Link>
+        )}
+        <animated.button
+          ref={dialogInitialFocusRef}
+          aria-label="close image viewer"
+          className="fixed top-4 right-4 flex h-10 w-10 items-center justify-center rounded border-none bg-black/30 p-0 text-white"
+          onClick={handleClose}
+        >
+          <HiX />
+        </animated.button>
+      </animated.header>
+
+      {/* IMAGE */}
+      <animated.main
+        {...bind()}
+        className="absolute inset-0 shrink-0 touch-none items-center justify-center overflow-hidden"
+        style={{
+          display: props.display,
+          x: props.h,
+        }}
+      >
+        <picture>
+          <animated.img
+            className="max-w-screen max-h-screen touch-none select-none"
+            style={{
+              x: props.x,
+              y: props.y,
+              scale: props.scale,
+              opacity: props.opacity,
+            }}
+            src={data.src}
+            alt={data.title}
+            draggable={false}
+          />
+        </picture>
+      </animated.main>
     </Dialog>
   )
 }
-
 export default ImageViewerModal
