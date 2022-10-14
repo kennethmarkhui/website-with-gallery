@@ -150,20 +150,6 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     }
   }, [data, handleClose, isClosing])
 
-  // Close image viewer when Escape is pressed.
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      switch (e.code) {
-        case 'Escape':
-          handleClose()
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleClose])
-
   function startPinch() {
     mode.current = 'pinch'
     // Hide the buttons while pinching.
