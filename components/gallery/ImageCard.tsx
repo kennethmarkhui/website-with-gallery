@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import { Photo, PhotoProps } from 'react-photo-album'
 
@@ -14,13 +14,17 @@ type ImageCardProps = PhotoProps<ExtendedPhoto> & {
 }
 
 const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
+  const [isLoading, setIsLoading] = useState(true)
+
   const { width, height } = photo
   const { src, alt, title, style, sizes, className, onClick } = imageProps
   const { style: wrapperStyle, ...restWrapperProps } = wrapperProps ?? {}
 
   return (
     <div
-      className="relative cursor-pointer overflow-hidden rounded"
+      className={`${
+        isLoading && 'animate-pulse '
+      }relative group cursor-pointer overflow-hidden rounded bg-gray-200`}
       style={{
         width: style.width,
         padding: style.padding,
@@ -36,7 +40,15 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
         sizes={sizes}
         width={width}
         height={height}
-        className={className}
+        className={
+          className +
+          `${
+            isLoading
+              ? ' scale-110 blur-2xl grayscale'
+              : ' scale-100 blur-0 grayscale-0'
+          } duration-700 ease-in-out`
+        }
+        onLoadingComplete={() => setIsLoading(false)}
         onClick={onClick}
         unoptimized
       />

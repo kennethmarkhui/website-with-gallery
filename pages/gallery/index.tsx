@@ -1,6 +1,7 @@
 import { ReactElement, useMemo, useState } from 'react'
 import type { GetStaticProps } from 'next'
 import PhotoAlbum from 'react-photo-album'
+import { FaSpinner } from 'react-icons/fa'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
@@ -36,11 +37,20 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   )
 
   if (status === 'loading') {
-    return <p>loading</p>
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
+        <FaSpinner className="h-10 w-10 animate-spin" />
+      </div>
+    )
   }
 
   if (status === 'error' && error instanceof Error) {
-    return <p>{error.message}</p>
+    return (
+      <div className="flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center gap-4">
+        <h1 className="text-3xl">Something went wrong</h1>
+        <p>Please try again later.</p>
+      </div>
+    )
   }
 
   return (
