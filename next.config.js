@@ -8,6 +8,10 @@ const nextConfig = {
   },
   images: {
     domains: ['res.cloudinary.com'],
+    loader: 'cloudinary',
+    path: process.env.CLOUDINARY_IMAGE_UPLOAD_PATH,
+    imageSizes: [128],
+    deviceSizes: [320, 640, 1080, 2048, 3840],
   },
 }
 
