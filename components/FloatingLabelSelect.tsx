@@ -31,7 +31,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
           className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
         >
           {loading && (!options || options.length === 0) && (
-            <option>loading</option>
+            <option value="">loading</option>
           )}
           {!loading && options && options.length !== 0 && (
             <>
