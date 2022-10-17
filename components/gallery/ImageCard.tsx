@@ -13,6 +13,9 @@ type ImageCardProps = PhotoProps<ExtendedPhoto> & {
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>
 }
 
+// fallback placeholder
+// overrides the default loader defined in the images section of next.config.js.
+// https://nextjs.org/docs/api-reference/next/image#loader
 const fallbackLoader = ({ src }: ImageLoaderProps) => src
 
 const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
@@ -35,50 +38,27 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
       }}
       {...restWrapperProps}
     >
-      {publicId !== '' ? (
-        <Image
-          // TODO try to make this work
-          // loader={publicId === '' ? fallbackLoader : undefined}
-          src={publicId}
-          alt={alt}
-          title={title}
-          sizes={sizes}
-          width={width}
-          height={height}
-          className={
-            className +
-            `${
-              isLoading
-                ? ' scale-110 blur-2xl grayscale'
-                : ' scale-100 blur-0 grayscale-0'
-            } duration-700 ease-in-out`
-          }
-          onLoadingComplete={() => setIsLoading(false)}
-          onClick={onClick}
-          quality="auto"
-        />
-      ) : (
-        <Image
-          loader={fallbackLoader}
-          src={src}
-          alt={alt}
-          title={title}
-          sizes={sizes}
-          width={width}
-          height={height}
-          className={
-            className +
-            `${
-              isLoading
-                ? ' scale-110 blur-2xl grayscale'
-                : ' scale-100 blur-0 grayscale-0'
-            } duration-700 ease-in-out`
-          }
-          onLoadingComplete={() => setIsLoading(false)}
-          onClick={onClick}
-          unoptimized
-        />
-      )}
+      <Image
+        loader={publicId === '' ? fallbackLoader : undefined}
+        src={publicId || src}
+        alt={alt}
+        title={title}
+        sizes={sizes}
+        width={width}
+        height={height}
+        className={
+          className +
+          `${
+            isLoading
+              ? ' scale-110 blur-2xl grayscale'
+              : ' scale-100 blur-0 grayscale-0'
+          } duration-700 ease-in-out`
+        }
+        onLoadingComplete={() => setIsLoading(false)}
+        onClick={onClick}
+        quality="auto"
+        unoptimized={publicId === ''}
+      />
     </div>
   )
 }
