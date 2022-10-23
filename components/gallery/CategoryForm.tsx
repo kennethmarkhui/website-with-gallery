@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
-import { HiX, HiTrash } from 'react-icons/hi'
+import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -92,7 +92,7 @@ const CategoryForm = (): JSX.Element => {
             },
           })}
           errorMessage={errors.category?.message}
-          withSubmitButton
+          icon={<HiPlus />}
         />
       </form>
 

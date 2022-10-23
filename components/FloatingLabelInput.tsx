@@ -1,16 +1,12 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
-import { HiPlus } from 'react-icons/hi'
+import { forwardRef, InputHTMLAttributes, ReactNode } from 'react'
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   errorMessage?: string
-  withSubmitButton?: boolean
+  icon?: ReactNode
 }
 
 const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
-  function FloatingLabelInput(
-    { errorMessage, withSubmitButton, ...rest },
-    ref
-  ) {
+  function FloatingLabelInput({ errorMessage, icon, ...rest }, ref) {
     return (
       <div className="group relative z-0 mb-6 w-full">
         <input
@@ -26,9 +22,12 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
         >
           {rest.name}
         </label>
-        {withSubmitButton && (
-          <button type="submit" className="absolute top-3 right-0">
-            <HiPlus className="text-gray-500 hover:text-black focus:text-black" />
+        {icon && (
+          <button
+            type="submit"
+            className="absolute top-3 right-0 text-gray-500 hover:text-black focus:text-black"
+          >
+            {icon}
           </button>
         )}
         {errorMessage && (
