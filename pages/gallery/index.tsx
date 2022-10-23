@@ -70,7 +70,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 }
 
 Gallery.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
+  return <GalleryLayout withSideBar>{page}</GalleryLayout>
 }
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
