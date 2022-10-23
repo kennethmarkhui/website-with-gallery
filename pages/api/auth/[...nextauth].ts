@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { Role } from 'prisma/prisma-client'
+import { Role, User } from 'prisma/prisma-client'
 
 import { prisma } from 'lib/prisma'
 
@@ -44,7 +44,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     async jwt({ token, user }) {
-      if (user?.role) token.role = user.role as Role
+      // TODO: Remove (as User) after https://github.com/nextauthjs/next-auth/issues/5542 is fixed
+      if ((user as User)?.role) token.role = (user as User).role as Role
       return token
     },
   },
