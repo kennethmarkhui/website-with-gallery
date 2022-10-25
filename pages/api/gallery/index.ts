@@ -1,16 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import type { GalleryErrorResponse, OmittedItem } from 'types/gallery'
+import type {
+  GalleryErrorResponse,
+  GalleryQuery,
+  NextCursor,
+  OmittedItem,
+} from 'types/gallery'
 import { prisma } from 'lib/prisma'
-
-export type NextCursor = string | undefined
 
 const limit = 10
 
-export async function fetchItems(
-  nextCursor: NextCursor
-): Promise<OmittedItem[]> {
+export async function fetchItems({
+  nextCursor,
+  search: searchFilter,
+}: GalleryQuery): Promise<OmittedItem[]> {
   return await prisma.item.findMany({
+    where: { id: { contains: searchFilter, mode: 'insensitive' } },
     take: limit,
     skip: nextCursor === '0' ? 0 : 1,
     cursor: nextCursor === '0' ? undefined : { id: nextCursor },
@@ -40,10 +45,10 @@ export default async function handler(
     { items: OmittedItem[]; nextCursor: NextCursor } | GalleryErrorResponse
   >
 ) {
-  let nextCursor: NextCursor = req.query.nextCursor as string
+  let { nextCursor, search } = req.query as GalleryQuery
 
   try {
-    const items = await fetchItems(nextCursor)
+    const items = await fetchItems({ nextCursor, search })
     nextCursor = items.length === limit ? items[limit - 1].id : undefined
     return res.status(200).json({
       items,

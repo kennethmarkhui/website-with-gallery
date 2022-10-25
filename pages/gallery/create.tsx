@@ -3,11 +3,11 @@ import type { GetStaticProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { Tab } from '@headlessui/react'
 
+import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
-import { NextPageWithLayout } from 'pages/_app'
-import { pick } from 'lib/utils'
 import CategoryForm from '@/components/gallery/CategoryForm'
+import { pick } from 'lib/utils'
 
 const Create: NextPageWithLayout = (): JSX.Element => {
   const [tabs] = useState<{ name: string; node: ReactNode }[]>([
@@ -22,7 +22,7 @@ const Create: NextPageWithLayout = (): JSX.Element => {
   }
 
   return (
-    <Tab.Group as={'div'} defaultIndex={0}>
+    <Tab.Group as={'div'} defaultIndex={0} className="flex-grow">
       <Tab.List className="flex w-full justify-around space-x-1 p-1">
         {tabs.map((tab) => (
           <Tab

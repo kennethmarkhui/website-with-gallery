@@ -19,6 +19,16 @@ export type GalleryFormKeys = keyof GalleryFormFields
 
 export type GalleryFormMode = 'create' | 'update'
 
+export type NextCursor = string | undefined
+
+export type GalleryFilters = {
+  search: string
+}
+
+export type GalleryQuery = {
+  nextCursor: NextCursor
+} & GalleryFilters
+
 export interface GalleryMutateResponse {
   message: string
 }

@@ -1,4 +1,3 @@
-import GallerySidebar from './GallerySidebar'
 import GalleryHeader from './header/GalleryHeader'
 
 interface IGalleryLayout {
@@ -16,10 +15,9 @@ const GalleryLayout = ({
       <main
         className={` ${
           withSideBar ? 'max-w-screen-2xl ' : 'max-w-5xl '
-        }mx-auto flex w-full gap-8`}
+        }mx-auto w-full`}
       >
-        {withSideBar && <GallerySidebar />}
-        <section className="flex-grow">{children}</section>
+        <section className="flex gap-8">{children}</section>
       </main>
     </div>
   )

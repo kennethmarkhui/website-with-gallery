@@ -24,3 +24,18 @@ export const formatBytes = (bytes: number): string => {
 
   return parseFloat((bytes / Math.pow(1024, i)).toFixed(0)) + ' ' + sizes[i]
 }
+
+export const generateQueryStringFromObject = (
+  queries: Record<string, unknown>
+): string => {
+  if (queries) {
+    return (
+      '?' +
+      Object.keys(queries)
+        .map((key) => key + '=' + queries[key])
+        .filter((queryString) => !queryString.endsWith('='))
+        .join('&')
+    )
+  }
+  return ''
+}

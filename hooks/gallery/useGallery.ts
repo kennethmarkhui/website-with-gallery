@@ -1,13 +1,13 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 
-import type { OmittedItem } from 'types/gallery'
+import type { GalleryFilters, NextCursor, OmittedItem } from 'types/gallery'
 import useCreate from './mutations/useCreate'
 import useDelete from './mutations/useDelete'
 import useUpdate from './mutations/useUpdate'
 import fetcher from 'lib/fetcher'
-import { NextCursor } from 'pages/api/gallery'
+import { generateQueryStringFromObject } from 'lib/utils'
 
-const useGallery = () => {
+const useGallery = (filters?: GalleryFilters) => {
   const {
     data,
     status,
@@ -16,10 +16,14 @@ const useGallery = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(
-    ['gallery'],
-    ({ pageParam = 0 }) =>
+    ['gallery', filters],
+    ({ pageParam = 0, queryKey }) =>
       fetcher<{ items: OmittedItem[]; nextCursor: NextCursor }>(
-        '/api/gallery?nextCursor=' + pageParam
+        '/api/gallery' +
+          generateQueryStringFromObject({
+            nextCursor: pageParam,
+            ...(queryKey[1] as GalleryFilters),
+          })
       ),
     {
       getNextPageParam: ({ nextCursor }) => nextCursor,
