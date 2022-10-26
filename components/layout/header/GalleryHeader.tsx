@@ -23,7 +23,7 @@ const GalleryHeader = (): JSX.Element => {
         </div>
       </Link>
 
-      {router.asPath === '/gallery' && session?.user.role === 'ADMIN' && (
+      {router.pathname === '/gallery' && session?.user.role === 'ADMIN' && (
         <Link href={'/gallery/create'}>
           <a>add</a>
         </Link>

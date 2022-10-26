@@ -29,11 +29,16 @@ export type GalleryQuery = {
   nextCursor: NextCursor
 } & GalleryFilters
 
-export interface GalleryMutateResponse {
+export type GalleryResponse = {
+  items: OmittedItem[]
+  nextCursor: NextCursor
+}
+
+export type GalleryMutateResponse = {
   message: string
 }
 
-export interface GalleryErrorResponse {
+export type GalleryErrorResponse = {
   error: { message: string; target?: GalleryFormKeys }
 }
 

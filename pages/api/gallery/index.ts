@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import type {
   GalleryErrorResponse,
   GalleryQuery,
-  NextCursor,
+  GalleryResponse,
   OmittedItem,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
@@ -41,9 +41,7 @@ export async function fetchItems({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<
-    { items: OmittedItem[]; nextCursor: NextCursor } | GalleryErrorResponse
-  >
+  res: NextApiResponse<GalleryResponse | GalleryErrorResponse>
 ) {
   let { nextCursor, search } = req.query as GalleryQuery
 

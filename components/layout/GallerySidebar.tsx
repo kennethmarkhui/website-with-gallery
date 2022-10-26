@@ -1,22 +1,20 @@
+import { useRouter } from 'next/router'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
 
 import { GalleryFilters } from 'types/gallery'
 import FloatingLabelInput from '../FloatingLabelInput'
 
-interface IGallerySidebar {
-  setFilters: (filters: GalleryFilters) => void
-}
-
-const GallerySidebar = ({ setFilters }: IGallerySidebar): JSX.Element => {
+const GallerySidebar = (): JSX.Element => {
+  const router = useRouter()
   const { register, handleSubmit } = useForm<GalleryFilters>()
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
-    setFilters(data)
+    router.push(data.search !== '' ? { query: data } : router.pathname)
   }
 
   return (
-    <aside className="sticky top-8 hidden h-full w-1/5 divide-y pt-4 lg:flex lg:flex-col">
+    <aside className="sticky top-8 hidden h-full divide-y pt-4 lg:flex lg:flex-col">
       <form onSubmit={handleSubmit(onSubmit)}>
         <FloatingLabelInput
           id="search"
