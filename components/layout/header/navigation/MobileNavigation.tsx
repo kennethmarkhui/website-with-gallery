@@ -51,8 +51,8 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                           key={item.name}
                           onClick={closeModal}
                         >
-                          <Link href={item.path}>
-                            <a className="text-3xl">{item.name}</a>
+                          <Link href={item.path} className="text-3xl">
+                            {item.name}
                           </Link>
                         </li>
                       )

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Image, { ImageLoaderProps } from 'next/image'
+import Image, { ImageLoaderProps } from 'next/legacy/image'
 import { Photo, PhotoProps } from 'react-photo-album'
 
 export interface ExtendedPhoto extends Photo {
@@ -38,6 +38,7 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
       }}
       {...restWrapperProps}
     >
+      {/* TODO make this work with the new Next13 Image */}
       <Image
         loader={publicId === '' ? fallbackLoader : undefined}
         src={publicId || src}
@@ -56,7 +57,6 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
         }
         onLoadingComplete={() => setIsLoading(false)}
         onClick={onClick}
-        quality="auto"
         unoptimized={publicId === ''}
       />
     </div>

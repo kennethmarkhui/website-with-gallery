@@ -23,14 +23,13 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
         <input hidden type="file" ref={ref} {...rest} accept="image/*" />
         <label
           htmlFor={rest.id}
-          className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
+          className="relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
         >
           {imagePreview ? (
             <Image
               src={imagePreview}
-              height={250}
-              width={250}
-              objectFit="cover"
+              fill
+              className="max-h-full max-w-full object-contain"
               alt="preview"
               unoptimized
             />

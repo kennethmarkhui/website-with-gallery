@@ -24,9 +24,7 @@ const GalleryHeader = (): JSX.Element => {
       </Link>
 
       {router.pathname === '/gallery' && session?.user.role === 'ADMIN' && (
-        <Link href={'/gallery/create'}>
-          <a>add</a>
-        </Link>
+        <Link href={'/gallery/create'}>add</Link>
       )}
 
       <div className="flex items-center">

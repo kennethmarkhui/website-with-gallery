@@ -436,13 +436,10 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
                 }),
               },
             }}
+            aria-label="edit image"
+            className="fixed top-4 right-16 flex h-10 w-10 cursor-pointer items-center justify-center rounded border-none bg-black/30 p-0 text-white"
           >
-            <animated.a
-              aria-label="edit image"
-              className="fixed top-4 right-16 flex h-10 w-10 cursor-pointer items-center justify-center rounded border-none bg-black/30 p-0 text-white"
-            >
-              <HiPencil />
-            </animated.a>
+            <HiPencil />
           </Link>
         )}
         <animated.button

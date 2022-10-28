@@ -16,9 +16,7 @@ const MainNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
             } p-2 capitalize`}
             key={item.name}
           >
-            <Link href={item.path}>
-              <a>{item.name}</a>
-            </Link>
+            <Link href={item.path}>{item.name}</Link>
           </li>
         )
       )}

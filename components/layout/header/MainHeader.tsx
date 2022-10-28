@@ -31,8 +31,8 @@ const MainHeader = (): JSX.Element => {
   return (
     <header className="mx-auto mt-2 mb-0 flex w-full max-w-5xl items-center justify-between">
       <Animated>
-        <Link href="/">
-          <a className="h-9 w-9">Logo</a>
+        <Link href="/" className="h-9 w-9">
+          Logo
         </Link>
       </Animated>
       <nav className="flex sm:my-4">
