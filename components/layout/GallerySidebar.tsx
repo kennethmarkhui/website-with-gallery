@@ -14,7 +14,7 @@ const GallerySidebar = (): JSX.Element => {
   }
 
   return (
-    <aside className="sticky top-8 hidden h-full divide-y pt-4 lg:flex lg:flex-col">
+    <aside className="sticky top-8 hidden h-full shrink-0 basis-1/6 divide-y pt-4 lg:flex lg:flex-col">
       <form onSubmit={handleSubmit(onSubmit)}>
         <FloatingLabelInput
           id="search"

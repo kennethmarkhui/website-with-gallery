@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Image, { ImageLoaderProps } from 'next/legacy/image'
+import Image, { ImageLoaderProps } from 'next/image'
 import { Photo, PhotoProps } from 'react-photo-album'
 
 export interface ExtendedPhoto extends Photo {
@@ -13,10 +13,18 @@ type ImageCardProps = PhotoProps<ExtendedPhoto> & {
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>
 }
 
-// fallback placeholder
-// overrides the default loader defined in the images section of next.config.js.
-// https://nextjs.org/docs/api-reference/next/image#loader
-const fallbackLoader = ({ src }: ImageLoaderProps) => src
+// Taken from the legacy image, since currently the new Next13 Image does not support cloudinary loader out of the box(or maybe im wrong?).
+// https://github.com/vercel/next.js/blob/f3fc9126add85cda1d58dd21a1556ee878b4117c/packages/next/client/image.tsx#L92-L102
+const cloudinaryLoader = ({
+  src,
+  width,
+  quality,
+}: ImageLoaderProps): string => {
+  // Demo: https://res.cloudinary.com/demo/image/upload/w_300,c_limit,q_auto/turtles.jpg
+  const params = ['f_auto', 'c_limit', 'w_' + width, 'q_' + (quality || 'auto')]
+  const paramsString = params.join(',') + '/'
+  return `${process.env.NEXT_PUBLIC_CLOUDINARY_IMAGE_UPLOAD_PATH}${paramsString}${src}`
+}
 
 const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
   const [isLoading, setIsLoading] = useState(true)
@@ -38,9 +46,8 @@ const ImageCard = ({ photo, imageProps, wrapperProps }: ImageCardProps) => {
       }}
       {...restWrapperProps}
     >
-      {/* TODO make this work with the new Next13 Image */}
       <Image
-        loader={publicId === '' ? fallbackLoader : undefined}
+        loader={cloudinaryLoader}
         src={publicId || src}
         alt={alt}
         title={title}
