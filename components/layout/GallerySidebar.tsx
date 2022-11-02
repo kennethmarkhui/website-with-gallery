@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { HiMagnifyingGlass } from 'react-icons/hi2'
+import { HiOutlineSearch } from 'react-icons/hi'
 
 import { GalleryFilters } from 'types/gallery'
 import FloatingLabelInput from '../FloatingLabelInput'
@@ -19,7 +19,7 @@ const GallerySidebar = (): JSX.Element => {
         <FloatingLabelInput
           id="search"
           {...register('search')}
-          icon={<HiMagnifyingGlass />}
+          icon={<HiOutlineSearch />}
         />
       </form>
     </aside>
