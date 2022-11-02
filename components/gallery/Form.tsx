@@ -115,93 +115,94 @@ const GalleryForm = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
-      <FloatingLabelInput
-        id="id"
-        readOnly={mode === 'update'}
-        {...register('id', {
-          required: 'id is required.',
-          pattern: {
-            value: /^[a-zA-Z\d]+$/,
-            message: 'Alphanumerics only.',
-          },
-        })}
-        errorMessage={errors.id?.message}
-      />
-      <FloatingLabelInput id="name" {...register('name')} />
-      <FloatingLabelInput id="storage" {...register('storage')} />
-      <FloatingLabelSelect
-        id="category"
-        {...register('category')}
-        defaultSelected={defaults?.category}
-        options={categories}
-        loading={categoryStatus === 'loading'}
-      />
-      <ImagePreviewInput
-        id="image"
-        {...register('image', {
-          validate: {
-            fileSize: (files) => {
-              if (!files || !files[0]) return true
-              return (
-                files[0]?.size < maxFileSize ||
-                `Max filesize ${formatBytes(maxFileSize)}.`
-              )
+      <fieldset disabled={formIsLoading}>
+        <FloatingLabelInput
+          id="id"
+          readOnly={mode === 'update'}
+          {...register('id', {
+            required: 'id is required.',
+            pattern: {
+              value: /^[a-zA-Z\d]+$/,
+              message: 'Alphanumerics only.',
             },
-          },
-        })}
-        imagePreview={imagePreview}
-        fileListRef={fileListRef}
-        removeFile={() => removeFile(() => resetField('image'))}
-        errorMessage={errors.image?.message}
-      />
-      <div className="mt-4 flex gap-4 ">
-        <button
-          type="submit"
-          className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
-          disabled={formIsLoading || !isDirty}
-        >
-          {createStatus === 'loading' || updateStatus === 'loading' ? (
-            <span className="flex items-center justify-center gap-1">
-              Submitting
-              <FaSpinner className="animate-spin" />
-            </span>
-          ) : (
-            'Submit'
-          )}
-        </button>
-        {mode === 'update' && (
+          })}
+          errorMessage={errors.id?.message}
+        />
+        <FloatingLabelInput id="name" {...register('name')} />
+        <FloatingLabelInput id="storage" {...register('storage')} />
+        <FloatingLabelSelect
+          id="category"
+          {...register('category')}
+          defaultSelected={defaults?.category}
+          options={categories}
+          loading={categoryStatus === 'loading'}
+        />
+        <ImagePreviewInput
+          id="image"
+          {...register('image', {
+            validate: {
+              fileSize: (files) => {
+                if (!files || !files[0]) return true
+                return (
+                  files[0]?.size < maxFileSize ||
+                  `Max filesize ${formatBytes(maxFileSize)}.`
+                )
+              },
+            },
+          })}
+          imagePreview={imagePreview}
+          fileListRef={fileListRef}
+          removeFile={() => removeFile(() => resetField('image'))}
+          errorMessage={errors.image?.message}
+        />
+        <div className="mt-4 flex gap-4 ">
           <button
-            type="button"
-            className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
-            disabled={formIsLoading}
-            onClick={() =>
-              deleteMutate(
-                {
-                  id: defaults?.id as string,
-                  publicId: defaults?.image
-                    ? defaults?.image.publicId
-                    : undefined,
-                },
-                {
-                  onSuccess: () => {
-                    reset()
-                    router.push('/gallery')
-                  },
-                }
-              )
-            }
+            type="submit"
+            className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
+            disabled={!isDirty}
           >
-            {deleteStatus === 'loading' ? (
+            {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">
-                Deleting
+                Submitting
                 <FaSpinner className="animate-spin" />
               </span>
             ) : (
-              'Delete'
+              'Submit'
             )}
           </button>
-        )}
-      </div>
+          {mode === 'update' && (
+            <button
+              type="button"
+              className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
+              onClick={() =>
+                deleteMutate(
+                  {
+                    id: defaults?.id as string,
+                    publicId: defaults?.image
+                      ? defaults?.image.publicId
+                      : undefined,
+                  },
+                  {
+                    onSuccess: () => {
+                      reset()
+                      router.push('/gallery')
+                    },
+                  }
+                )
+              }
+            >
+              {deleteStatus === 'loading' ? (
+                <span className="flex items-center justify-center gap-1">
+                  Deleting
+                  <FaSpinner className="animate-spin" />
+                </span>
+              ) : (
+                'Delete'
+              )}
+            </button>
+          )}
+        </div>
+      </fieldset>
     </form>
   )
 }

@@ -20,10 +20,17 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
   ) {
     return (
       <div className="relative mb-4 w-full">
-        <input hidden type="file" ref={ref} {...rest} accept="image/*" />
+        <input
+          hidden
+          type="file"
+          ref={ref}
+          {...rest}
+          accept="image/*"
+          className="peer"
+        />
         <label
           htmlFor={rest.id}
-          className="relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100"
+          className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 peer-enabled:cursor-pointer peer-enabled:hover:bg-gray-100"
         >
           {imagePreview ? (
             <Image
@@ -48,7 +55,7 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
         {imagePreview && fileListRef.current && (
           <button
             type="button"
-            className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 "
+            className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 disabled:pointer-events-none"
             onClick={removeFile}
           >
             <HiX />
