@@ -1,10 +1,5 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  MouseEvent,
-  useCallback,
-} from 'react'
+import { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useSpring, animated } from '@react-spring/web'
@@ -13,6 +8,8 @@ import { HiPencil, HiX } from 'react-icons/hi'
 import { Dialog } from '@headlessui/react'
 
 import { ExtendedPhoto } from './ImageCard'
+
+const AnimatedImage = animated(Image)
 
 // taken from https://github.com/rkusa/react-image-viewer-hook with some changes
 
@@ -461,20 +458,22 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
           x: props.h,
         }}
       >
-        <picture>
-          <animated.img
-            className="max-w-screen max-h-screen touch-none select-none"
-            style={{
-              x: props.x,
-              y: props.y,
-              scale: props.scale,
-              opacity: props.opacity,
-            }}
-            src={data.src}
-            alt={data.title}
-            draggable={false}
-          />
-        </picture>
+        <AnimatedImage
+          className="max-w-screen h-auto max-h-screen w-auto touch-none select-none"
+          style={{
+            x: props.x,
+            y: props.y,
+            scale: props.scale,
+            opacity: props.opacity,
+          }}
+          src={data.src}
+          alt={data.title ?? ''}
+          sizes="100vw"
+          width={data.width}
+          height={data.height}
+          draggable={false}
+          unoptimized
+        />
       </animated.main>
     </Dialog>
   )
