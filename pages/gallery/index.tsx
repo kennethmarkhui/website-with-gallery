@@ -50,7 +50,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     )
   }
 
-  if (status === 'error' && error instanceof Error) {
+  if (status === 'error') {
     return (
       <div className="flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center gap-4">
         <h1 className="text-3xl">Something went wrong</h1>
