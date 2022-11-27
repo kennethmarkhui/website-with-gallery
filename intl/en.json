@@ -6,8 +6,8 @@
   "index": {
     "title": "home",
     "name": "english",
-    "link1": "en link1",
-    "link2": "en link2"
+    "gallery": "en gallery",
+    "github": "en github"
   },
   "about": {
     "title": "about",

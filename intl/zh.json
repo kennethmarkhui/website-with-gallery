@@ -6,8 +6,8 @@
   "index": {
     "title": "zh home",
     "name": "chinese",
-    "link1": "zh link",
-    "link2": "zh link2"
+    "gallery": "zh gallery",
+    "github": "zh github"
   },
   "about": {
     "title": "zh about",

@@ -16,9 +16,9 @@ const Home: NextPageWithLayout = () => {
   const router = useRouter()
 
   const list: ILinkList[] = [
-    { name: t('link1'), Icon: HiPhotograph, to: '/gallery' },
+    { name: t('gallery'), Icon: HiPhotograph, to: '/gallery' },
     {
-      name: t('link2'),
+      name: t('github'),
       Icon: HiPhotograph,
       to: 'https://github.com/kennethmarkhui/website-with-gallery',
       newTab: true,
