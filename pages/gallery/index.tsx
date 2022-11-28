@@ -9,6 +9,7 @@ import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
+import Sidebar from '@/components/gallery/Sidebar'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto | null>(null)
@@ -42,56 +43,55 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     [data]
   )
 
-  if (status === 'loading') {
-    return (
-      <div className="flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
-        <FaSpinner className="h-10 w-10 animate-spin" />
-      </div>
-    )
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center gap-4">
-        <h1 className="text-3xl">Something went wrong</h1>
-        <p>Please try again later.</p>
-      </div>
-    )
-  }
-
   return (
     <>
-      <PhotoAlbum
-        layout="rows"
-        photos={photos}
-        renderPhoto={ImageCard}
-        renderContainer={({
-          containerProps: { style, ...containerProps },
-          containerRef,
-          children,
-        }: RenderContainerProps<ExtendedPhoto>) => (
-          <div ref={containerRef} {...containerProps}>
-            {children}
-            <button
-              className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
-              disabled={!hasNextPage}
-              onClick={() => fetchNextPage()}
-            >
-              {isFetchingNextPage ? (
-                <FaSpinner className="animate-spin" />
-              ) : hasNextPage ? (
-                'Load More'
-              ) : (
-                'Nothing more to load'
-              )}
-            </button>
-          </div>
-        )}
-        // TODO figure out a way to make the custom renderContainer to accept custom props
-        // https://react-photo-album.com/examples/renderers
-        // renderContainer={GalleryContainer}
-        onClick={(event, photo, index) => setModalData(photo)}
-      />
+      <Sidebar disabled={status !== 'success'} />
+
+      {status === 'loading' && (
+        <div className="flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
+          <FaSpinner className="h-10 w-10 animate-spin" />
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center gap-4 text-center">
+          <h1 className="text-3xl">Something went wrong</h1>
+          <p>Please try again later.</p>
+        </div>
+      )}
+      {status === 'success' && (
+        <PhotoAlbum
+          layout="rows"
+          photos={photos}
+          renderPhoto={ImageCard}
+          renderContainer={({
+            containerProps: { style, ...containerProps },
+            containerRef,
+            children,
+          }: RenderContainerProps<ExtendedPhoto>) => (
+            <div ref={containerRef} {...containerProps}>
+              {children}
+              <button
+                className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
+                disabled={!hasNextPage}
+                onClick={() => fetchNextPage()}
+              >
+                {isFetchingNextPage ? (
+                  <FaSpinner className="animate-spin" />
+                ) : hasNextPage ? (
+                  'Load More'
+                ) : (
+                  'Nothing more to load'
+                )}
+              </button>
+            </div>
+          )}
+          // TODO figure out a way to make the custom renderContainer to accept custom props
+          // https://react-photo-album.com/examples/renderers
+          // renderContainer={GalleryContainer}
+          onClick={(event, photo, index) => setModalData(photo)}
+        />
+      )}
+
       {modalData && (
         <ImageViewerModal data={modalData} close={() => setModalData(null)} />
       )}
@@ -100,7 +100,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 }
 
 Gallery.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout withSideBar>{page}</GalleryLayout>
+  return <GalleryLayout>{page}</GalleryLayout>
 }
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {

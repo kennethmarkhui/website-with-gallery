@@ -20,7 +20,11 @@ const Update: NextPageWithLayout<IUpdate> = ({ data }) => {
     return <div>access denied</div>
   }
 
-  return <GalleryForm mode="update" defaults={{ ...data }} />
+  return (
+    <div className="mx-auto w-full max-w-5xl">
+      <GalleryForm mode="update" defaults={{ ...data }} />
+    </div>
+  )
 }
 
 Update.getLayout = function getLayout(page: ReactElement) {

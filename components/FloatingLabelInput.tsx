@@ -25,7 +25,7 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
         {icon && (
           <button
             type="submit"
-            className="absolute top-3 right-0 text-gray-500 hover:text-black focus:text-black"
+            className="absolute top-3 right-0 text-gray-500 enabled:hover:text-black enabled:focus:text-black"
           >
             {icon}
           </button>
