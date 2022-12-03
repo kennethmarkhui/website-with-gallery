@@ -5,11 +5,13 @@ import { useSession } from 'next-auth/react'
 import { useSpring, animated } from '@react-spring/web'
 import { useGesture } from '@use-gesture/react'
 import { HiPencil, HiX } from 'react-icons/hi'
+import { FaSpinner } from 'react-icons/fa'
 import { Dialog } from '@headlessui/react'
 
 import { ExtendedPhoto } from './ImageCard'
 
 const AnimatedImage = animated(Image)
+const AnimatedFaSpinner = animated(FaSpinner)
 
 // taken from https://github.com/rkusa/react-image-viewer-hook with some changes
 
@@ -49,17 +51,21 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
 
   // The animation for the black backdrop behind the image viewer. Used to fade the backdrop in and
   // out.
-  const [backdropProps, backdropApi] = useSpring(() => ({
+  const [backdropStyles, backdropApi] = useSpring(() => ({
     backgroundColor: 'rgba(0, 0, 0, 0)',
   }))
 
   // The animation for all control buttons (close, next, prev). Used to hide them on enter, exit and
   // while in `pinch` mode.
-  const [headerProps, headerApi] = useSpring(() => ({
+  const [headerStyles, headerApi] = useSpring(() => ({
     display: 'none',
   }))
 
-  const [props, api] = useSpring(() => ({
+  const [loadingStyles, loadingApi] = useSpring(() => ({
+    display: 'none',
+  }))
+
+  const [imageStyles, imageApi] = useSpring(() => ({
     h: 0,
     x: 0,
     y: 0,
@@ -70,14 +76,11 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
 
   // Kick off the enter animation once the viewer is first rendered.
   useEffect(() => {
-    // Fly in the currently active image.
-    // TODO: wait for the image being loaded?
-    api.start(() => {
-      return {
-        opacity: 1,
-        scale: 1,
-      }
-    })
+    // show spinner
+    loadingApi.start(() => ({
+      display: 'block',
+      delay: 500,
+    }))
 
     // Fade the backdrop to black.
     backdropApi.start({
@@ -88,7 +91,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     headerApi.start({
       display: 'block',
     })
-  }, [api, backdropApi, headerApi])
+  }, [loadingApi, backdropApi, headerApi])
 
   // Close the image viewer (awaits the exit animation before actually closing the viewer).
   const handleClose = useCallback(() => {
@@ -114,7 +117,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       friction: 10,
     }
 
-    api.start(() => {
+    imageApi.start(() => {
       return {
         opacity: 0,
         scale: 0.2,
@@ -138,7 +141,10 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     headerApi.start({
       display: 'none',
     })
-  }, [api, backdropApi, headerApi, isClosing, close])
+
+    // Hide spinner
+    loadingApi.start({ display: 'none' })
+  }, [imageApi, loadingApi, backdropApi, headerApi, isClosing, close])
 
   //   Close the viewer if image have been removed
   useEffect(() => {
@@ -176,7 +182,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       return
     }
 
-    api.start((i, ctrl) => {
+    imageApi.start((i, ctrl) => {
       // make typescript happy
       if (!img) {
         return
@@ -254,7 +260,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         }
 
         // Update the animation state of all images.
-        api.start((i) => {
+        imageApi.start((i) => {
           // Calculate the new horizontal position.
           const h = active ? mx : 0
 
@@ -343,7 +349,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         const my = oy - memo.origin.y - transformOriginY
 
         // Update the animation state of all images.
-        api.start(() => {
+        imageApi.start(() => {
           // If the user stopped the pinch gesture and the scale is below 110%, reset the image back
           // to the center and to fit the screen.
           if (last && scale <= 1.1) {
@@ -385,7 +391,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       pinch: {
         enabled: !isClosing,
         scaleBounds: { min: 1.0, max: Infinity },
-        from: () => [api.current[0].get().scale, 0],
+        from: () => [imageApi.current[0].get().scale, 0],
       },
     }
   )
@@ -403,7 +409,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       <animated.div
         className="fixed inset-0"
         style={{
-          ...backdropProps,
+          ...backdropStyles,
           pointerEvents: isClosing ? 'none' : 'auto',
         }}
       ></animated.div>
@@ -411,7 +417,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       {/* HEADER */}
       <animated.header
         className="fixed top-0 left-0 z-50"
-        style={{ ...headerProps }}
+        style={headerStyles}
         aria-hidden="true"
       >
         <animated.p className="fixed top-4 left-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
@@ -454,17 +460,22 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         {...bind()}
         className="absolute inset-0 shrink-0 touch-none items-center justify-center overflow-hidden"
         style={{
-          display: props.display,
-          x: props.h,
+          display: imageStyles.display,
+          x: imageStyles.h,
         }}
       >
+        <AnimatedFaSpinner
+          className="absolute animate-spin text-4xl text-white"
+          style={loadingStyles}
+          aria-hidden={true}
+        />
         <AnimatedImage
           className="max-w-screen h-auto max-h-screen w-auto touch-none select-none"
           style={{
-            x: props.x,
-            y: props.y,
-            scale: props.scale,
-            opacity: props.opacity,
+            x: imageStyles.x,
+            y: imageStyles.y,
+            scale: imageStyles.scale,
+            opacity: imageStyles.opacity,
           }}
           src={data.src}
           alt={data.title ?? ''}
@@ -472,6 +483,15 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
           width={data.width}
           height={data.height}
           draggable={false}
+          onLoadingComplete={() => {
+            loadingApi.start(() => ({ display: 'none' }))
+            imageApi.start(() => {
+              return {
+                opacity: 1,
+                scale: 1,
+              }
+            })
+          }}
           unoptimized
         />
       </animated.main>
