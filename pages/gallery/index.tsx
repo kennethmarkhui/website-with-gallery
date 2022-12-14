@@ -64,11 +64,11 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           photos={photos}
           renderPhoto={ImageCard}
           renderContainer={({
-            containerProps: { style, ...containerProps },
+            containerProps: { ...containerProps },
             containerRef,
             children,
           }: RenderContainerProps<ExtendedPhoto>) => (
-            <div ref={containerRef} {...containerProps}>
+            <div ref={containerRef} {...containerProps} className="w-full">
               {children}
               <button
                 className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
