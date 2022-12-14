@@ -13,9 +13,22 @@ const limit = 10
 export async function fetchItems({
   nextCursor,
   search: searchFilter,
+  categories: categoriesFilter,
 }: GalleryQuery): Promise<OmittedItem[]> {
   return await prisma.item.findMany({
-    where: { id: { contains: searchFilter, mode: 'insensitive' } },
+    where: {
+      AND: [
+        { id: { contains: searchFilter, mode: 'insensitive' } },
+        {
+          category: {
+            in:
+              typeof categoriesFilter === 'string'
+                ? categoriesFilter.split(',')
+                : undefined,
+          },
+        },
+      ],
+    },
     take: limit,
     skip: nextCursor === '0' ? 0 : 1,
     cursor: nextCursor === '0' ? undefined : { id: nextCursor },
@@ -43,10 +56,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryResponse | GalleryErrorResponse>
 ) {
-  let { nextCursor, search } = req.query as GalleryQuery
+  let { nextCursor, search, categories } = req.query as GalleryQuery
 
   try {
-    const items = await fetchItems({ nextCursor, search })
+    const items = await fetchItems({ nextCursor, search, categories })
     nextCursor = items.length === limit ? items[limit - 1].id : undefined
     return res.status(200).json({
       items,
