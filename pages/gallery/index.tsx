@@ -5,6 +5,7 @@ import { FaSpinner } from 'react-icons/fa'
 
 import type { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
+import PageStatus from '@/components/PageStatus'
 import useGallery from 'hooks/gallery/useGallery'
 import { pick } from 'lib/utils'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
@@ -48,15 +49,15 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
       <Sidebar disabled={status !== 'success'} />
 
       {status === 'loading' && (
-        <div className="flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
+        <PageStatus>
           <FaSpinner className="h-10 w-10 animate-spin" />
-        </div>
+        </PageStatus>
       )}
       {status === 'error' && (
-        <div className="flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center gap-4 text-center">
-          <h1 className="text-3xl">Something went wrong</h1>
-          <p>Please try again later.</p>
-        </div>
+        <PageStatus
+          title="Something went wrong"
+          description="Please try again later."
+        />
       )}
       {status === 'success' && (
         <PhotoAlbum
@@ -64,25 +65,36 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           photos={photos}
           renderPhoto={ImageCard}
           renderContainer={({
-            containerProps: { ...containerProps },
+            containerProps,
             containerRef,
             children,
           }: RenderContainerProps<ExtendedPhoto>) => (
             <div ref={containerRef} {...containerProps} className="w-full">
-              {children}
-              <button
-                className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
-                disabled={!hasNextPage}
-                onClick={() => fetchNextPage()}
-              >
-                {isFetchingNextPage ? (
-                  <FaSpinner className="animate-spin" />
-                ) : hasNextPage ? (
-                  'Load More'
-                ) : (
-                  'Nothing more to load'
-                )}
-              </button>
+              {photos.length === 0 && (
+                <PageStatus
+                  title="No results found"
+                  description="Try adjusting your search or filter to find what you&#39;re
+                looking for."
+                />
+              )}
+              {photos.length > 0 && (
+                <>
+                  {children}
+                  <button
+                    className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
+                    disabled={!hasNextPage}
+                    onClick={() => fetchNextPage()}
+                  >
+                    {isFetchingNextPage ? (
+                      <FaSpinner className="animate-spin" />
+                    ) : hasNextPage ? (
+                      'Load More'
+                    ) : (
+                      'Nothing more to load'
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           )}
           // TODO figure out a way to make the custom renderContainer to accept custom props
