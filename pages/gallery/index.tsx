@@ -1,6 +1,6 @@
 import { ReactElement, useMemo, useState } from 'react'
 import type { GetStaticProps } from 'next'
-import PhotoAlbum, { RenderContainerProps } from 'react-photo-album'
+import PhotoAlbum from 'react-photo-album'
 import { FaSpinner } from 'react-icons/fa'
 
 import type { NextPageWithLayout } from 'pages/_app'
@@ -11,6 +11,7 @@ import { pick } from 'lib/utils'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import Sidebar from '@/components/gallery/Sidebar'
+import GalleryContainer from '@/components/gallery/GalleryContainer'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto | null>(null)
@@ -64,42 +65,15 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           layout="rows"
           photos={photos}
           renderPhoto={ImageCard}
-          renderContainer={({
-            containerProps,
-            containerRef,
-            children,
-          }: RenderContainerProps) => (
-            <div ref={containerRef} {...containerProps} className="w-full">
-              {photos.length === 0 && (
-                <PageStatus
-                  title="No results found"
-                  description="Try adjusting your search or filter to find what you&#39;re
-                looking for."
-                />
-              )}
-              {photos.length > 0 && (
-                <>
-                  {children}
-                  <button
-                    className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
-                    disabled={!hasNextPage}
-                    onClick={() => fetchNextPage()}
-                  >
-                    {isFetchingNextPage ? (
-                      <FaSpinner className="animate-spin" />
-                    ) : hasNextPage ? (
-                      'Load More'
-                    ) : (
-                      'Nothing more to load'
-                    )}
-                  </button>
-                </>
-              )}
-            </div>
+          renderContainer={(renderContainerProps) => (
+            <GalleryContainer
+              {...renderContainerProps}
+              isEmpty={photos.length === 0}
+              fetchNextPage={fetchNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={hasNextPage}
+            />
           )}
-          // TODO figure out a way to make the custom renderContainer to accept custom props
-          // https://react-photo-album.com/examples/renderers
-          // renderContainer={GalleryContainer}
           onClick={({ event, photo, index }) => setModalData(photo)}
         />
       )}
