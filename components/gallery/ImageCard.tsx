@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Image, { ImageLoaderProps } from 'next/image'
-import { Photo, PhotoProps } from 'react-photo-album'
+import { Photo, RenderPhotoProps } from 'react-photo-album'
 
 export interface ExtendedPhoto extends Photo {
   name: string
@@ -9,7 +9,7 @@ export interface ExtendedPhoto extends Photo {
   publicId: string
 }
 
-type ImageCardProps = PhotoProps<ExtendedPhoto>
+type ImageCardProps = RenderPhotoProps<ExtendedPhoto>
 
 // Taken from the legacy image, since currently the new Next13 Image does not support cloudinary loader out of the box(or maybe im wrong?).
 // https://github.com/vercel/next.js/blob/f3fc9126add85cda1d58dd21a1556ee878b4117c/packages/next/client/image.tsx#L92-L102

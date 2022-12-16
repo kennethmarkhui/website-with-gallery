@@ -68,7 +68,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
             containerProps,
             containerRef,
             children,
-          }: RenderContainerProps<ExtendedPhoto>) => (
+          }: RenderContainerProps) => (
             <div ref={containerRef} {...containerProps} className="w-full">
               {photos.length === 0 && (
                 <PageStatus
@@ -100,7 +100,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           // TODO figure out a way to make the custom renderContainer to accept custom props
           // https://react-photo-album.com/examples/renderers
           // renderContainer={GalleryContainer}
-          onClick={(event, photo, index) => setModalData(photo)}
+          onClick={({ event, photo, index }) => setModalData(photo)}
         />
       )}
 
