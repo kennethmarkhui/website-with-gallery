@@ -8,7 +8,9 @@ import FloatingLabelSelect from '../FloatingLabelSelect'
 import ImagePreviewInput, { maxFileSize } from '../ImagePreviewInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
-import useGallery from 'hooks/gallery/useGallery'
+import useCreate from 'hooks/gallery/mutations/useCreate'
+import useUpdate from 'hooks/gallery/mutations/useUpdate'
+import useDelete from 'hooks/gallery/mutations/useDelete'
 import useFilePreview from 'hooks/gallery/useFilePreview'
 import { formatBytes } from 'lib/utils'
 
@@ -34,9 +36,7 @@ const GalleryForm = ({
     setValue,
   } = useForm<GalleryFormFields<FileList>>()
 
-  const {
-    query: { data: categories, status: categoryStatus },
-  } = useCategory()
+  const { data: categories, status: categoryStatus } = useCategory()
 
   useEffect(() => {
     if (
@@ -53,13 +53,9 @@ const GalleryForm = ({
     setValue('category', defaults.category)
   }, [categoryStatus, defaults, setValue, mode])
 
-  const {
-    mutation: {
-      create: { mutate: createMutate, status: createStatus },
-      update: { mutate: updateMutate, status: updateStatus },
-      delete: { mutate: deleteMutate, status: deleteStatus },
-    },
-  } = useGallery()
+  const { mutate: createMutate, status: createStatus } = useCreate()
+  const { mutate: updateMutate, status: updateStatus } = useUpdate()
+  const { mutate: deleteMutate, status: deleteStatus } = useDelete()
 
   const formIsLoading =
     createStatus === 'loading' ||

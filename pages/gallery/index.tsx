@@ -17,14 +17,12 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto | null>(null)
 
   const {
-    query: {
-      data,
-      status,
-      error,
-      isFetchingNextPage,
-      fetchNextPage,
-      hasNextPage,
-    },
+    data,
+    status,
+    error,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
   } = useGallery()
 
   const photos: ExtendedPhoto[] = useMemo(

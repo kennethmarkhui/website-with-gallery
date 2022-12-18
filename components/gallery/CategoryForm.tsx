@@ -5,17 +5,17 @@ import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
+import useCreateCategory from 'hooks/gallery/category/mutations/useCreateCategory'
+import useUpdateCategory from 'hooks/gallery/category/mutations/useUpdateCategory'
+import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 
 const CategoryForm = (): JSX.Element => {
-  const {
-    query: { data: categories, status, error },
-    mutation: {
-      create: { mutate: createCategoryMutate },
-      update: { mutate: updateCategoryMutate },
-      delete: { mutate: deleteCategoryMutate },
-    },
-  } = useCategory()
+  const { data: categories, status, error } = useCategory()
+
+  const { mutate: createCategoryMutate } = useCreateCategory()
+  const { mutate: updateCategoryMutate } = useUpdateCategory()
+  const { mutate: deleteCategoryMutate } = useDeleteCategory()
 
   const [formMode, setFormMode] = useState<GalleryFormMode>('create')
 

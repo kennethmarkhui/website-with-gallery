@@ -14,9 +14,7 @@ const Sidebar = ({ disabled = false }: SidebarProps): JSX.Element => {
   const router = useRouter()
   const { register, handleSubmit } = useForm<GalleryFilters>()
 
-  const {
-    query: { data, status, error },
-  } = useCategory()
+  const { data, status, error } = useCategory()
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
     router.push(
