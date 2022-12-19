@@ -4,9 +4,10 @@ import type {
   GalleryErrorResponse,
   GalleryQuery,
   GalleryResponse,
-  OmittedItem,
+  GalleryItem,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
+import { isValidRequest } from 'lib/utils'
 
 const limit = 10
 
@@ -14,7 +15,7 @@ export async function fetchItems({
   nextCursor,
   search: searchFilter,
   categories: categoriesFilter,
-}: GalleryQuery): Promise<OmittedItem[]> {
+}: GalleryQuery): Promise<GalleryItem[]> {
   return await prisma.item.findMany({
     where: {
       AND: [
@@ -56,7 +57,29 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryResponse | GalleryErrorResponse>
 ) {
-  let { nextCursor, search, categories } = req.query as GalleryQuery
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
+  }
+
+  if (
+    !isValidRequest<GalleryQuery>(req.query, [
+      'nextCursor',
+      'search',
+      'categories',
+    ])
+  ) {
+    return res.status(400).json({
+      error: {
+        message: 'Missing queries.',
+      },
+    })
+  }
+
+  let { nextCursor, search, categories } = req.query
 
   try {
     const items = await fetchItems({ nextCursor, search, categories })

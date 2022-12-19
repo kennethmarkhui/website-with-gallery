@@ -5,6 +5,12 @@ import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
 import { authOptions } from '../auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
+import { isValidRequest } from 'lib/utils'
+
+type RequestQuery = {
+  id: string
+  publicId?: string
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,32 +26,41 @@ export default async function handler(
     })
   }
 
-  if (req.method === 'DELETE' && req.query.id) {
-    try {
-      if (req.query.publicId) {
-        await cloudinary.uploader.destroy(req.query.publicId as string)
-      }
-
-      const item = await prisma.item.delete({
-        where: { id: req.query.id as string },
-        select: {
-          id: true,
-        },
-      })
-      return res
-        .status(200)
-        .json({ message: `id ${item.id} has been deleted!` })
-    } catch (error) {
-      return res.status(422).json({
-        error: {
-          message: `Something went wrong. id ${req.query.id} was not deleted.`,
-        },
-      })
-    }
+  if (req.method !== 'DELETE') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
   }
-  res.status(400).json({
-    error: {
-      message: 'Something went wrong.',
-    },
-  })
+
+  if (!isValidRequest<RequestQuery>(req.query, ['id', 'publicId'])) {
+    return res.status(400).json({
+      error: {
+        message: 'Provide an id and publicId if it has an image.',
+      },
+    })
+  }
+
+  const { id, publicId } = req.query
+
+  try {
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId)
+    }
+
+    const item = await prisma.item.delete({
+      where: { id },
+      select: {
+        id: true,
+      },
+    })
+    return res.status(200).json({ message: `id ${item.id} has been deleted!` })
+  } catch (error) {
+    return res.status(422).json({
+      error: {
+        message: `Something went wrong. id ${id} was not deleted.`,
+      },
+    })
+  }
 }

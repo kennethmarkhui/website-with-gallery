@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { Category } from 'prisma/prisma-client'
+import type { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
@@ -22,6 +22,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Pick<Category, 'id' | 'name'>[] | GalleryErrorResponse>
 ) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
+  }
+
   try {
     const categoriesResponse = await fetchCategories()
     return res.status(200).json(categoriesResponse)

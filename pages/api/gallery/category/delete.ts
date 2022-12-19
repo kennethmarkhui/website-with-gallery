@@ -4,6 +4,11 @@ import { unstable_getServerSession } from 'next-auth'
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
+import { isValidRequest } from 'lib/utils'
+
+type RequestQuery = {
+  id: string
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,26 +24,39 @@ export default async function handler(
     })
   }
 
+  if (req.method !== 'DELETE') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
+  }
+
+  if (!isValidRequest<RequestQuery>(req.query, ['id'])) {
+    return res.status(400).json({
+      error: {
+        message: 'Provide an id.',
+      },
+    })
+  }
+
   const { id } = req.query
 
-  if (req.method === 'DELETE' && id) {
-    try {
-      const deleteResponse = await prisma.category.delete({
-        where: {
-          id: id as string,
-        },
-        select: {
-          name: true,
-        },
-      })
-      return res
-        .status(200)
-        .json({ message: `${deleteResponse.name} has been deleted.` })
-    } catch (error) {
-      return res
-        .status(400)
-        .json({ error: { message: 'Failed to delete. Something went wrong.' } })
-    }
+  try {
+    const deleteResponse = await prisma.category.delete({
+      where: {
+        id,
+      },
+      select: {
+        name: true,
+      },
+    })
+    return res
+      .status(200)
+      .json({ message: `${deleteResponse.name} has been deleted.` })
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ error: { message: 'Failed to delete. Something went wrong.' } })
   }
-  return res.status(400).json({ error: { message: 'Something went wrong.' } })
 }

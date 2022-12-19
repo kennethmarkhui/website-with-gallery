@@ -6,6 +6,16 @@ import { Category } from 'prisma/prisma-client'
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
+import { isValidRequest } from 'lib/utils'
+
+type RequestQuery = {
+  id: string
+}
+
+type RequestBody = {
+  name: string
+  oldName: string
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,6 +27,25 @@ export default async function handler(
     return res.status(401).json({
       error: {
         message: 'You must be an admin to view the protected content.',
+      },
+    })
+  }
+
+  if (req.method !== 'PUT') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
+  }
+
+  if (
+    !isValidRequest<RequestQuery>(req.query, ['id']) ||
+    !isValidRequest<RequestBody>(req.body, ['name', 'oldName'])
+  ) {
+    return res.status(422).json({
+      error: {
+        message: 'Provide an id, name and oldName.',
       },
     })
   }
@@ -33,37 +62,35 @@ export default async function handler(
     })
   }
 
-  if (req.method === 'PUT') {
-    try {
-      await prisma.category.update({
-        where: { id: id as string },
-        data: {
-          name: newName,
+  try {
+    await prisma.category.update({
+      where: { id },
+      data: {
+        name: newName,
+      },
+    })
+    return res
+      .status(200)
+      .json({ message: `${oldName} was updated to ${newName}.` })
+  } catch (error) {
+    if (error instanceof PrismaClientKnownRequestError) {
+      // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
+      if (error.code === 'P2002') {
+        const target = error.meta?.target as keyof Pick<Category, 'name'>
+        if (target.includes('name')) {
+          return res.status(422).json({
+            error: {
+              message: `"${newName}" already exist.`,
+              target: 'category',
+            },
+          })
+        }
+      }
+      return res.status(422).json({
+        error: {
+          message: 'Something went wrong with prisma.',
         },
       })
-      return res
-        .status(200)
-        .json({ message: `${oldName} was updated to ${newName}.` })
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
-        if (error.code === 'P2002') {
-          const target = error.meta?.target as keyof Pick<Category, 'name'>
-          if (target.includes('name')) {
-            return res.status(422).json({
-              error: {
-                message: `"${newName}" already exist.`,
-                target: 'category',
-              },
-            })
-          }
-        }
-        return res.status(422).json({
-          error: {
-            message: 'Something went wrong with prisma.',
-          },
-        })
-      }
     }
   }
   return res.status(400).json({ error: { message: 'Something went wrong.' } })

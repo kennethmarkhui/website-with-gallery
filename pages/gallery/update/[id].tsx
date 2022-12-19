@@ -9,11 +9,11 @@ import GalleryForm from '@/components/gallery/Form'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { pick } from 'lib/utils'
 
-interface IUpdate {
+interface UpdateProps {
   data: GalleryFormFields
 }
 
-const Update: NextPageWithLayout<IUpdate> = ({ data }) => {
+const Update: NextPageWithLayout<UpdateProps> = ({ data }) => {
   const { data: session } = useSession()
 
   if (!session || session.user.role !== 'ADMIN') {
@@ -36,14 +36,18 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
 }) => {
   let data
-  if (query.data) {
-    data = JSON.parse(query.data as string)
-    data.id = query.id
+
+  const { data: queryData, id } = query
+
+  if (queryData) {
+    data = JSON.parse(queryData as string)
+    data.id = id
   }
-  if (!query.data) {
+
+  if (!queryData) {
     // fetch item if no query data provided
     try {
-      const resData = await fetchItem(query.id as string)
+      const resData = await fetchItem(id as string)
       data = resData
     } catch (error) {
       console.error(error)

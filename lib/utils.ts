@@ -39,3 +39,11 @@ export const generateQueryStringFromObject = (
   }
   return ''
 }
+
+// https://stackoverflow.com/a/72914813
+export const isValidRequest = <T extends Record<string, unknown>>(
+  obj: {},
+  fields: (keyof T)[]
+): obj is T => {
+  return Object.keys(obj).every((key) => fields.includes(key))
+}

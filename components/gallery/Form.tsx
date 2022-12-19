@@ -14,7 +14,7 @@ import useDelete from 'hooks/gallery/mutations/useDelete'
 import useFilePreview from 'hooks/gallery/useFilePreview'
 import { formatBytes } from 'lib/utils'
 
-interface IGalleryForm {
+interface GalleryFormProps {
   mode?: GalleryFormMode
   defaults?: GalleryFormFields
 }
@@ -22,7 +22,7 @@ interface IGalleryForm {
 const GalleryForm = ({
   mode = 'create',
   defaults,
-}: IGalleryForm): JSX.Element => {
+}: GalleryFormProps): JSX.Element => {
   const router = useRouter()
 
   const {
@@ -166,17 +166,18 @@ const GalleryForm = ({
               'Submit'
             )}
           </button>
-          {mode === 'update' && (
+          {mode === 'update' && defaults && (
             <button
               type="button"
               className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
               onClick={() =>
                 deleteMutate(
                   {
-                    id: defaults?.id as string,
-                    publicId: defaults?.image
-                      ? defaults?.image.publicId
-                      : undefined,
+                    id: defaults.id,
+                    publicId:
+                      defaults.image?.publicId !== ''
+                        ? defaults.image?.publicId
+                        : undefined,
                   },
                   {
                     onSuccess: () => {

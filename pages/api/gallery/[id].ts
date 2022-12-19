@@ -1,9 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import type { GalleryErrorResponse, OmittedItem } from 'types/gallery'
+import type { GalleryErrorResponse, GalleryItem } from 'types/gallery'
 import { prisma } from 'lib/prisma'
+import { isValidRequest } from 'lib/utils'
 
-export async function fetchItem(id: string): Promise<OmittedItem | null> {
+type RequestQuery = {
+  id: string
+}
+
+export async function fetchItem(
+  id: RequestQuery['id']
+): Promise<GalleryItem | null> {
   return await prisma.item.findUnique({
     where: { id },
     select: {
@@ -23,7 +30,7 @@ export async function fetchItem(id: string): Promise<OmittedItem | null> {
   })
 }
 
-export async function fetchImage(id: string) {
+export async function fetchImage(id: RequestQuery['id']) {
   return await prisma.image.findFirst({
     where: { itemId: id },
     select: {
@@ -35,20 +42,37 @@ export async function fetchImage(id: string) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<OmittedItem | null | GalleryErrorResponse>
+  res: NextApiResponse<GalleryItem | null | GalleryErrorResponse>
 ) {
-  if (req.query.id) {
-    try {
-      const item = await fetchItem(req.query.id as string)
-      if (item) res.status(200).json(item)
-      return res
-        .status(404)
-        .json({ error: { message: 'Can not find data record in database.' } })
-    } catch (error) {
-      return res.status(500).json({
-        error: { message: 'Failed to fetch data from the database.' },
-      })
-    }
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      error: {
+        message: 'Invalid Method.',
+      },
+    })
   }
-  res.status(422).json({ error: { message: 'Please provide an id.' } })
+
+  if (!isValidRequest<RequestQuery>(req.query, ['id'])) {
+    return res.status(400).json({
+      error: {
+        message: 'Provide an id.',
+      },
+    })
+  }
+
+  const { id } = req.query
+
+  try {
+    const item = await fetchItem(id)
+    if (item) {
+      return res.status(200).json(item)
+    }
+    return res
+      .status(404)
+      .json({ error: { message: 'Can not find data record in database.' } })
+  } catch (error) {
+    return res.status(500).json({
+      error: { message: 'Failed to fetch data from the database.' },
+    })
+  }
 }
