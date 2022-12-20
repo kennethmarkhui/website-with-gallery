@@ -20,17 +20,21 @@ const Sidebar = ({ disabled = false }: SidebarProps): JSX.Element => {
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
     // filter out falsy and empty arrays
+    // https://stackoverflow.com/a/38340730
     const filteredData = (Object.keys(data) as (keyof GalleryFilters)[])
-      .filter((key) =>
-        Array.isArray(data[key]) ? data[key]?.length !== 0 : !!data[key]
-      )
-      .reduce(
-        (newData, currentKey) => ({
+      .filter((key) => {
+        const value = data[key]
+        return Array.isArray(value) ? value.length !== 0 : !!value
+      })
+      .reduce((newData, currentKey) => {
+        const currentValue = data[currentKey]
+        return {
           ...newData,
-          [currentKey]: data[currentKey],
-        }),
-        {}
-      )
+          [currentKey]: Array.isArray(currentValue)
+            ? currentValue.join(',')
+            : currentValue,
+        }
+      }, {})
 
     router.push(!filteredData ? router.pathname : { query: filteredData })
   }
