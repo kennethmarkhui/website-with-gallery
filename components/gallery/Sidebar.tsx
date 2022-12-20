@@ -12,25 +12,27 @@ interface SidebarProps {
 
 const Sidebar = ({ disabled = false }: SidebarProps): JSX.Element => {
   const router = useRouter()
-  const { register, handleSubmit } = useForm<GalleryFilters>()
+  const { register, handleSubmit } = useForm<GalleryFilters>({
+    defaultValues: { search: '', categories: [] },
+  })
 
   const { data, status, error } = useCategory()
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
-    router.push(
-      data.search !== '' ||
-        (Array.isArray(data.categories) && data.categories.length !== 0)
-        ? {
-            query: {
-              ...data,
-              categories:
-                Array.isArray(data.categories) && data.categories.length !== 0
-                  ? data.categories.join(',')
-                  : undefined,
-            },
-          }
-        : router.pathname
-    )
+    // filter out falsy and empty arrays
+    const filteredData = (Object.keys(data) as (keyof GalleryFilters)[])
+      .filter((key) =>
+        Array.isArray(data[key]) ? data[key]?.length !== 0 : !!data[key]
+      )
+      .reduce(
+        (newData, currentKey) => ({
+          ...newData,
+          [currentKey]: data[currentKey],
+        }),
+        {}
+      )
+
+    router.push(!filteredData ? router.pathname : { query: filteredData })
   }
 
   return (
