@@ -1,13 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { unstable_getServerSession } from 'next-auth'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
-import type { Item } from 'prisma/prisma-client'
 
 import type {
   GalleryMutateResponse,
   GalleryErrorResponse,
   GalleryFormKeys,
-  NonNullableRecursive,
+  GalleryFormFields,
 } from 'types/gallery'
 import { authOptions } from '../auth/[...nextauth]'
 import cloudinary from 'lib/cloudinary'
@@ -70,9 +69,12 @@ export default async function handler(
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
   if (
-    !isValidRequest<
-      NonNullableRecursive<Omit<Item, 'dateAdded' | 'updatedAt'>>
-    >(formData.fields, ['id', 'name', 'storage', 'category'])
+    !isValidRequest<Omit<GalleryFormFields, 'image'>>(formData.fields, [
+      'id',
+      'name',
+      'storage',
+      'category',
+    ])
   ) {
     return res.status(400).json({
       error: {
@@ -115,7 +117,7 @@ export default async function handler(
         name: name !== '' ? name : null,
         storage: storage !== '' ? storage : null,
         ...(category && {
-          categoryRelation: {
+          category: {
             connect: {
               name: category,
             },

@@ -1,17 +1,19 @@
-import { Item, Image } from 'prisma/prisma-client'
+import { Item, Image, Category } from 'prisma/prisma-client'
 
-export type GalleryItem = Omit<Item, 'dateAdded' | 'updatedAt'> & {
-  image: Omit<Image, 'id' | 'itemId' | 'dateAdded' | 'updatedAt'> | null
+type GalleryItemInfo = Pick<Item, 'id' | 'name' | 'storage'> & {
+  category: Category['name'] | null
 }
 
-export type GalleryFormFields<TImage = void> = Omit<
-  NonNullableRecursive<Item>,
-  'dateAdded' | 'updatedAt'
-> & {
-  image?: TImage extends void
-    ? Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
-    : TImage
+type GalleryImage = Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
+
+export type GalleryItem = GalleryItemInfo & {
+  image: GalleryImage | null
 }
+
+export type GalleryFormFields<TImage = void> =
+  NonNullableRecursive<GalleryItemInfo> & {
+    image?: TImage extends void ? GalleryImage : TImage
+  }
 
 export type GalleryFormKeys = keyof GalleryFormFields
 

@@ -68,7 +68,10 @@ const GalleryForm = ({
     preview: imagePreview,
     fileListRef,
     removeFile,
-  } = useFilePreview(imageFileList, defaults?.image && defaults.image.url)
+  } = useFilePreview(
+    imageFileList,
+    defaults?.image ? defaults.image.url : undefined
+  )
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
     if (fileListRef.current) {

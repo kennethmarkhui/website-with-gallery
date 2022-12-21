@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { unstable_getServerSession } from 'next-auth'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
-import type { Item } from 'prisma/prisma-client'
 
 import type {
   GalleryMutateResponse,
   GalleryErrorResponse,
-  NonNullableRecursive,
+  GalleryFormFields,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
@@ -82,9 +81,11 @@ export default async function handler(
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
   if (
-    !isValidRequest<
-      NonNullableRecursive<Pick<Item, 'name' | 'storage' | 'category'>>
-    >(formData.fields, ['name', 'storage', 'category'])
+    !isValidRequest<Omit<GalleryFormFields, 'id' | 'image'>>(formData.fields, [
+      'name',
+      'storage',
+      'category',
+    ])
   ) {
     return res.status(400).json({
       error: {
@@ -124,14 +125,14 @@ export default async function handler(
         storage: storage !== '' ? storage : null,
         ...(category
           ? {
-              categoryRelation: {
+              category: {
                 connect: {
                   name: category,
                 },
               },
             }
           : {
-              categoryRelation: {
+              category: {
                 disconnect: true,
               },
             }),

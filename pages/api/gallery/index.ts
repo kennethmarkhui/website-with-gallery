@@ -16,17 +16,15 @@ export async function fetchItems({
   search: searchFilter,
   categories: categoriesFilter,
 }: GalleryQuery): Promise<GalleryItem[]> {
-  return await prisma.item.findMany({
+  const data = await prisma.item.findMany({
     where: {
       AND: [
         { id: { contains: searchFilter, mode: 'insensitive' } },
         {
-          category: {
-            in:
-              typeof categoriesFilter === 'string'
-                ? categoriesFilter.split(',')
-                : undefined,
-          },
+          category:
+            typeof categoriesFilter === 'string'
+              ? { name: { in: categoriesFilter.split(',') } }
+              : undefined,
         },
       ],
     },
@@ -37,7 +35,7 @@ export async function fetchItems({
       id: true,
       name: true,
       storage: true,
-      category: true,
+      category: { select: { name: true } },
       image: {
         select: {
           url: true,
@@ -51,6 +49,11 @@ export async function fetchItems({
       updatedAt: 'desc',
     },
   })
+
+  return data.map((item) => ({
+    ...item,
+    category: item.category?.name ?? null,
+  }))
 }
 
 export default async function handler(

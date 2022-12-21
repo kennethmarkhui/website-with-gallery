@@ -11,13 +11,13 @@ type RequestQuery = {
 export async function fetchItem(
   id: RequestQuery['id']
 ): Promise<GalleryItem | null> {
-  return await prisma.item.findUnique({
+  const data = await prisma.item.findUnique({
     where: { id },
     select: {
       id: true,
       name: true,
       storage: true,
-      category: true,
+      category: { select: { name: true } },
       image: {
         select: {
           url: true,
@@ -28,6 +28,8 @@ export async function fetchItem(
       },
     },
   })
+
+  return data ? { ...data, category: data.category?.name ?? null } : null
 }
 
 export async function fetchImage(id: RequestQuery['id']) {

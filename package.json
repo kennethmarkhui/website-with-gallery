@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier --write .",
-    "db:prisma-migrate": "npx prisma migrate dev",
-    "db:prisma-generate": "npx prisma generate"
+    "db:prisma-migrate": "dotenv -e .env.local -- npx prisma migrate dev",
+    "db:prisma-generate": "dotenv -e .env.local -- npx prisma generate"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.6",

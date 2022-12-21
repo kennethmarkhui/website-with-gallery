@@ -62,8 +62,8 @@ model Item {
   id                String      @id 
   name              String?
   storage           String?
-  category          String?
-  categoryRelation  Category?   @relation(fields: [category],references: [name],onDelete: SetNull )
+  categoryId        String?
+  category          Category?   @relation(fields: [categoryId],references: [id],onDelete: SetNull )
   image             Image?
   dateAdded         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
