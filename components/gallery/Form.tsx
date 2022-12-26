@@ -16,13 +16,27 @@ import { formatBytes } from 'lib/utils'
 
 interface GalleryFormProps {
   mode?: GalleryFormMode
-  defaults?: GalleryFormFields
+  defaultFormValues?: GalleryFormFields
 }
 
-const GalleryForm = ({
+interface GalleryFormCreateProps {
+  mode?: 'create'
+}
+
+interface GalleryFormUpdateProps {
+  mode: 'update'
+  defaultFormValues: GalleryFormFields
+}
+
+function GalleryForm({ mode }: GalleryFormCreateProps): JSX.Element
+function GalleryForm({
+  mode,
+  defaultFormValues,
+}: GalleryFormUpdateProps): JSX.Element
+function GalleryForm({
   mode = 'create',
-  defaults,
-}: GalleryFormProps): JSX.Element => {
+  defaultFormValues,
+}: GalleryFormProps): JSX.Element {
   const router = useRouter()
 
   const {
@@ -33,25 +47,23 @@ const GalleryForm = ({
     reset,
     resetField,
     setError,
-    setValue,
-  } = useForm<GalleryFormFields<FileList>>()
+  } = useForm<GalleryFormFields<FileList>>({
+    defaultValues: {
+      id: '',
+      name: '',
+      storage: '',
+      category: '',
+      image: null,
+    },
+  })
 
   const { data: categories, status: categoryStatus } = useCategory()
 
   useEffect(() => {
-    if (
-      mode !== 'update' ||
-      categoryStatus === 'loading' ||
-      categoryStatus === 'error' ||
-      !defaults
-    ) {
+    if (mode !== 'update' || !defaultFormValues || categoryStatus !== 'success')
       return
-    }
-    setValue('id', defaults.id)
-    setValue('name', defaults.name)
-    setValue('storage', defaults.storage)
-    setValue('category', defaults.category)
-  }, [categoryStatus, defaults, setValue, mode])
+    reset({ ...defaultFormValues, image: null })
+  }, [mode, defaultFormValues, reset, categoryStatus])
 
   const { mutate: createMutate, status: createStatus } = useCreate()
   const { mutate: updateMutate, status: updateStatus } = useUpdate()
@@ -60,7 +72,8 @@ const GalleryForm = ({
   const formIsLoading =
     createStatus === 'loading' ||
     updateStatus === 'loading' ||
-    deleteStatus === 'loading'
+    deleteStatus === 'loading' ||
+    categoryStatus === 'loading'
 
   const imageFileList = watch('image')
 
@@ -70,7 +83,7 @@ const GalleryForm = ({
     removeFile,
   } = useFilePreview(
     imageFileList,
-    defaults?.image ? defaults.image.url : undefined
+    defaultFormValues?.image ? defaultFormValues.image.url : undefined
   )
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
@@ -132,7 +145,7 @@ const GalleryForm = ({
         <FloatingLabelSelect
           id="category"
           {...register('category')}
-          defaultSelected={defaults?.category}
+          defaultSelected={defaultFormValues?.category}
           options={categories}
           loading={categoryStatus === 'loading'}
         />
@@ -169,17 +182,17 @@ const GalleryForm = ({
               'Submit'
             )}
           </button>
-          {mode === 'update' && defaults && (
+          {mode === 'update' && defaultFormValues && (
             <button
               type="button"
               className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
               onClick={() =>
                 deleteMutate(
                   {
-                    id: defaults.id,
+                    id: defaultFormValues.id,
                     publicId:
-                      defaults.image?.publicId !== ''
-                        ? defaults.image?.publicId
+                      defaultFormValues.image?.publicId !== ''
+                        ? defaultFormValues.image?.publicId
                         : undefined,
                   },
                   {

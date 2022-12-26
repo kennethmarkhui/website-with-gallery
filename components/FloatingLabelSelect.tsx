@@ -1,4 +1,5 @@
 import { ChangeEvent, forwardRef, SelectHTMLAttributes } from 'react'
+import { FaSpinner } from 'react-icons/fa'
 
 type Option = {
   id: string
@@ -18,11 +19,17 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
   ) {
     return (
       <div className="group relative z-0 mb-6 w-full">
+        {loading && (
+          <FaSpinner className="absolute top-3 right-12 animate-spin text-gray-500" />
+        )}
         <select
           ref={ref}
           {...rest}
           data-value={defaultSelected ?? ''}
           onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+            if (rest.onChange) {
+              rest.onChange(event)
+            }
             event.currentTarget.setAttribute(
               'data-value',
               event.currentTarget.value
@@ -31,7 +38,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
           className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
         >
           {loading && (!options || options.length === 0) && (
-            <option value="">loading</option>
+            <option value=""></option>
           )}
           {!loading && options && options.length !== 0 && (
             <>

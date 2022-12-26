@@ -8,7 +8,7 @@ export const maxFileSize = 2 * 1024 * 1024 // 2MB
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   imagePreview: string | null
-  fileListRef: MutableRefObject<FileList | undefined>
+  fileListRef: MutableRefObject<FileList | undefined | null>
   removeFile: () => void
   errorMessage?: string
 }
