@@ -21,12 +21,21 @@ const useFilePreview = (
     fileListRef.current = fileList
   }
 
-  const removeFile = useCallback((callback: () => void): void => {
-    setPreview(null)
-    fileListRef.current = null
-    // callback to call react-hook-form's resetField
-    callback()
-  }, [])
+  const oldPreview = defaultPreview ?? null
+
+  const removeFile = useCallback(
+    (callback: () => void): void => {
+      if (oldPreview) {
+        setPreview(oldPreview)
+      } else {
+        setPreview(null)
+      }
+      fileListRef.current = null
+      // callback to call react-hook-form's resetField
+      callback()
+    },
+    [oldPreview]
+  )
 
   useEffect(() => {
     if (!defaultPreview) {
