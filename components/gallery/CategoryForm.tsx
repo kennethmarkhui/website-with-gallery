@@ -11,11 +11,20 @@ import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategor
 import FloatingLabelInput from '../FloatingLabelInput'
 
 const CategoryForm = (): JSX.Element => {
-  const { data: categories, status, error } = useCategory()
+  const { data: categories, status: categoryStatus, error } = useCategory()
 
-  const { mutate: createCategoryMutate } = useCreateCategory()
-  const { mutate: updateCategoryMutate } = useUpdateCategory()
-  const { mutate: deleteCategoryMutate } = useDeleteCategory()
+  const { mutate: createCategoryMutate, status: createCategoryStatus } =
+    useCreateCategory()
+  const { mutate: updateCategoryMutate, status: updateCategoryStatus } =
+    useUpdateCategory()
+  const { mutate: deleteCategoryMutate, status: deleteCategoryStatus } =
+    useDeleteCategory()
+
+  const categoryFormIsLoading =
+    categoryStatus === 'loading' ||
+    createCategoryStatus === 'loading' ||
+    updateCategoryStatus === 'loading' ||
+    deleteCategoryStatus === 'loading'
 
   const [formMode, setFormMode] = useState<GalleryFormMode>('create')
 
@@ -93,16 +102,23 @@ const CategoryForm = (): JSX.Element => {
           })}
           errorMessage={errors.category?.message}
           icon={<HiPlus />}
+          disabled={categoryFormIsLoading}
         />
       </form>
 
-      <ul className="mt-8 flex flex-wrap gap-4 md:mt-16">
-        {status === 'loading' && <p>loading</p>}
-        {status === 'error' && error instanceof Error && <p>{error.message}</p>}
-        {status === 'success' && categories?.length === 0 && (
+      <ul
+        className={`mt-8 flex flex-wrap gap-4 md:mt-16 ${
+          categoryFormIsLoading ? 'pointer-events-none opacity-70' : ''
+        }`}
+      >
+        {categoryStatus === 'loading' && <p>loading</p>}
+        {categoryStatus === 'error' && error instanceof Error && (
+          <p>{error.message}</p>
+        )}
+        {categoryStatus === 'success' && categories?.length === 0 && (
           <p>empty category list</p>
         )}
-        {status === 'success' &&
+        {categoryStatus === 'success' &&
           categories?.map(({ id, name }) => (
             <li key={id}>
               <span
