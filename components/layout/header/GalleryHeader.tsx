@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { HiArrowLeft } from 'react-icons/hi'
+import { HiArrowLeft, HiPlus } from 'react-icons/hi'
 
 import LocaleSwitcher from './LocaleSwitcher'
 import Auth from '@/components/Auth'
@@ -23,13 +23,16 @@ const GalleryHeader = (): JSX.Element => {
         </div>
       </Link>
 
-      {router.pathname === '/gallery' && session?.user.role === 'ADMIN' && (
-        <Link href={'/gallery/create'}>add</Link>
-      )}
-
-      <div className="flex items-center">
-        <LocaleSwitcher />
-        <Auth />
+      <div className="flex items-center space-x-6 divide-x">
+        {router.pathname === '/gallery' && session?.user.role === 'ADMIN' && (
+          <Link href={'/gallery/create'}>
+            <HiPlus />
+          </Link>
+        )}
+        <div className="flex items-center">
+          <LocaleSwitcher />
+          <Auth />
+        </div>
       </div>
     </header>
   )
