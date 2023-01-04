@@ -41,7 +41,4 @@ module.exports = {
     },
   },
   plugins: [require('@tailwindcss/forms')],
-  safelist: [
-    'bottom-0', // used in Drawer.tsx
-  ],
 }

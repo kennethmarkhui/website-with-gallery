@@ -20,7 +20,7 @@ const Drawer = ({
   onClose,
   children,
   openFrom = 'top',
-}: DrawerProps) => {
+}: DrawerProps): JSX.Element => {
   const isX = openFrom === 'left' || openFrom === 'right'
 
   return (
@@ -29,7 +29,10 @@ const Drawer = ({
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
-          enterFrom={`opacity-0 ${openFrom}-0`}
+          enterFrom={`opacity-0 ${
+            // https://tailwindcss.com/docs/content-configuration#dynamic-class-names
+            openFrom === 'bottom' ? 'bottom-0' : `${openFrom}-0`
+          }`}
           enterTo="opacity-100"
           leave="ease-in duration-200"
           leaveFrom="opacity-100"
@@ -40,7 +43,11 @@ const Drawer = ({
 
         <div className="fixed inset-0">
           <div className="absolute inset-0 overflow-hidden">
-            <div className={`fixed ${openFrom}-0 flex max-w-full`}>
+            <div
+              className={`fixed flex max-w-full ${
+                openFrom === 'bottom' ? 'bottom-0' : `${openFrom}-0`
+              }`}
+            >
               <Transition.Child
                 as={Fragment}
                 enter="transform transition ease-in-out duration-300"
