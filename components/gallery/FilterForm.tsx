@@ -46,22 +46,27 @@ const CategoryCheckboxes = ({
 
   return (
     <ul>
-      {options.map(({ id, name }) => (
-        <li key={id} className="space-x-2">
-          <input
-            id={id}
-            type="checkbox"
-            className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
-            onChange={() => handleOnChange(name)}
-          />
-          <label
-            htmlFor={id}
-            className="cursor-pointer truncate text-xs font-medium text-gray-500"
-          >
-            {name}
-          </label>
-        </li>
-      ))}
+      {options.map(({ id, name }) => {
+        // ensures sidebar and mobile have different id for label to properly select the correct version of checkbox
+        // TODO find a better way if this is a bad way to do it
+        const newId = id + Math.floor(Math.random() * 100)
+        return (
+          <li key={id} className="space-x-2">
+            <input
+              id={newId}
+              type="checkbox"
+              className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
+              onChange={() => handleOnChange(name)}
+            />
+            <label
+              htmlFor={newId}
+              className="cursor-pointer truncate text-xs font-medium text-gray-500"
+            >
+              {name}
+            </label>
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -111,7 +116,6 @@ const FilterForm = ({
         />
         {status === 'loading' && <p>loading</p>}
         {status === 'error' && <p>error</p>}
-        {status === 'success' && !!data && <p>empty</p>}
         {status === 'success' && data && (
           <CategoryCheckboxes
             options={data}
