@@ -83,7 +83,11 @@ function GalleryForm({
     removeFile,
   } = useFilePreview(
     imageFileList,
-    defaultFormValues?.image ? defaultFormValues.image.url : undefined
+    defaultFormValues?.image
+      ? defaultFormValues.image.url !== '/placeholder.png'
+        ? defaultFormValues.image.url
+        : undefined
+      : undefined
   )
 
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
