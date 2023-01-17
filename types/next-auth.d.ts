@@ -1,9 +1,10 @@
-import { Role } from 'prisma/prisma-client'
+import { Role, User as PrismaUser } from 'prisma/prisma-client'
 import NextAuth, { DefaultSession } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 
 // https://next-auth.js.org/getting-started/typescript#module-augmentation
 declare module 'next-auth' {
+  interface User extends PrismaUser {}
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */

@@ -42,10 +42,8 @@ export const authOptions: NextAuthOptions = {
 
       return session
     },
-
     async jwt({ token, user }) {
-      // TODO: Remove (as User) after https://github.com/nextauthjs/next-auth/issues/5542 is fixed
-      if ((user as User)?.role) token.role = (user as User).role as Role
+      if (user?.role) token.role = user.role
       return token
     },
   },
