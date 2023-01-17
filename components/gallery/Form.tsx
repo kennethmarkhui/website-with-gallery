@@ -11,7 +11,6 @@ import useCategory from 'hooks/gallery/category/useCategory'
 import useCreate from 'hooks/gallery/mutations/useCreate'
 import useUpdate from 'hooks/gallery/mutations/useUpdate'
 import useDelete from 'hooks/gallery/mutations/useDelete'
-import useFilePreview from 'hooks/gallery/useFilePreview'
 import { formatBytes } from 'lib/utils'
 
 interface GalleryFormProps {
@@ -47,13 +46,14 @@ function GalleryForm({
     reset,
     resetField,
     setError,
+    setValue,
   } = useForm<GalleryFormFields<FileList>>({
     defaultValues: {
       id: '',
       name: '',
       storage: '',
       category: '',
-      image: null,
+      image: undefined,
     },
   })
 
@@ -62,7 +62,7 @@ function GalleryForm({
   useEffect(() => {
     if (mode !== 'update' || !defaultFormValues || categoryStatus !== 'success')
       return
-    reset({ ...defaultFormValues, image: null })
+    reset({ ...defaultFormValues, image: undefined })
   }, [mode, defaultFormValues, reset, categoryStatus])
 
   const { mutate: createMutate, status: createStatus } = useCreate()
@@ -77,25 +77,7 @@ function GalleryForm({
 
   const imageFileList = watch('image')
 
-  const {
-    preview: imagePreview,
-    fileListRef,
-    removeFile,
-  } = useFilePreview(
-    imageFileList,
-    defaultFormValues?.image
-      ? defaultFormValues.image.url !== '/placeholder.png'
-        ? defaultFormValues.image.url
-        : undefined
-      : undefined
-  )
-
   const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
-    if (fileListRef.current) {
-      // persist file when user select a file then tried to select a new file but chose to cancel
-      data.image = fileListRef.current
-    }
-
     return mode === 'update'
       ? updateMutate(data, {
           onSuccess: () => {
@@ -166,10 +148,11 @@ function GalleryForm({
               },
             },
           })}
-          imagePreview={imagePreview}
-          fileListRef={fileListRef}
-          removeFile={() => removeFile(() => resetField('image'))}
+          defaultPreview={defaultFormValues?.image?.url}
+          fileList={imageFileList}
           errorMessage={errors.image?.message}
+          setFormValue={setValue}
+          removeFormValue={() => resetField('image')}
         />
         <div className="mt-4 flex gap-4 ">
           <button

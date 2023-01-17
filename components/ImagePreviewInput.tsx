@@ -1,23 +1,40 @@
-import { forwardRef, InputHTMLAttributes, MutableRefObject } from 'react'
+import { forwardRef, InputHTMLAttributes } from 'react'
 import Image from 'next/image'
+import type { UseFormSetValue } from 'react-hook-form'
 import { HiPhotograph, HiX } from 'react-icons/hi'
 
+import useFilePreview from 'hooks/gallery/useFilePreview'
+import type { GalleryFormFields } from 'types/gallery'
 import { formatBytes } from 'lib/utils'
 
 export const maxFileSize = 2 * 1024 * 1024 // 2MB
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
-  imagePreview: string | null
-  fileListRef: MutableRefObject<FileList | undefined | null>
-  removeFile: () => void
+  defaultPreview?: string
+  fileList?: FileList
   errorMessage?: string
+  setFormValue: UseFormSetValue<GalleryFormFields<FileList>>
+  removeFormValue: () => void
 }
 
 const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
   function ImagePreviewInput(
-    { imagePreview, fileListRef, removeFile, errorMessage, ...rest },
+    {
+      defaultPreview,
+      fileList,
+      errorMessage,
+      setFormValue,
+      removeFormValue,
+      onChange,
+      ...rest
+    },
     ref
   ) {
+    const { preview, fileListRef, removeFile } = useFilePreview(
+      fileList,
+      defaultPreview !== '/placeholder.png' ? defaultPreview : undefined
+    )
+
     return (
       <div className="relative mb-4 w-full">
         <input
@@ -27,14 +44,25 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
           {...rest}
           accept="image/*"
           className="peer"
+          onChange={(e) => {
+            onChange?.(e)
+            // persist file when user select a file then tried to select a new file but chose to cancel
+            if (
+              e.target.files &&
+              e.target.files.length === 0 &&
+              fileListRef.current
+            ) {
+              setFormValue('image', fileListRef.current)
+            }
+          }}
         />
         <label
           htmlFor={rest.id}
           className="relative flex h-64 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 peer-enabled:cursor-pointer peer-enabled:hover:bg-gray-100"
         >
-          {imagePreview ? (
+          {preview ? (
             <Image
-              src={imagePreview}
+              src={preview}
               fill
               className="max-h-full max-w-full object-contain"
               alt="preview"
@@ -52,11 +80,11 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </label>
-        {imagePreview && fileListRef.current && (
+        {preview && fileListRef.current && (
           <button
             type="button"
             className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 disabled:pointer-events-none"
-            onClick={removeFile}
+            onClick={() => removeFile(removeFormValue)}
           >
             <HiX />
           </button>

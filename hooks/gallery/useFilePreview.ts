@@ -8,29 +8,29 @@ import {
 
 // This hook rely on react-hook-form to handle fileList state
 const useFilePreview = (
-  fileList: FileList | undefined | null,
+  fileList?: FileList,
   defaultPreview?: string
 ): {
-  preview: string | null
-  fileListRef: MutableRefObject<FileList | undefined | null>
+  preview?: string
+  fileListRef: MutableRefObject<FileList | undefined>
   removeFile: (callback: () => void) => void
 } => {
-  const [preview, setPreview] = useState<string | null>(null)
-  const fileListRef = useRef<FileList | null>()
+  const [preview, setPreview] = useState<string>()
+  const fileListRef = useRef<FileList>()
   if (fileList?.length === 1) {
     fileListRef.current = fileList
   }
 
-  const oldPreview = defaultPreview ?? null
+  const oldPreview = defaultPreview
 
   const removeFile = useCallback(
     (callback: () => void): void => {
       if (oldPreview) {
         setPreview(oldPreview)
       } else {
-        setPreview(null)
+        setPreview(undefined)
       }
-      fileListRef.current = null
+      fileListRef.current = undefined
       // callback to call react-hook-form's resetField
       callback()
     },

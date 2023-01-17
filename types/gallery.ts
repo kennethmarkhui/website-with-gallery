@@ -12,7 +12,7 @@ export type GalleryItem = GalleryItemInfo & {
 
 export type GalleryFormFields<TImage = void> =
   NonNullableRecursive<GalleryItemInfo> & {
-    image?: TImage extends void ? GalleryImage : TImage | null
+    image?: TImage extends void ? GalleryImage : TImage
   }
 
 export type GalleryFormKeys = keyof GalleryFormFields
