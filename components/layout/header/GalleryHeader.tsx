@@ -36,18 +36,19 @@ const GalleryHeader = (): JSX.Element => {
           </div>
         </Link>
 
-        <div className="flex items-center space-x-6 divide-x">
-          <div className="flex space-x-4">
-            <button className="lg:hidden" onClick={openDrawer}>
-              <HiOutlineSearch />
-            </button>
-            {router.pathname === '/gallery' &&
-              session?.user.role === 'ADMIN' && (
+        <div className="flex items-center space-x-4">
+          {router.pathname === '/gallery' && (
+            <div className="flex space-x-4">
+              {session?.user.role === 'ADMIN' && (
                 <Link href={'/gallery/create'}>
                   <HiPlus />
                 </Link>
               )}
-          </div>
+              <button className="lg:hidden" onClick={openDrawer}>
+                <HiOutlineSearch />
+              </button>
+            </div>
+          )}
           <div className="flex items-center">
             <LocaleSwitcher />
             <Auth />
