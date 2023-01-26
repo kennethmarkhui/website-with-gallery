@@ -113,7 +113,7 @@ function GalleryForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
-      <fieldset disabled={formIsLoading}>
+      <fieldset className="space-y-6" disabled={formIsLoading}>
         <FloatingLabelInput
           id="id"
           readOnly={mode === 'update'}

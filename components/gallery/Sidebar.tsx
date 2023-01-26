@@ -6,7 +6,7 @@ interface SidebarProps {
 
 const Sidebar = ({ disabled = false }: SidebarProps): JSX.Element => {
   return (
-    <aside className="sticky top-8 hidden h-full shrink-0 basis-1/6 divide-y pt-4 lg:flex lg:flex-col">
+    <aside className="sticky top-8 hidden max-h-[85vh] shrink-0 basis-1/6 pt-2 lg:flex lg:flex-col">
       <FilterForm disabled={disabled} />
     </aside>
   )

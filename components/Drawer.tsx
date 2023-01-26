@@ -58,8 +58,8 @@ const Drawer = ({
                 leaveTo={enterFrom[openFrom]}
               >
                 <Dialog.Panel
-                  className={`w-screen transform bg-white text-left align-middle shadow-xl transition-all${
-                    isX ? ' h-screen max-w-sm' : ' h-fit'
+                  className={`flex w-screen transform bg-white text-left align-middle shadow-xl transition-all${
+                    isX ? ' h-screen max-w-sm' : ' h-fit max-h-[85vh]'
                   }`}
                 >
                   {children}

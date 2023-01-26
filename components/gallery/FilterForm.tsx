@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, useEffect, useState } from 'react'
+import { ComponentPropsWithoutRef, Fragment, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { type Category } from 'prisma/prisma-client'
 import {
@@ -48,7 +48,7 @@ const CategoryCheckboxes = ({
   }
 
   return (
-    <ul>
+    <ul className="h-full overflow-y-auto">
       {options.map(({ id, name }) => {
         // ensures sidebar and mobile have different id for label to properly select the correct version of checkbox
         // TODO find a better way if this is a bad way to do it
@@ -124,51 +124,66 @@ const FilterForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={className}>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className={`flex min-h-0 w-full flex-col gap-4 ${
+        className ? className : ''
+      }`}
+    >
       <fieldset disabled={disabled}>
         <FloatingLabelInput
           id="search"
           {...register('search')}
           icon={<HiOutlineSearch />}
         />
-        {status === 'loading' && <p>loading</p>}
-        {status === 'error' && <p>error</p>}
-        {status === 'success' && data && (
-          <Disclosure defaultOpen>
-            {({ open }) => (
-              <>
-                <Disclosure.Button className="flex w-full items-center justify-between text-sm text-gray-500">
-                  <span>Category</span>
-                  <HiChevronDown
-                    className={`${open ? 'rotate-180 transform' : ''}`}
-                  />
-                </Disclosure.Button>
-                <Transition
-                  enter="transition duration-100 ease-out"
-                  enterFrom="transform scale-95 opacity-0"
-                  enterTo="transform scale-100 opacity-100"
-                  leave="transition duration-75 ease-out"
-                  leaveFrom="transform scale-100 opacity-100"
-                  leaveTo="transform scale-95 opacity-0"
-                >
-                  <Disclosure.Panel className="py-2">
-                    <CategoryCheckboxes
-                      options={data}
-                      selected={
-                        typeof categories === 'string'
-                          ? categories.split(',')
-                          : undefined
-                      }
-                      control={control}
-                      name="categories"
-                    />
-                  </Disclosure.Panel>
-                </Transition>
-              </>
-            )}
-          </Disclosure>
-        )}
       </fieldset>
+      {status === 'loading' && <p>loading</p>}
+      {status === 'error' && <p>error</p>}
+      {status === 'success' && data && (
+        <Disclosure
+          as="fieldset"
+          className="flex h-full min-h-0 flex-col"
+          disabled={disabled}
+          defaultOpen
+        >
+          {({ open }) => (
+            <>
+              <Disclosure.Button
+                className={`flex w-full items-center justify-between text-sm${
+                  open ? ' text-black' : ' text-gray-500'
+                }`}
+              >
+                <span>Category</span>
+                <HiChevronDown
+                  className={`transition-transform${open ? ' rotate-180' : ''}`}
+                />
+              </Disclosure.Button>
+              <Transition
+                as={Fragment}
+                enter="transition duration-100 ease-out"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
+                leave="transition duration-75 ease-out"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
+              >
+                <Disclosure.Panel className="h-full min-h-0 py-2">
+                  <CategoryCheckboxes
+                    options={data}
+                    selected={
+                      typeof categories === 'string'
+                        ? categories.split(',')
+                        : undefined
+                    }
+                    control={control}
+                    name="categories"
+                  />
+                </Disclosure.Panel>
+              </Transition>
+            </>
+          )}
+        </Disclosure>
+      )}
     </form>
   )
 }

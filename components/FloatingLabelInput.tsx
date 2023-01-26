@@ -8,7 +8,7 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
   function FloatingLabelInput({ errorMessage, icon, ...rest }, ref) {
     return (
-      <div className="group relative z-0 mb-6 w-full">
+      <div className="group relative z-0 w-full">
         <input
           ref={ref}
           className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
