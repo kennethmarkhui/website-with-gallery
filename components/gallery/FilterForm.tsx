@@ -8,7 +8,12 @@ import {
   useForm,
 } from 'react-hook-form'
 import { Disclosure, Transition } from '@headlessui/react'
-import { HiOutlineSearch, HiChevronDown } from 'react-icons/hi'
+import {
+  HiOutlineSearch,
+  HiChevronDown,
+  HiOutlineExclamation,
+} from 'react-icons/hi'
+import { FaSpinner } from 'react-icons/fa'
 
 import { type GalleryFilters } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -137,27 +142,29 @@ const FilterForm = ({
           icon={<HiOutlineSearch />}
         />
       </fieldset>
-      {status === 'loading' && <p>loading</p>}
-      {status === 'error' && <p>error</p>}
-      {status === 'success' && data && (
-        <Disclosure
-          as="fieldset"
-          className="flex h-full min-h-0 flex-col"
-          disabled={disabled}
-          defaultOpen
-        >
-          {({ open }) => (
-            <>
-              <Disclosure.Button
-                className={`flex w-full items-center justify-between text-sm${
-                  open ? ' text-black' : ' text-gray-500'
-                }`}
-              >
-                <span>Category</span>
+      <Disclosure
+        as="fieldset"
+        className="flex h-full min-h-0 flex-col"
+        disabled={disabled || (status !== 'success' && !data)}
+        defaultOpen
+      >
+        {({ open }) => (
+          <>
+            <Disclosure.Button
+              className={`flex w-full items-center justify-between text-sm${
+                open && !disabled ? ' text-black' : ' text-gray-500'
+              }`}
+            >
+              <span>Category</span>
+              {status === 'loading' && <FaSpinner className="animate-spin" />}
+              {status === 'error' && <HiOutlineExclamation />}
+              {status === 'success' && (
                 <HiChevronDown
                   className={`transition-transform${open ? ' rotate-180' : ''}`}
                 />
-              </Disclosure.Button>
+              )}
+            </Disclosure.Button>
+            {status === 'success' && data && (
               <Transition
                 as={Fragment}
                 enter="transition duration-100 ease-out"
@@ -180,10 +187,10 @@ const FilterForm = ({
                   />
                 </Disclosure.Panel>
               </Transition>
-            </>
-          )}
-        </Disclosure>
-      )}
+            )}
+          </>
+        )}
+      </Disclosure>
     </form>
   )
 }
