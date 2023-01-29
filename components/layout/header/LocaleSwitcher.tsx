@@ -1,12 +1,13 @@
 import { Fragment } from 'react'
 import { useRouter } from 'next/router'
 import { Listbox, Transition } from '@headlessui/react'
-import { HiChevronDown, HiCheck } from 'react-icons/hi'
+import { HiChevronDown } from 'react-icons/hi'
+import clsx from 'clsx'
 
 const LocaleSwitcher = (): JSX.Element => {
   const router = useRouter()
 
-  const changeLocale = (locale: any) =>
+  const changeLocale = (locale: string) =>
     router.push(router.pathname, router.asPath, { locale })
 
   return (
@@ -33,9 +34,10 @@ const LocaleSwitcher = (): JSX.Element => {
               (locale): JSX.Element => (
                 <Listbox.Option
                   className={({ active }) =>
-                    `cursor-pointer py-2 pl-4 pr-4 text-gray-900 ${
-                      active ? 'bg-gray-100' : ''
-                    }`
+                    clsx(
+                      'cursor-pointer py-2 pl-4 pr-4 text-gray-900',
+                      active && 'bg-gray-100'
+                    )
                   }
                   key={locale}
                   value={locale}
@@ -43,9 +45,10 @@ const LocaleSwitcher = (): JSX.Element => {
                   {({ selected }): JSX.Element => (
                     <>
                       <span
-                        className={`block truncate ${
+                        className={clsx(
+                          'block truncate',
                           selected ? 'font-medium' : 'font-normal'
-                        }`}
+                        )}
                       >
                         {locale}
                       </span>

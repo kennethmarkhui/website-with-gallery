@@ -1,10 +1,11 @@
 import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, ReactNode } from 'react'
+import { Fragment } from 'react'
+import clsx from 'clsx'
 
 interface DrawerProps {
   isOpen: boolean
   onClose: () => void
-  children: ReactNode
+  children: React.ReactNode
   openFrom?: 'top' | 'left' | 'right' | 'bottom'
 }
 
@@ -29,10 +30,11 @@ const Drawer = ({
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
-          enterFrom={`opacity-0 ${
+          enterFrom={clsx(
+            'opacity-0',
             // https://tailwindcss.com/docs/content-configuration#dynamic-class-names
             openFrom === 'bottom' ? 'bottom-0' : `${openFrom}-0`
-          }`}
+          )}
           enterTo="opacity-100"
           leave="ease-in duration-200"
           leaveFrom="opacity-100"
@@ -44,9 +46,10 @@ const Drawer = ({
         <div className="fixed inset-0">
           <div className="absolute inset-0 overflow-hidden">
             <div
-              className={`fixed flex max-w-full ${
+              className={clsx(
+                'fixed flex max-w-full',
                 openFrom === 'bottom' ? 'bottom-0' : `${openFrom}-0`
-              }`}
+              )}
             >
               <Transition.Child
                 as={Fragment}
@@ -58,9 +61,10 @@ const Drawer = ({
                 leaveTo={enterFrom[openFrom]}
               >
                 <Dialog.Panel
-                  className={`flex w-screen transform bg-white text-left align-middle shadow-xl transition-all${
-                    isX ? ' h-screen max-w-sm' : ' h-fit max-h-[85vh]'
-                  }`}
+                  className={clsx(
+                    'flex w-screen transform bg-white text-left align-middle shadow-xl transition-all',
+                    isX ? 'h-screen max-w-sm' : 'h-fit max-h-[85vh]'
+                  )}
                 >
                   {children}
                 </Dialog.Panel>

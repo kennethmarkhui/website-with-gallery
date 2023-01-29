@@ -1,19 +1,22 @@
+import clsx from 'clsx'
+
 import useActiveAnimation from 'hooks/useActiveAnimation'
 
-interface IAnimatedLetter {
+interface AnimatedLetterProps {
   letter: string
   timeout: number
 }
 
-const AnimatedLetter = ({ letter, timeout }: IAnimatedLetter): JSX.Element => {
+const AnimatedLetter = ({
+  letter,
+  timeout,
+}: AnimatedLetterProps): JSX.Element => {
   const [activeAnimation, setActiveAnimation] = useActiveAnimation(timeout)
 
   return (
     <span
       onMouseEnter={() => setActiveAnimation(true)}
-      className={
-        'inline-block' + `${activeAnimation ? ' animate-rubber-band' : ''}`
-      }
+      className={clsx('inline-block', activeAnimation && 'animate-rubber-band')}
     >
       {letter}
     </span>

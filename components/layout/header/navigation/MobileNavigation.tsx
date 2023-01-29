@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Dialog, Transition } from '@headlessui/react'
 import { HiMenu, HiX } from 'react-icons/hi'
+import clsx from 'clsx'
 
 import type { IMainHeader } from '../MainHeader'
 
@@ -45,9 +46,10 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                     {items.map(
                       (item): JSX.Element => (
                         <li
-                          className={`${
-                            router.asPath === item.path ? 'font-black' : ''
-                          } capitalize`}
+                          className={clsx(
+                            'capitalize',
+                            router.asPath === item.path && 'font-black'
+                          )}
                           key={item.name}
                           onClick={closeModal}
                         >

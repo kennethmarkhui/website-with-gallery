@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
 import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
+import clsx from 'clsx'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -107,9 +108,10 @@ const CategoryForm = (): JSX.Element => {
       </form>
 
       <ul
-        className={`mt-8 flex flex-wrap gap-4 md:mt-16 ${
-          categoryFormIsLoading ? 'pointer-events-none opacity-70' : ''
-        }`}
+        className={clsx(
+          'mt-8 flex flex-wrap gap-4 md:mt-16',
+          categoryFormIsLoading && 'pointer-events-none opacity-70'
+        )}
       >
         {categoryStatus === 'loading' && <p>loading</p>}
         {categoryStatus === 'error' && error instanceof Error && (
@@ -122,9 +124,10 @@ const CategoryForm = (): JSX.Element => {
           categories?.map(({ id, name }) => (
             <li key={id}>
               <span
-                className={`flex items-center gap-4 rounded-full border px-4 py-2 text-lg shadow ${
-                  categoryToUpdate?.id === id ? 'border-black' : ''
-                }`}
+                className={clsx(
+                  'flex items-center gap-4 rounded-full border px-4 py-2 text-lg shadow',
+                  categoryToUpdate?.id === id && 'border-black'
+                )}
               >
                 <button
                   className="hover:underline"

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Image, { ImageLoaderProps } from 'next/image'
 import { Photo, RenderPhotoProps } from 'react-photo-album'
+import clsx from 'clsx'
 
 export interface ExtendedPhoto extends Photo {
   name: string
@@ -33,9 +34,10 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
   return (
     <div style={wrapperStyle}>
       <div
-        className={`${
-          isLoading ? 'animate-pulse ' : ''
-        }relative group cursor-pointer overflow-hidden rounded bg-gray-200`}
+        className={clsx(
+          'group relative cursor-pointer overflow-hidden rounded bg-gray-200',
+          isLoading && 'animate-pulse'
+        )}
       >
         <Image
           loader={cloudinaryLoader}
@@ -45,14 +47,13 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
           sizes={sizes}
           width={width}
           height={height}
-          className={
-            className +
-            `${
-              isLoading
-                ? ' scale-110 blur-2xl grayscale'
-                : ' scale-100 blur-0 grayscale-0'
-            } duration-700 ease-in-out`
-          }
+          className={clsx(
+            'duration-700 ease-in-out',
+            isLoading
+              ? 'scale-110 blur-2xl grayscale'
+              : 'scale-100 blur-0 grayscale-0',
+            className
+          )}
           onLoadingComplete={() => setIsLoading(false)}
           onClick={onClick}
           unoptimized={publicId === ''}

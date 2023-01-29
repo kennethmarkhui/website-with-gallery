@@ -2,6 +2,7 @@ import { ReactElement, ReactNode, useState } from 'react'
 import type { GetStaticProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { Tab } from '@headlessui/react'
+import clsx from 'clsx'
 
 import { NextPageWithLayout } from 'pages/_app'
 import GalleryLayout from '@/components/layout/GalleryLayout'
@@ -28,9 +29,10 @@ const Create: NextPageWithLayout = (): JSX.Element => {
           <Tab
             key={tab.name}
             className={({ selected }) =>
-              `w-full border-b-2 text-xl focus:outline-none ${
+              clsx(
+                'w-full border-b-2 text-xl focus:outline-none',
                 selected && 'border-black font-bold'
-              }`
+              )
             }
           >
             {tab.name}

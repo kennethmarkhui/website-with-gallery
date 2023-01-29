@@ -5,6 +5,7 @@ import { FaSpinner } from 'react-icons/fa'
 
 import FloatingLabelInput from '../FloatingLabelInput'
 import FloatingLabelSelect from '../FloatingLabelSelect'
+import Button from '../Button'
 import ImagePreviewInput, { maxFileSize } from '../ImagePreviewInput'
 import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -155,11 +156,7 @@ function GalleryForm({
           removeFormValue={() => resetField('image')}
         />
         <div className="mt-4 flex gap-4 ">
-          <button
-            type="submit"
-            className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-black enabled:hover:text-black sm:w-auto"
-            disabled={!isDirty}
-          >
+          <Button type="submit" disabled={!isDirty}>
             {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">
                 Submitting
@@ -168,11 +165,11 @@ function GalleryForm({
             ) : (
               'Submit'
             )}
-          </button>
+          </Button>
           {mode === 'update' && defaultFormValues && (
-            <button
+            <Button
               type="button"
-              className="w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none enabled:hover:border-red-500 enabled:hover:text-red-500 sm:w-auto"
+              variant="danger"
               onClick={() =>
                 deleteMutate(
                   {
@@ -199,7 +196,7 @@ function GalleryForm({
               ) : (
                 'Delete'
               )}
-            </button>
+            </Button>
           )}
         </div>
       </fieldset>

@@ -8,16 +8,14 @@ import {
   useForm,
 } from 'react-hook-form'
 import { Disclosure, Transition } from '@headlessui/react'
-import {
-  HiOutlineSearch,
-  HiChevronDown,
-  HiOutlineExclamation,
-} from 'react-icons/hi'
+import { HiChevronDown, HiOutlineExclamation } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
+import clsx from 'clsx'
 
 import { type GalleryFilters } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
+import Button from '../Button'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
@@ -92,7 +90,6 @@ const FilterForm = ({
     defaultValues: { search: '', categories: [] },
   })
 
-  //   TODO: data somehow returns empty array instead of undefined as defined in the type
   const { data, status, error } = useCategory()
 
   useEffect(() => {
@@ -131,16 +128,10 @@ const FilterForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={`flex min-h-0 w-full flex-col gap-4 ${
-        className ? className : ''
-      }`}
+      className={clsx('flex min-h-0 w-full flex-col gap-4', className)}
     >
       <fieldset disabled={disabled}>
-        <FloatingLabelInput
-          id="search"
-          {...register('search')}
-          icon={<HiOutlineSearch />}
-        />
+        <FloatingLabelInput id="search" {...register('search')} />
       </fieldset>
       <Disclosure
         as="fieldset"
@@ -151,16 +142,17 @@ const FilterForm = ({
         {({ open }) => (
           <>
             <Disclosure.Button
-              className={`flex w-full items-center justify-between text-sm${
-                open && !disabled ? ' text-black' : ' text-gray-500'
-              }`}
+              className={clsx(
+                'flex w-full items-center justify-between text-sm',
+                open && !disabled ? 'text-black' : 'text-gray-500'
+              )}
             >
               <span>Category</span>
               {status === 'loading' && <FaSpinner className="animate-spin" />}
               {status === 'error' && <HiOutlineExclamation />}
               {status === 'success' && (
                 <HiChevronDown
-                  className={`transition-transform${open ? ' rotate-180' : ''}`}
+                  className={clsx('transition-transform', open && 'rotate-180')}
                 />
               )}
             </Disclosure.Button>
@@ -191,6 +183,9 @@ const FilterForm = ({
           </>
         )}
       </Disclosure>
+      <Button disabled={disabled} type="submit">
+        Search
+      </Button>
     </form>
   )
 }

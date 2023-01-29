@@ -14,7 +14,7 @@ import Sidebar from '@/components/gallery/Sidebar'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
-  const [modalData, setModalData] = useState<ExtendedPhoto | null>(null)
+  const [modalData, setModalData] = useState<ExtendedPhoto>()
 
   const {
     data,
@@ -77,7 +77,10 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
       )}
 
       {modalData && (
-        <ImageViewerModal data={modalData} close={() => setModalData(null)} />
+        <ImageViewerModal
+          data={modalData}
+          close={() => setModalData(undefined)}
+        />
       )}
     </>
   )
