@@ -3,9 +3,9 @@ import type { GetServerSideProps } from 'next'
 import PhotoAlbum from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { GalleryFilters } from 'types/gallery'
+import type { GalleryFilters, GalleryResponse } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
-import { fetchItems } from 'pages/api/gallery'
+import { fetchItems, GALLERY_LIMIT } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
@@ -84,10 +84,22 @@ export const getServerSideProps: GetServerSideProps = async ({
   const queryKey = removeEmptyObjectFromArray(['gallery', query])
 
   try {
-    await queryClient.fetchInfiniteQuery(queryKey, () =>
-      fetchItems({ nextCursor: '0', ...query }).then((value) => ({
-        items: value,
-      }))
+    await queryClient.fetchInfiniteQuery<GalleryResponse>(
+      queryKey,
+      () =>
+        fetchItems({ nextCursor: '0', ...query }).then((value) => ({
+          items: value,
+          nextCursor:
+            // TODO: FIX to maybe return undefined if length === limit and there are no further items to load,
+            // because currently it sets hasNextPage to true even if there are no more to load.
+            // also in pages/api/gallery response
+            value.length === GALLERY_LIMIT
+              ? value[GALLERY_LIMIT - 1].id
+              : undefined,
+        })),
+      {
+        getNextPageParam: ({ nextCursor }) => nextCursor,
+      }
     )
     await queryClient.fetchQuery(['categories'], () => fetchCategories())
   } catch (error) {

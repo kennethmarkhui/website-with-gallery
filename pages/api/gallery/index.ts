@@ -9,7 +9,7 @@ import type {
 import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
 
-const limit = 10
+export const GALLERY_LIMIT = 10
 
 export async function fetchItems({
   nextCursor,
@@ -28,7 +28,7 @@ export async function fetchItems({
         },
       ],
     },
-    take: limit,
+    take: GALLERY_LIMIT,
     skip: nextCursor === '0' ? 0 : 1,
     cursor: nextCursor === '0' ? undefined : { id: nextCursor },
     select: {
@@ -86,7 +86,8 @@ export default async function handler(
 
   try {
     const items = await fetchItems({ nextCursor, search, categories })
-    nextCursor = items.length === limit ? items[limit - 1].id : undefined
+    nextCursor =
+      items.length === GALLERY_LIMIT ? items[GALLERY_LIMIT - 1].id : undefined
     return res.status(200).json({
       items,
       nextCursor,
