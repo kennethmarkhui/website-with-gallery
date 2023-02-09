@@ -40,6 +40,17 @@ export const generateQueryStringFromObject = (
   return ''
 }
 
+export const removeEmptyObjectFromArray = (
+  array: Array<string | Record<string, unknown>>
+): Array<string | Record<string, unknown>> =>
+  array.filter((el) =>
+    typeof el === 'string'
+      ? true
+      : typeof el === 'object' && Object.keys(el).length !== 0
+      ? true
+      : false
+  )
+
 // https://stackoverflow.com/a/72914813
 export const isValidRequest = <T extends Record<string, unknown>>(
   obj: {},

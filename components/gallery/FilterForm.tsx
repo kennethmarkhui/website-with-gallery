@@ -25,12 +25,14 @@ interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
 interface CategoryCheckboxesProps extends UseControllerProps {
   options: Pick<Category, 'name' | 'id'>[]
   selected?: string[]
+  mobile?: boolean
 }
 
 // https://github.com/react-hook-form/react-hook-form/issues/9248#issuecomment-1284588424
 const CategoryCheckboxes = ({
   options,
   selected,
+  mobile,
   control,
   name,
 }: CategoryCheckboxesProps): JSX.Element => {
@@ -52,28 +54,23 @@ const CategoryCheckboxes = ({
 
   return (
     <ul className="h-full overflow-y-auto">
-      {options.map(({ id, name }) => {
-        // ensures sidebar and mobile have different id for label to properly select the correct version of checkbox
-        // TODO find a better way if this is a bad way to do it
-        const newId = id + Math.floor(Math.random() * 100)
-        return (
-          <li key={id} className="space-x-2">
-            <input
-              id={newId}
-              type="checkbox"
-              checked={checkedCategories.has(name)}
-              className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
-              onChange={() => handleOnChange(name)}
-            />
-            <label
-              htmlFor={newId}
-              className="cursor-pointer truncate text-xs font-medium text-gray-500"
-            >
-              {name}
-            </label>
-          </li>
-        )
-      })}
+      {options.map(({ id, name }) => (
+        <li key={id} className="space-x-2">
+          <input
+            id={mobile ? id : id + '-mobile'}
+            type="checkbox"
+            checked={checkedCategories.has(name)}
+            className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
+            onChange={() => handleOnChange(name)}
+          />
+          <label
+            htmlFor={mobile ? id : id + '-mobile'}
+            className="cursor-pointer truncate text-xs font-medium text-gray-500"
+          >
+            {name}
+          </label>
+        </li>
+      ))}
     </ul>
   )
 }
@@ -176,6 +173,7 @@ const FilterForm = ({
                     }
                     control={control}
                     name="categories"
+                    mobile={!!callback}
                   />
                 </Disclosure.Panel>
               </Transition>

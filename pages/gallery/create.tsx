@@ -1,10 +1,11 @@
 import { ReactElement, ReactNode, useState } from 'react'
-import type { GetStaticProps } from 'next'
-import { useSession } from 'next-auth/react'
+import type { GetServerSideProps } from 'next'
+import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { Tab } from '@headlessui/react'
 import clsx from 'clsx'
 
 import { NextPageWithLayout } from 'pages/_app'
+import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
 import CategoryForm from '@/components/gallery/CategoryForm'
@@ -15,12 +16,6 @@ const Create: NextPageWithLayout = (): JSX.Element => {
     { name: 'Item', node: <GalleryForm /> },
     { name: 'Category', node: <CategoryForm /> },
   ])
-
-  const { data: session } = useSession()
-
-  if (!session || session.user.role !== 'ADMIN') {
-    return <div>access denied</div>
-  }
 
   return (
     <Tab.Group as={'div'} defaultIndex={0} className="mx-auto w-full max-w-5xl">
@@ -54,11 +49,21 @@ Create.getLayout = function getLayout(page: ReactElement) {
   return <GalleryLayout>{page}</GalleryLayout>
 }
 
-// TODO use react-query for caching categories with ISR ?hydration?
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  const queryClient = new QueryClient()
+
+  try {
+    await queryClient.fetchQuery(['categories'], () => fetchCategories())
+  } catch (error) {
+    return {
+      redirect: { destination: '/500', permanent: false },
+    }
+  }
+
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }
 }

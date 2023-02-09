@@ -1,27 +1,43 @@
 import type { ReactElement } from 'react'
 import type { GetServerSideProps } from 'next'
-import { unstable_getServerSession } from 'next-auth'
+import { useRouter } from 'next/router'
+import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import type { GalleryFormFields } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
+import { fetchItem } from 'pages/api/gallery/[id]'
+import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import GalleryForm from '@/components/gallery/Form'
-import { fetchItem } from 'pages/api/gallery/[id]'
-import { authOptions } from 'pages/api/auth/[...nextauth]'
+import useItem from 'hooks/gallery/useItem'
 import { pick } from 'lib/utils'
 
-interface UpdateProps {
-  data: GalleryFormFields
-}
+interface UpdateProps {}
 
 type Params = {
   id: string
 }
 
-const Update: NextPageWithLayout<UpdateProps> = ({ data }) => {
+const Update: NextPageWithLayout<UpdateProps> = (): JSX.Element => {
+  const router = useRouter()
+
+  const { data } = useItem(router.query.id as string)
+
+  if (!data) {
+    return <></>
+  }
+
+  const fetchedData: GalleryFormFields = {
+    id: data.id,
+    name: data.name ?? '',
+    storage: data.storage ?? '',
+    category: data.category ?? '',
+    image: data.image ?? undefined,
+  }
+
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <GalleryForm mode="update" defaultFormValues={data} />
+      <GalleryForm mode="update" defaultFormValues={fetchedData} />
     </div>
   )
 }
@@ -34,9 +50,9 @@ export const getServerSideProps: GetServerSideProps<
   UpdateProps,
   Params
 > = async ({ req, res, locale, query, params }) => {
-  const session = await unstable_getServerSession(req, res, authOptions)
+  const queryClient = new QueryClient()
 
-  if (!params || !session || session.user.role !== 'ADMIN') {
+  if (!params) {
     return {
       redirect: {
         destination: '/gallery',
@@ -47,34 +63,34 @@ export const getServerSideProps: GetServerSideProps<
 
   const { id } = params
 
-  let data
-
   if (query.data && typeof query.data === 'string') {
-    data = JSON.parse(query.data)
-    data.id = id
+    await queryClient.setQueryData(['item', id], {
+      id,
+      ...JSON.parse(query.data),
+    })
   }
 
   if (!query.data) {
     // fetch item if no query data provided
     try {
-      const resData = await fetchItem(id)
-      if (resData) {
-        data = {
-          id: resData.id,
-          name: resData.name ?? '',
-          storage: resData.storage ?? '',
-          category: resData.category ?? '',
-          image: resData.image
-            ? resData.image
-            : { url: '/placeholder.png', publicId: '' },
-        } as GalleryFormFields
-      } else {
-        throw new Error('no data found')
-      }
+      await queryClient.fetchQuery(['item', id], () =>
+        fetchItem(id).then((data) => ({
+          id,
+          name: data?.name ?? '',
+          storage: data?.storage ?? '',
+          category: data?.category ?? '',
+          image: data?.image ?? {
+            url: '/placeholder.png',
+            publicId: '',
+            width: 1665,
+            height: 2048,
+          },
+        }))
+      )
+      await queryClient.fetchQuery(['categories'], () => fetchCategories())
     } catch (error) {
-      console.error(error)
       return {
-        redirect: { destination: '/gallery', permanent: false },
+        redirect: { destination: '/500', permanent: false },
       }
     }
   }
@@ -82,7 +98,7 @@ export const getServerSideProps: GetServerSideProps<
   return {
     props: {
       messages: pick(await import(`../../../intl/${locale}.json`), ['gallery']),
-      data,
+      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }
 }

@@ -435,6 +435,8 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
                   image: {
                     url: data.src, // if no image this should be the placeholder image
                     publicId: data.publicId,
+                    width: data.width,
+                    height: data.height,
                   },
                 }),
               },

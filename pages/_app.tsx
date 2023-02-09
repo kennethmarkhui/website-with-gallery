@@ -4,7 +4,7 @@ import type { AppProps } from 'next/app'
 import { AbstractIntlMessages, NextIntlProvider } from 'next-intl'
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { Hydrate, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import { NProgressBar } from '@/components/NProgressBar'
@@ -20,6 +20,7 @@ type AppPropsWithLayout<
   P = {
     messages: AbstractIntlMessages | undefined
     session: Session | null | undefined
+    dehydratedState: unknown
   }
 > = AppProps<P> & {
   Component: NextPageWithLayout<P>
@@ -33,7 +34,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     <QueryClientProvider client={queryClientState}>
       <NextIntlProvider messages={pageProps.messages}>
         <SessionProvider session={pageProps.session}>
-          {getLayout(<Component {...pageProps} />)}
+          <Hydrate state={pageProps.dehydratedState}>
+            {getLayout(<Component {...pageProps} />)}
+          </Hydrate>
           <NProgressBar />
         </SessionProvider>
       </NextIntlProvider>

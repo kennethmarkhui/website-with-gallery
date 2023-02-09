@@ -1,29 +1,24 @@
 import { ReactElement, useMemo, useState } from 'react'
-import type { GetStaticProps } from 'next'
+import type { GetServerSideProps } from 'next'
 import PhotoAlbum from 'react-photo-album'
-import { FaSpinner } from 'react-icons/fa'
+import { dehydrate, QueryClient } from '@tanstack/react-query'
 
+import type { GalleryFilters } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
+import { fetchItems } from 'pages/api/gallery'
+import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import PageStatus from '@/components/PageStatus'
-import useGallery from 'hooks/gallery/useGallery'
-import { pick } from 'lib/utils'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import Sidebar from '@/components/gallery/Sidebar'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
+import useGallery from 'hooks/gallery/useGallery'
+import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
 
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
-  const {
-    data,
-    status,
-    error,
-    isFetchingNextPage,
-    fetchNextPage,
-    hasNextPage,
-  } = useGallery()
+  const { data, isFetchingNextPage, fetchNextPage, hasNextPage } = useGallery()
 
   const photos: ExtendedPhoto[] = useMemo(
     () =>
@@ -45,36 +40,23 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <>
-      <Sidebar disabled={status !== 'success'} />
+      <Sidebar />
 
-      {status === 'loading' && (
-        <PageStatus>
-          <FaSpinner className="h-10 w-10 animate-spin" />
-        </PageStatus>
-      )}
-      {status === 'error' && (
-        <PageStatus
-          title="Something went wrong"
-          description="Please try again later."
-        />
-      )}
-      {status === 'success' && (
-        <PhotoAlbum
-          layout="rows"
-          photos={photos}
-          renderPhoto={ImageCard}
-          renderContainer={(renderContainerProps) => (
-            <GalleryContainer
-              {...renderContainerProps}
-              isEmpty={photos.length === 0}
-              fetchNextPage={fetchNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              hasNextPage={hasNextPage}
-            />
-          )}
-          onClick={({ event, photo, index }) => setModalData(photo)}
-        />
-      )}
+      <PhotoAlbum
+        layout="rows"
+        photos={photos}
+        renderPhoto={ImageCard}
+        renderContainer={(renderContainerProps) => (
+          <GalleryContainer
+            {...renderContainerProps}
+            isEmpty={photos.length === 0}
+            fetchNextPage={fetchNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            hasNextPage={hasNextPage}
+          />
+        )}
+        onClick={({ event, photo, index }) => setModalData(photo)}
+      />
 
       {modalData && (
         <ImageViewerModal
@@ -90,10 +72,34 @@ Gallery.getLayout = function getLayout(page: ReactElement) {
   return <GalleryLayout>{page}</GalleryLayout>
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({
+  locale,
+  query,
+}) => {
+  const queryClient = new QueryClient()
+
+  if (!isValidRequest<GalleryFilters>(query, ['search', 'categories'])) {
+    return { redirect: { destination: '/gallery', permanent: false } }
+  }
+  const queryKey = removeEmptyObjectFromArray(['gallery', query])
+
+  try {
+    await queryClient.fetchInfiniteQuery(queryKey, () =>
+      fetchItems({ nextCursor: '0', ...query }).then((value) => ({
+        items: value,
+      }))
+    )
+    await queryClient.fetchQuery(['categories'], () => fetchCategories())
+  } catch (error) {
+    return {
+      redirect: { destination: '/500', permanent: false },
+    }
+  }
+
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }
 }
