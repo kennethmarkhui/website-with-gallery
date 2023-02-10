@@ -73,20 +73,7 @@ export const getServerSideProps: GetServerSideProps<
   if (!query.data) {
     // fetch item if no query data provided
     try {
-      await queryClient.fetchQuery(['item', id], () =>
-        fetchItem(id).then((data) => ({
-          id,
-          name: data?.name ?? '',
-          storage: data?.storage ?? '',
-          category: data?.category ?? '',
-          image: data?.image ?? {
-            url: '/placeholder.png',
-            publicId: '',
-            width: 1665,
-            height: 2048,
-          },
-        }))
-      )
+      await queryClient.fetchQuery(['item', id], () => fetchItem(id))
       await queryClient.fetchQuery(['categories'], () => fetchCategories())
     } catch (error) {
       return {
