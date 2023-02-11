@@ -15,6 +15,8 @@ import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useGallery from 'hooks/gallery/useGallery'
 import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
 
+const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
+
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
@@ -38,6 +40,15 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     [data]
   )
 
+  // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261
+  const maxWidth = Math.floor(
+    photos.reduce(
+      (acc, { width, height }) =>
+        acc + (width / height) * PHOTOALBUM_TARGET_ROW_HEIGHT * 1.2,
+      Math.max(10 * (photos.length - 1), 0)
+    )
+  )
+
   return (
     <>
       <Sidebar />
@@ -46,6 +57,12 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
         layout="rows"
         photos={photos}
         renderPhoto={ImageCard}
+        targetRowHeight={PHOTOALBUM_TARGET_ROW_HEIGHT}
+        componentsProps={(containerWidth) =>
+          containerWidth && maxWidth && maxWidth <= containerWidth
+            ? { rowContainerProps: { style: { maxWidth } } }
+            : {}
+        }
         renderContainer={(renderContainerProps) => (
           <GalleryContainer
             {...renderContainerProps}
