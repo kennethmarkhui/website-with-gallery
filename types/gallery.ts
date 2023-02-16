@@ -6,6 +6,8 @@ type GalleryItemInfo = Pick<Item, 'id' | 'name' | 'storage'> & {
 
 type GalleryImage = Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
 
+export type GalleryItemKeys = keyof Item
+
 export type GalleryItem = GalleryItemInfo & {
   image: GalleryImage | null
 }
@@ -24,11 +26,16 @@ export type NextCursor = string | undefined
 export type GalleryFilters = {
   search?: string
   categories?: string[] | string
+  orderBy?: string | GalleryOrderBy
 }
 
 export type GalleryQuery = {
   nextCursor: NextCursor
 } & GalleryFilters
+
+export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
+
+export type GalleryOrderByDirection = 'asc' | 'desc'
 
 export type GalleryResponse = {
   items: GalleryItem[]

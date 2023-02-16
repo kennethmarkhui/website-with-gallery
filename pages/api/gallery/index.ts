@@ -5,26 +5,37 @@ import type {
   GalleryQuery,
   GalleryResponse,
   GalleryItem,
+  GalleryOrderByDirection,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
 
 export const GALLERY_LIMIT = 10
+export const GALLERY_ORDER_BY: GalleryOrderByDirection = 'desc'
 
 export async function fetchItems({
   nextCursor,
   search: searchFilter,
-  categories: categoriesFilter,
+  categories,
+  orderBy,
 }: GalleryQuery): Promise<GalleryItem[]> {
+  const categoriesFilter =
+    typeof categories === 'string'
+      ? { name: { in: categories.split(',') } }
+      : undefined
+
+  const orderByFilter = orderBy
+    ? typeof orderBy === 'string'
+      ? Object.fromEntries([orderBy.split(',')])
+      : undefined
+    : { updatedAt: GALLERY_ORDER_BY }
+
   const data = await prisma.item.findMany({
     where: {
       AND: [
         { id: { contains: searchFilter, mode: 'insensitive' } },
         {
-          category:
-            typeof categoriesFilter === 'string'
-              ? { name: { in: categoriesFilter.split(',') } }
-              : undefined,
+          category: categoriesFilter,
         },
       ],
     },
@@ -45,9 +56,7 @@ export async function fetchItems({
         },
       },
     },
-    orderBy: {
-      updatedAt: 'desc',
-    },
+    orderBy: orderByFilter,
   })
 
   return data.map((item) => ({
@@ -73,6 +82,7 @@ export default async function handler(
       'nextCursor',
       'search',
       'categories',
+      'orderBy',
     ])
   ) {
     return res.status(400).json({
@@ -82,10 +92,10 @@ export default async function handler(
     })
   }
 
-  let { nextCursor, search, categories } = req.query
+  let { nextCursor, search, categories, orderBy } = req.query
 
   try {
-    const items = await fetchItems({ nextCursor, search, categories })
+    const items = await fetchItems({ nextCursor, search, categories, orderBy })
     nextCursor =
       items.length === GALLERY_LIMIT ? items[GALLERY_LIMIT - 1].id : undefined
     return res.status(200).json({

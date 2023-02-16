@@ -95,7 +95,9 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const queryClient = new QueryClient()
 
-  if (!isValidRequest<GalleryFilters>(query, ['search', 'categories'])) {
+  if (
+    !isValidRequest<GalleryFilters>(query, ['search', 'categories', 'orderBy'])
+  ) {
     return { redirect: { destination: '/gallery', permanent: false } }
   }
   const queryKey = removeEmptyObjectFromArray(['gallery', query])
