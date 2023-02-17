@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, Fragment, useEffect, useState } from 'react'
+import { ComponentPropsWithoutRef, ReactNode, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import {
   SubmitHandler,
@@ -6,13 +6,7 @@ import {
   UseControllerProps,
   useForm,
 } from 'react-hook-form'
-import { Disclosure, Transition } from '@headlessui/react'
-import {
-  HiChevronDown,
-  HiOutlineExclamation,
-  HiArrowNarrowDown,
-} from 'react-icons/hi'
-import { FaSpinner } from 'react-icons/fa'
+import { HiChevronDown, HiArrowNarrowDown } from 'react-icons/hi'
 import clsx from 'clsx'
 
 import type {
@@ -39,6 +33,10 @@ interface CheckboxesProps extends UseControllerProps {
 interface SortByProps extends UseControllerProps {
   options: GalleryItemKeys[]
   defaultSelected?: GalleryOrderBy
+}
+
+interface AccordionProps {
+  panels: { title: string; content: ReactNode }[]
 }
 
 // https://github.com/react-hook-form/react-hook-form/issues/9248#issuecomment-1284588424
@@ -140,6 +138,52 @@ const SortBy = ({
   )
 }
 
+const Accordion = ({ panels }: AccordionProps): JSX.Element => {
+  const [active, setActive] = useState<number | undefined>(0)
+
+  const handleActive = (idx: number) => {
+    setActive((prev) => (prev === idx ? undefined : idx))
+  }
+
+  return (
+    <>
+      {panels.map(({ title, content }, idx) => {
+        const isActive = active === idx
+        return (
+          <fieldset
+            key={idx}
+            className={clsx('flex flex-col', isActive && 'h-full min-h-0')}
+          >
+            <button
+              type="button"
+              className={clsx(
+                'flex w-full items-center justify-between text-sm',
+                isActive ? 'text-black' : 'text-gray-500'
+              )}
+              onClick={() => handleActive(idx)}
+              aria-expanded={isActive}
+              {...(isActive && { 'aria-controls': title })}
+            >
+              <span>{title}</span>
+              <HiChevronDown
+                className={clsx(
+                  'transition-transform',
+                  isActive && 'rotate-180'
+                )}
+              />
+            </button>
+            {isActive && (
+              <div id={title} className="h-full min-h-0 py-2">
+                {content}
+              </div>
+            )}
+          </fieldset>
+        )
+      })}
+    </>
+  )
+}
+
 const FilterForm = ({
   disabled = false,
   callback,
@@ -199,102 +243,42 @@ const FilterForm = ({
       <fieldset disabled={disabled}>
         <FloatingLabelInput id="search" {...register('search')} />
       </fieldset>
-      {/* TODO: DISCLOSURES TO ONLY OPEN ONE AT A TIME. */}
-      <Disclosure
-        as="fieldset"
-        className="flex h-full min-h-0 flex-col"
-        disabled={disabled || (status !== 'success' && !data)}
-        defaultOpen
-      >
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className={clsx(
-                'flex w-full items-center justify-between text-sm',
-                open && !disabled ? 'text-black' : 'text-gray-500'
-              )}
-            >
-              <span>Category</span>
-              {status === 'loading' && <FaSpinner className="animate-spin" />}
-              {status === 'error' && <HiOutlineExclamation />}
-              {status === 'success' && (
-                <HiChevronDown
-                  className={clsx('transition-transform', open && 'rotate-180')}
-                />
-              )}
-            </Disclosure.Button>
-            {status === 'success' && data && (
-              <Transition
-                as={Fragment}
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
-              >
-                <Disclosure.Panel className="h-full min-h-0 py-2">
-                  <Checkboxes
-                    options={data}
-                    defaultSelected={
-                      typeof categories === 'string'
-                        ? categories.split(',')
-                        : undefined
-                    }
-                    control={control}
-                    name="categories"
-                    mobile={!!callback}
-                  />
-                </Disclosure.Panel>
-              </Transition>
-            )}
-          </>
-        )}
-      </Disclosure>
-      <Disclosure
-        as="fieldset"
-        className="flex h-full min-h-0 flex-col"
-        disabled={disabled}
-        defaultOpen
-      >
-        {({ open }) => (
-          <>
-            <Disclosure.Button
-              className={clsx(
-                'flex w-full items-center justify-between text-sm',
-                open && !disabled ? 'text-black' : 'text-gray-500'
-              )}
-            >
-              <span>Sort By</span>
-              <HiChevronDown
-                className={clsx('transition-transform', open && 'rotate-180')}
+      <Accordion
+        panels={[
+          {
+            title: 'Categories',
+            content: (
+              <Checkboxes
+                options={data!}
+                defaultSelected={
+                  typeof categories === 'string'
+                    ? categories.split(',')
+                    : undefined
+                }
+                control={control}
+                name="categories"
+                mobile={!!callback}
               />
-            </Disclosure.Button>
-            <Transition
-              as={Fragment}
-              enter="transition duration-100 ease-out"
-              enterFrom="transform scale-95 opacity-0"
-              enterTo="transform scale-100 opacity-100"
-              leave="transition duration-75 ease-out"
-              leaveFrom="transform scale-100 opacity-100"
-              leaveTo="transform scale-95 opacity-0"
-            >
-              <Disclosure.Panel className="h-full min-h-0 py-2">
-                <SortBy
-                  options={['updatedAt', 'dateAdded', 'id']}
-                  defaultSelected={
-                    typeof orderBy === 'string'
-                      ? (orderBy.split(',') as GalleryOrderBy)
-                      : undefined
-                  }
-                  control={control}
-                  name="orderBy"
-                />
-              </Disclosure.Panel>
-            </Transition>
-          </>
-        )}
-      </Disclosure>
+            ),
+          },
+          {
+            title: 'Sort By',
+            content: (
+              <SortBy
+                options={['updatedAt', 'dateAdded', 'id']}
+                defaultSelected={
+                  typeof orderBy === 'string'
+                    ? (orderBy.split(',') as GalleryOrderBy)
+                    : undefined
+                }
+                control={control}
+                name="orderBy"
+              />
+            ),
+          },
+        ]}
+      />
+
       <Button disabled={disabled} type="submit">
         Search
       </Button>

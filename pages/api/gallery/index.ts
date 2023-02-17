@@ -11,7 +11,7 @@ import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
 
 export const GALLERY_LIMIT = 10
-export const GALLERY_ORDER_BY: GalleryOrderByDirection = 'desc'
+export const GALLERY_ORDER_BY_DIRECTION: GalleryOrderByDirection = 'desc'
 
 export async function fetchItems({
   nextCursor,
@@ -28,7 +28,7 @@ export async function fetchItems({
     ? typeof orderBy === 'string'
       ? Object.fromEntries([orderBy.split(',')])
       : undefined
-    : { updatedAt: GALLERY_ORDER_BY }
+    : { updatedAt: GALLERY_ORDER_BY_DIRECTION }
 
   const data = await prisma.item.findMany({
     where: {
