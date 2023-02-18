@@ -64,9 +64,9 @@ const Checkboxes = ({
   }
 
   return (
-    <ul className="h-full overflow-y-auto">
+    <ul className="h-full space-y-2 overflow-y-auto">
       {options.map(({ id, name }) => (
-        <li key={id} className="space-x-2">
+        <li key={id} className="flex space-x-2 px-2">
           <input
             id={mobile ? id : id + '-mobile'}
             type="checkbox"
@@ -113,11 +113,11 @@ const SortBy = ({
   return (
     <ul className="h-full space-y-2">
       {options.map((name, idx) => (
-        <li key={idx}>
+        <li className="pl-2 pr-6" key={idx}>
           <button
             type="button"
             className={clsx(
-              'flex w-full justify-between text-xs font-medium',
+              'flex w-full items-center justify-between text-xs font-medium',
               selected === name ? 'text-black' : 'text-gray-500'
             )}
             onClick={() => handleOnClick(name)}
@@ -152,7 +152,10 @@ const Accordion = ({ panels }: AccordionProps): JSX.Element => {
         return (
           <fieldset
             key={idx}
-            className={clsx('flex flex-col', isActive && 'h-full min-h-0')}
+            className={clsx(
+              'flex flex-col gap-1',
+              isActive && 'h-full min-h-0'
+            )}
           >
             <button
               type="button"
@@ -280,7 +283,7 @@ const FilterForm = ({
       />
 
       <Button disabled={disabled} type="submit">
-        Search
+        Submit
       </Button>
     </form>
   )
