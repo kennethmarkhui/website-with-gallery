@@ -36,7 +36,7 @@ const Update: NextPageWithLayout<UpdateProps> = (): JSX.Element => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
+    <div className="w-full">
       <GalleryForm mode="update" defaultFormValues={fetchedData} />
     </div>
   )

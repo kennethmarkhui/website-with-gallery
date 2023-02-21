@@ -10,7 +10,6 @@ import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
-import Sidebar from '@/components/gallery/Sidebar'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useGallery from 'hooks/gallery/useGallery'
 import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
@@ -51,8 +50,6 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <>
-      <Sidebar />
-
       <PhotoAlbum
         layout="rows"
         photos={photos}
@@ -86,7 +83,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
 }
 
 Gallery.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
+  return <GalleryLayout withSidebar>{page}</GalleryLayout>
 }
 
 export const getServerSideProps: GetServerSideProps = async ({

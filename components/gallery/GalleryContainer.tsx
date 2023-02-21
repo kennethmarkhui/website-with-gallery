@@ -20,7 +20,7 @@ const GalleryContainer = ({
   hasNextPage,
 }: GalleryContainerProps): JSX.Element => {
   return (
-    <div ref={containerRef} {...containerProps} className="h-full w-full">
+    <div ref={containerRef} {...containerProps}>
       {isEmpty && (
         <PageStatus
           title="No results found"

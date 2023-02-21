@@ -6,7 +6,11 @@ import {
   UseControllerProps,
   useForm,
 } from 'react-hook-form'
-import { HiChevronDown, HiArrowNarrowDown } from 'react-icons/hi'
+import {
+  HiChevronDown,
+  HiArrowNarrowDown,
+  HiOutlineSearch,
+} from 'react-icons/hi'
 import clsx from 'clsx'
 
 import type {
@@ -27,7 +31,6 @@ interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
 interface CheckboxesProps extends UseControllerProps {
   options: Array<{ id: string; name: string }>
   defaultSelected?: string[]
-  mobile?: boolean
 }
 
 interface SortByProps extends UseControllerProps {
@@ -43,7 +46,6 @@ interface AccordionProps {
 const Checkboxes = ({
   options,
   defaultSelected,
-  mobile,
   control,
   name,
 }: CheckboxesProps): JSX.Element => {
@@ -68,14 +70,14 @@ const Checkboxes = ({
       {options.map(({ id, name }) => (
         <li key={id} className="flex space-x-2 px-2">
           <input
-            id={mobile ? id : id + '-mobile'}
+            id={id}
             type="checkbox"
             checked={checkedboxes.has(name)}
             className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
             onChange={() => handleOnChange(name)}
           />
           <label
-            htmlFor={mobile ? id : id + '-mobile'}
+            htmlFor={id}
             className="cursor-pointer truncate text-xs font-medium text-gray-500"
           >
             {name}
@@ -93,8 +95,12 @@ const SortBy = ({
   name,
 }: SortByProps): JSX.Element => {
   const { field } = useController({ control, name })
-  const [selected, setSelected] = useState(defaultSelected?.[0])
-  const [isDesc, setIsDesc] = useState(defaultSelected?.[1] === 'desc')
+  const [selected, setSelected] = useState(
+    defaultSelected?.[0] || field.value[0]
+  )
+  const [isDesc, setIsDesc] = useState(
+    defaultSelected?.[1] || field.value[1] === 'desc'
+  )
 
   const sortDirection = (bool: boolean): GalleryOrderByDirection =>
     bool ? 'desc' : 'asc'
@@ -152,10 +158,7 @@ const Accordion = ({ panels }: AccordionProps): JSX.Element => {
         return (
           <fieldset
             key={idx}
-            className={clsx(
-              'flex flex-col gap-1',
-              isActive && 'h-full min-h-0'
-            )}
+            className={clsx('flex flex-col gap-1', isActive && 'min-h-0')}
           >
             <button
               type="button"
@@ -195,7 +198,13 @@ const FilterForm = ({
   const router = useRouter()
   const { search, categories, orderBy } = router.query
 
-  const { register, handleSubmit, reset, control } = useForm<GalleryFilters>({
+  const {
+    register,
+    formState: { isDirty },
+    handleSubmit,
+    reset,
+    control,
+  } = useForm<GalleryFilters>({
     defaultValues: { search: '', categories: [], orderBy: [] },
   })
 
@@ -241,7 +250,7 @@ const FilterForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx('flex min-h-0 w-full flex-col gap-4', className)}
+      className={clsx('flex h-full w-full flex-col gap-4', className)}
     >
       <fieldset disabled={disabled}>
         <FloatingLabelInput id="search" {...register('search')} />
@@ -260,7 +269,6 @@ const FilterForm = ({
                 }
                 control={control}
                 name="categories"
-                mobile={!!callback}
               />
             ),
           },
@@ -282,8 +290,8 @@ const FilterForm = ({
         ]}
       />
 
-      <Button disabled={disabled} type="submit">
-        Submit
+      <Button disabled={!isDirty || disabled} type="submit">
+        <HiOutlineSearch />
       </Button>
     </form>
   )

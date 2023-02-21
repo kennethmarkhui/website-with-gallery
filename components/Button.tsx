@@ -9,7 +9,7 @@ const Button = ({ variant = 'primary', ...rest }: ButtonProps): JSX.Element => {
   return (
     <button
       className={clsx(
-        'w-full rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none sm:w-auto',
+        'flex w-full items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none sm:w-auto',
         variant === 'primary' &&
           'enabled:hover:border-black enabled:hover:text-black',
         variant === 'danger' &&
