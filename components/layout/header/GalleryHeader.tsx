@@ -20,14 +20,14 @@ const GalleryHeader = ({
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-white p-8">
-      <Link href={router.asPath === '/gallery' ? '/' : '/gallery'}>
+      <Link href={router.pathname === '/gallery' ? '/' : '/gallery'}>
         <button
           type="button"
           className="flex cursor-pointer items-center justify-center gap-4 hover:underline"
         >
           <HiArrowLeft />
           <span className="hidden sm:inline">
-            {router.asPath === '/gallery' ? t('return') : t('return-gallery')}
+            {router.pathname === '/gallery' ? t('return') : t('return-gallery')}
           </span>
         </button>
       </Link>
