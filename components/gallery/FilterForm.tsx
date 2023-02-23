@@ -30,39 +30,31 @@ interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
 
 interface CheckboxesProps extends UseControllerProps {
   options: Array<{ id: string; name: string }>
-  defaultSelected?: string[]
 }
 
 interface SortByProps extends UseControllerProps {
   options: GalleryItemKeys[]
-  defaultSelected?: GalleryOrderBy
 }
 
 interface AccordionProps {
   panels: { title: string; content: ReactNode }[]
 }
 
-// https://github.com/react-hook-form/react-hook-form/issues/9248#issuecomment-1284588424
 const Checkboxes = ({
   options,
-  defaultSelected,
   control,
   name,
 }: CheckboxesProps): JSX.Element => {
   const { field } = useController({ control, name })
-  const [checkedboxes, setCheckedboxes] = useState(
-    new Set(defaultSelected || field.value)
-  )
+  const checkedboxes = new Set<string>(field.value)
 
   const handleOnChange = (name: string) => {
-    const updatedCheckedboxes = new Set(checkedboxes)
-    if (updatedCheckedboxes.has(name)) {
-      updatedCheckedboxes.delete(name)
+    if (checkedboxes.has(name)) {
+      checkedboxes.delete(name)
     } else {
-      updatedCheckedboxes.add(name)
+      checkedboxes.add(name)
     }
-    field.onChange(Array.from(updatedCheckedboxes))
-    setCheckedboxes(updatedCheckedboxes)
+    field.onChange(Array.from(checkedboxes))
   }
 
   return (
@@ -75,6 +67,7 @@ const Checkboxes = ({
             checked={checkedboxes.has(name)}
             className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
             onChange={() => handleOnChange(name)}
+            value={name}
           />
           <label
             htmlFor={id}
@@ -88,32 +81,18 @@ const Checkboxes = ({
   )
 }
 
-const SortBy = ({
-  options,
-  defaultSelected,
-  control,
-  name,
-}: SortByProps): JSX.Element => {
+const SortBy = ({ options, control, name }: SortByProps): JSX.Element => {
   const { field } = useController({ control, name })
-  const [selected, setSelected] = useState(
-    defaultSelected?.[0] || field.value[0]
-  )
-  const [isDesc, setIsDesc] = useState(
-    defaultSelected?.[1] || field.value[1] === 'desc'
-  )
+  const selected = field.value[0]
+  const isDesc = field.value[1] === 'desc'
 
   const sortDirection = (bool: boolean): GalleryOrderByDirection =>
     bool ? 'desc' : 'asc'
 
   const handleOnClick = (name: GalleryItemKeys) => {
-    if (selected === name) {
-      field.onChange([name, sortDirection(!isDesc)])
-      setIsDesc((prev) => !prev)
-    } else {
-      field.onChange([name, 'desc'])
-      setSelected(name)
-      setIsDesc(true)
-    }
+    selected === name
+      ? field.onChange([name, sortDirection(!isDesc)])
+      : field.onChange([name, 'desc'])
   }
 
   return (
@@ -260,16 +239,7 @@ const FilterForm = ({
           {
             title: 'Categories',
             content: (
-              <Checkboxes
-                options={data!}
-                defaultSelected={
-                  typeof categories === 'string'
-                    ? categories.split(',')
-                    : undefined
-                }
-                control={control}
-                name="categories"
-              />
+              <Checkboxes options={data!} control={control} name="categories" />
             ),
           },
           {
@@ -277,11 +247,6 @@ const FilterForm = ({
             content: (
               <SortBy
                 options={['updatedAt', 'dateAdded', 'id']}
-                defaultSelected={
-                  typeof orderBy === 'string'
-                    ? (orderBy.split(',') as GalleryOrderBy)
-                    : undefined
-                }
                 control={control}
                 name="orderBy"
               />
