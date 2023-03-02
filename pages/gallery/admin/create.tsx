@@ -6,7 +6,7 @@ import clsx from 'clsx'
 
 import { NextPageWithLayout } from 'pages/_app'
 import { fetchCategories } from 'pages/api/gallery/category'
-import GalleryLayout from '@/components/layout/GalleryLayout'
+import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import GalleryForm from '@/components/gallery/Form'
 import CategoryForm from '@/components/gallery/CategoryForm'
 import { pick } from 'lib/utils'
@@ -46,7 +46,7 @@ const Create: NextPageWithLayout = (): JSX.Element => {
 }
 
 Create.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
+  return <GalleryAdminLayout>{page}</GalleryAdminLayout>
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
@@ -62,7 +62,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
 
   return {
     props: {
-      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      messages: pick(await import(`../../../intl/${locale}.json`), ['gallery']),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }

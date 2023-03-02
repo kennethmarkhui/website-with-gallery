@@ -1,16 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { withAuth } from 'next-auth/middleware'
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  })
-  if (!token || token.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/gallery', request.url))
-  }
-}
+export default withAuth({
+  callbacks: {
+    authorized({ token }) {
+      return token?.role === 'ADMIN'
+    },
+  },
+})
 
 export const config = {
-  matcher: ['/gallery/create', '/gallery/update/:path*'],
+  matcher: [
+    '/gallery/admin',
+    '/gallery/admin/create',
+    '/gallery/admin/update/:path*',
+  ],
 }

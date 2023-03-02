@@ -423,10 +423,11 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         <animated.p className="fixed top-4 left-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
           {data.title}
         </animated.p>
+        {/* TODO: show only on /gallery/admin */}
         {session && session.user.role === 'ADMIN' && (
           <Link
             href={{
-              pathname: `/gallery/update/${data.title}`,
+              pathname: `/gallery/admin/update/${data.title}`,
               query: {
                 data: JSON.stringify({
                   name: data.name,

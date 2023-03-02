@@ -6,25 +6,26 @@ import useDrawer from 'hooks/useDrawer'
 
 interface GalleryLayoutProps {
   children: React.ReactNode
-  withSidebar?: boolean
 }
 
-const GalleryLayout = ({
-  children,
-  withSidebar,
-}: GalleryLayoutProps): JSX.Element => {
+const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
   const { isOpen, toggleDrawer, closeDrawer } = useDrawer()
 
   return (
-    <div className="mx-auto min-h-screen max-w-screen-2xl">
-      <GalleryHeader onSidebarButtonClicked={toggleDrawer} />
-      <div className="flex flex-row">
-        {withSidebar && <Sidebar isOpen={isOpen} close={closeDrawer} />}
+    <div className="flex min-h-screen flex-row">
+      <Sidebar isOpen={isOpen} close={closeDrawer} />
+      <div
+        className={clsx(
+          'transition-all duration-150 ease-in',
+          '-ml-64 lg:ml-0'
+        )}
+      >
+        <GalleryHeader onSidebarButtonClicked={toggleDrawer} />
         <main
           className={clsx(
             'w-full p-8',
             'transition-all duration-150 ease-in',
-            withSidebar && '-ml-64 lg:ml-0'
+            'ml-0 lg:-mt-16'
           )}
         >
           {children}

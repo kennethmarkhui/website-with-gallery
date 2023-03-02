@@ -229,7 +229,7 @@ const FilterForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx('flex h-full w-full flex-col gap-4', className)}
+      className={clsx('flex min-h-0 w-full flex-col gap-4', className)}
     >
       <fieldset disabled={disabled}>
         <FloatingLabelInput id="search" {...register('search')} />

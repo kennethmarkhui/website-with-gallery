@@ -7,7 +7,7 @@ import type { GalleryFormFields } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
-import GalleryLayout from '@/components/layout/GalleryLayout'
+import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import GalleryForm from '@/components/gallery/Form'
 import useItem from 'hooks/gallery/useItem'
 import { pick } from 'lib/utils'
@@ -43,7 +43,7 @@ const Update: NextPageWithLayout<UpdateProps> = (): JSX.Element => {
 }
 
 Update.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
+  return <GalleryAdminLayout>{page}</GalleryAdminLayout>
 }
 
 export const getServerSideProps: GetServerSideProps<
@@ -84,7 +84,9 @@ export const getServerSideProps: GetServerSideProps<
 
   return {
     props: {
-      messages: pick(await import(`../../../intl/${locale}.json`), ['gallery']),
+      messages: pick(await import(`../../../../intl/${locale}.json`), [
+        'gallery',
+      ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }

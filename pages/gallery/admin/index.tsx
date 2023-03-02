@@ -7,7 +7,7 @@ import type { GalleryFilters, GalleryResponse } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems, GALLERY_LIMIT } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
-import GalleryLayout from '@/components/layout/GalleryLayout'
+import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
@@ -16,7 +16,7 @@ import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
-const Gallery: NextPageWithLayout = (): JSX.Element => {
+const Admin: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
   const { data, isFetchingNextPage, fetchNextPage, hasNextPage } = useGallery()
@@ -48,8 +48,10 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
     )
   )
 
+  // TODO: maybe use tables for data in admin
   return (
     <>
+      <p>admin page</p>
       <PhotoAlbum
         layout="rows"
         photos={photos}
@@ -82,8 +84,8 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   )
 }
 
-Gallery.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
+Admin.getLayout = function getLayout(page: ReactElement) {
+  return <GalleryAdminLayout withSidebar>{page}</GalleryAdminLayout>
 }
 
 export const getServerSideProps: GetServerSideProps = async ({
@@ -126,10 +128,10 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   return {
     props: {
-      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      messages: pick(await import(`../../../intl/${locale}.json`), ['gallery']),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }
 }
 
-export default Gallery
+export default Admin

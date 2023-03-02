@@ -1,54 +1,47 @@
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { HiArrowLeft, HiOutlineSearch, HiPlus } from 'react-icons/hi'
+import { HiArrowLeft, HiOutlineSearch } from 'react-icons/hi'
 
 import LocaleSwitcher from './LocaleSwitcher'
-import Auth from '@/components/Auth'
+import clsx from 'clsx'
 
 interface GalleryHeaderProps {
-  onSidebarButtonClicked: () => void
+  onSidebarButtonClicked?: () => void
+  smallVersion?: boolean
 }
 
 const GalleryHeader = ({
   onSidebarButtonClicked,
+  smallVersion,
 }: GalleryHeaderProps): JSX.Element => {
   const router = useRouter()
-  const { data: session } = useSession()
-  const t = useTranslations('gallery')
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between bg-white p-8">
+    <header
+      className={clsx(
+        'flex h-16 w-full shrink-0 items-center justify-between',
+        'transform transition-transform duration-150 ease-in',
+        !smallVersion && 'translate-y-0 lg:-translate-y-full',
+        !smallVersion && 'sticky top-0 z-20 bg-white px-8'
+      )}
+    >
       <Link href={router.pathname === '/gallery' ? '/' : '/gallery'}>
         <button
           type="button"
           className="flex cursor-pointer items-center justify-center gap-4 hover:underline"
         >
           <HiArrowLeft />
-          <span className="hidden sm:inline">
-            {router.pathname === '/gallery' ? t('return') : t('return-gallery')}
-          </span>
         </button>
       </Link>
 
       <div className="flex items-center space-x-4">
         {router.pathname === '/gallery' && (
-          <div className="flex space-x-4">
-            {session?.user.role === 'ADMIN' && (
-              <Link href={'/gallery/create'}>
-                <HiPlus />
-              </Link>
-            )}
-
-            <button className="lg:hidden" onClick={onSidebarButtonClicked}>
-              <HiOutlineSearch />
-            </button>
-          </div>
+          <button className="lg:hidden" onClick={onSidebarButtonClicked}>
+            <HiOutlineSearch />
+          </button>
         )}
         <div className="flex items-center">
           <LocaleSwitcher />
-          <Auth />
         </div>
       </div>
     </header>
