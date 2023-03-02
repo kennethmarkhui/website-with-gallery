@@ -12,7 +12,7 @@ const Sidebar = ({ isOpen, close }: SidebarProps): JSX.Element => {
     <>
       <aside
         className={clsx(
-          'sticky top-0 z-40 h-screen w-64 shrink-0 bg-white p-8',
+          'sticky top-0 z-40 h-[100dvh] w-64 shrink-0 bg-white p-8',
           'transform transition-transform duration-150 ease-in lg:translate-x-0',
           !isOpen && '-translate-x-full'
         )}
