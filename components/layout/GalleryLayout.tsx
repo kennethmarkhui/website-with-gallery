@@ -17,7 +17,7 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
       <div
         className={clsx(
           'transition-all duration-150 ease-in',
-          '-ml-64 lg:ml-0'
+          '-ml-64 w-full lg:ml-0'
         )}
       >
         <GalleryHeader onSidebarButtonClicked={toggleDrawer} />
