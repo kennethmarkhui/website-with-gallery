@@ -1,17 +1,17 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 
-import type { GalleryFilters, GalleryResponse } from 'types/gallery'
+import type { GalleryFilters, GalleryCursorResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 import {
   generateQueryStringFromObject,
   removeEmptyObjectFromArray,
 } from 'lib/utils'
 
-const useGallery = () => {
+const useCursorGallery = () => {
   const router = useRouter()
   const filters = router.query
-  const queryKey = removeEmptyObjectFromArray(['gallery', filters])
+  const queryKey = removeEmptyObjectFromArray(['gallery', 'cursor', filters])
 
   const {
     data,
@@ -23,11 +23,11 @@ const useGallery = () => {
   } = useInfiniteQuery(
     queryKey,
     ({ pageParam, queryKey }) =>
-      fetcher<GalleryResponse>(
+      fetcher<GalleryCursorResponse>(
         '/api/gallery' +
           generateQueryStringFromObject({
             nextCursor: pageParam ?? 0,
-            ...(queryKey[1] as GalleryFilters),
+            ...(queryKey[2] as GalleryFilters),
           })
       ),
     {
@@ -45,4 +45,4 @@ const useGallery = () => {
   }
 }
 
-export default useGallery
+export default useCursorGallery

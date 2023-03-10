@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useSpring, animated } from '@react-spring/web'
 import { useGesture } from '@use-gesture/react'
-import { HiPencil, HiX } from 'react-icons/hi'
+import { HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 import { Dialog } from '@headlessui/react'
 
@@ -423,31 +422,7 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         <animated.p className="fixed top-4 left-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
           {data.title}
         </animated.p>
-        {/* TODO: show only on /gallery/admin */}
-        {session && session.user.role === 'ADMIN' && (
-          <Link
-            href={{
-              pathname: `/gallery/admin/update/${data.title}`,
-              query: {
-                data: JSON.stringify({
-                  name: data.name,
-                  storage: data.storage,
-                  category: data.category,
-                  image: {
-                    url: data.src, // if no image this should be the placeholder image
-                    publicId: data.publicId,
-                    width: data.width,
-                    height: data.height,
-                  },
-                }),
-              },
-            }}
-            aria-label="edit image"
-            className="fixed top-4 right-16 flex h-10 w-10 cursor-pointer items-center justify-center rounded border-none bg-black/30 p-0 text-white"
-          >
-            <HiPencil />
-          </Link>
-        )}
+
         <animated.button
           ref={dialogInitialFocusRef}
           aria-label="close image viewer"

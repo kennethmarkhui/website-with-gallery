@@ -1,26 +1,35 @@
 import clsx from 'clsx'
-import GalleryHeader from '../layout/header/GalleryHeader'
-import FilterForm from './FilterForm'
 
 interface SidebarProps {
+  children: React.ReactNode
+  placement?: 'left' | 'right'
   isOpen: boolean
+  open?: () => void
   close: () => void
 }
 
-const Sidebar = ({ isOpen, close }: SidebarProps): JSX.Element => {
+const sidebarPlacement = {
+  left: '-translate-x-full',
+  right: 'translate-x-full',
+}
+
+const Sidebar = ({
+  children,
+  placement = 'left',
+  isOpen,
+  open,
+  close,
+}: SidebarProps): JSX.Element => {
   return (
     <>
       <aside
         className={clsx(
           'sticky top-0 z-40 h-[100dvh] w-64 shrink-0 bg-white p-8',
           'transform transition-transform duration-150 ease-in lg:translate-x-0',
-          !isOpen && '-translate-x-full'
+          !isOpen && sidebarPlacement[placement]
         )}
       >
-        <div className="flex h-full flex-col">
-          {!isOpen && <GalleryHeader smallVersion />}
-          <FilterForm callback={close} />
-        </div>
+        {children}
       </aside>
       {isOpen && (
         <div className="fixed inset-0 z-30 bg-black/25" onClick={close}></div>

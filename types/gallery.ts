@@ -1,15 +1,20 @@
 import { Item, Image, Category } from 'prisma/prisma-client'
 
+export type GalleryItemKeys = keyof Item
+
 type GalleryItemInfo = Pick<Item, 'id' | 'name' | 'storage'> & {
   category: Category['name'] | null
 }
 
 type GalleryImage = Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
 
-export type GalleryItemKeys = keyof Item
-
 export type GalleryItem = GalleryItemInfo & {
   image: GalleryImage | null
+}
+
+export type GalleryItems = {
+  items: GalleryItem[]
+  totalCount: number
 }
 
 export type GalleryFormFields<TImage = void> =
@@ -27,20 +32,37 @@ export type GalleryFilters = {
   search?: string
   categories?: string[] | string
   orderBy?: string | GalleryOrderBy
+  page?: number
 }
 
-export type GalleryQuery = {
+export type PaginationType = 'cursor' | 'offset'
+
+export type GalleryCursorQuery = {
   nextCursor: NextCursor
+} & GalleryFilters
+
+export type GalleryOffsetQuery = {
+  page: number
+} & GalleryFilters
+
+export type GalleryQuery = {
+  nextCursor?: NextCursor
+  page?: number
 } & GalleryFilters
 
 export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 
 export type GalleryOrderByDirection = 'asc' | 'desc'
 
-export type GalleryResponse = {
-  items: GalleryItem[]
+export type GalleryCursorResponse = GalleryItems & {
   nextCursor: NextCursor
 }
+
+export type GalleryOffsetResponse = GalleryItems & {
+  page: number
+}
+
+export type GalleryResponse = GalleryCursorResponse | GalleryOffsetResponse
 
 export type GalleryMutateResponse = {
   message: string
@@ -53,6 +75,14 @@ export type GalleryErrorResponse = {
 // https://stackoverflow.com/a/73395247
 export type NonNullableRecursive<Type> = {
   [Key in keyof Type]-?: Type[Key] extends object | undefined | null
-    ? NonNullableRecursive<Type[Key]>
+    ? NonNullableRecursive<NonNullable<Type[Key]>>
     : NonNullable<Type[Key]>
 }
+
+// https://stackoverflow.com/a/66680470
+export type RequireKeys<T extends object, K extends keyof T> = Required<
+  Pick<T, K>
+> &
+  Omit<T, K> extends infer O
+  ? { [P in keyof O]: O[P] }
+  : never

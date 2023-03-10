@@ -3,15 +3,15 @@ import type { GetServerSideProps } from 'next'
 import PhotoAlbum from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { GalleryFilters, GalleryResponse } from 'types/gallery'
+import type { GalleryFilters, GalleryCursorResponse } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
-import { fetchItems, GALLERY_LIMIT } from 'pages/api/gallery'
+import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
 import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
-import useGallery from 'hooks/gallery/useGallery'
+import useCursorGallery from 'hooks/gallery/useCursorGallery'
 import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
@@ -19,7 +19,8 @@ const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
-  const { data, isFetchingNextPage, fetchNextPage, hasNextPage } = useGallery()
+  const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useCursorGallery()
 
   const photos: ExtendedPhoto[] = useMemo(
     () =>
@@ -97,22 +98,12 @@ export const getServerSideProps: GetServerSideProps = async ({
   ) {
     return { redirect: { destination: '/gallery', permanent: false } }
   }
-  const queryKey = removeEmptyObjectFromArray(['gallery', query])
+  const queryKey = removeEmptyObjectFromArray(['gallery', 'cursor', query])
 
   try {
-    await queryClient.fetchInfiniteQuery<GalleryResponse>(
+    await queryClient.fetchInfiniteQuery<GalleryCursorResponse>(
       queryKey,
-      () =>
-        fetchItems({ nextCursor: '0', ...query }).then((value) => ({
-          items: value,
-          nextCursor:
-            // TODO: FIX to maybe return undefined if length === limit and there are no further items to load,
-            // because currently it sets hasNextPage to true even if there are no more to load.
-            // also in pages/api/gallery response
-            value.length === GALLERY_LIMIT
-              ? value[GALLERY_LIMIT - 1].id
-              : undefined,
-        })),
+      () => fetchItems({ nextCursor: '0', ...query }),
       {
         getNextPageParam: ({ nextCursor }) => nextCursor,
       }

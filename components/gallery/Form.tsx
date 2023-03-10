@@ -83,7 +83,7 @@ function GalleryForm({
       ? updateMutate(data, {
           onSuccess: () => {
             reset()
-            router.push('/gallery')
+            router.push('/gallery/admin')
           },
           onError: ({ error }) => {
             if (error?.target) {
@@ -98,7 +98,7 @@ function GalleryForm({
       : createMutate(data, {
           onSuccess: () => {
             reset()
-            router.push('/gallery')
+            router.push('/gallery/admin')
           },
           onError: ({ error }) => {
             if (error?.target) {
@@ -182,7 +182,7 @@ function GalleryForm({
                   {
                     onSuccess: () => {
                       reset()
-                      router.push('/gallery')
+                      router.push('/gallery/admin')
                     },
                   }
                 )

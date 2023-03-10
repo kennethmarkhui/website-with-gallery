@@ -2,23 +2,36 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import type {
   GalleryErrorResponse,
+  GalleryCursorQuery,
+  GalleryCursorResponse,
+  GalleryOffsetQuery,
   GalleryQuery,
   GalleryResponse,
-  GalleryItem,
-  GalleryOrderByDirection,
+  GalleryOffsetResponse,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
-
-export const GALLERY_LIMIT = 10
-export const GALLERY_ORDER_BY_DIRECTION: GalleryOrderByDirection = 'desc'
+import { GALLERY_LIMIT, GALLERY_ORDER_BY_DIRECTION } from 'constants/gallery'
 
 export async function fetchItems({
+  page,
+  search,
+  categories,
+  orderBy,
+}: GalleryOffsetQuery): Promise<GalleryOffsetResponse>
+export async function fetchItems({
   nextCursor,
+  search,
+  categories,
+  orderBy,
+}: GalleryCursorQuery): Promise<GalleryCursorResponse>
+export async function fetchItems({
+  nextCursor,
+  page,
   search: searchFilter,
   categories,
   orderBy,
-}: GalleryQuery): Promise<GalleryItem[]> {
+}: GalleryQuery): Promise<GalleryResponse> {
   const categoriesFilter =
     typeof categories === 'string'
       ? { name: { in: categories.split(',') } }
@@ -30,39 +43,109 @@ export async function fetchItems({
       : undefined
     : { updatedAt: GALLERY_ORDER_BY_DIRECTION }
 
-  const data = await prisma.item.findMany({
-    where: {
-      AND: [
-        { id: { contains: searchFilter, mode: 'insensitive' } },
-        {
-          category: categoriesFilter,
+  if (page) {
+    const [items, totalItems] = await prisma.$transaction([
+      prisma.item.findMany({
+        where: {
+          AND: [
+            { id: { contains: searchFilter, mode: 'insensitive' } },
+            {
+              category: categoriesFilter,
+            },
+          ],
         },
-      ],
-    },
-    take: GALLERY_LIMIT,
-    skip: nextCursor === '0' ? 0 : 1,
-    cursor: nextCursor === '0' ? undefined : { id: nextCursor },
-    select: {
-      id: true,
-      name: true,
-      storage: true,
-      category: { select: { name: true } },
-      image: {
+        take: GALLERY_LIMIT,
+        skip: (page - 1) * GALLERY_LIMIT,
         select: {
-          url: true,
-          publicId: true,
-          width: true,
-          height: true,
+          id: true,
+          name: true,
+          storage: true,
+          category: { select: { name: true } },
+          image: {
+            select: {
+              url: true,
+              publicId: true,
+              width: true,
+              height: true,
+            },
+          },
         },
-      },
-    },
-    orderBy: orderByFilter,
-  })
+        orderBy: orderByFilter,
+      }),
+      prisma.item.count({
+        where: {
+          AND: [
+            { id: { contains: searchFilter, mode: 'insensitive' } },
+            {
+              category: categoriesFilter,
+            },
+          ],
+        },
+      }),
+    ])
 
-  return data.map((item) => ({
-    ...item,
-    category: item.category?.name ?? null,
-  }))
+    return {
+      items: items.map((item) => ({
+        ...item,
+        category: item.category?.name ?? null,
+      })),
+      totalCount: totalItems,
+      page,
+    }
+  } else {
+    const [items, totalItems] = await prisma.$transaction([
+      prisma.item.findMany({
+        where: {
+          AND: [
+            { id: { contains: searchFilter, mode: 'insensitive' } },
+            {
+              category: categoriesFilter,
+            },
+          ],
+        },
+        take: GALLERY_LIMIT,
+        skip: nextCursor === '0' ? 0 : 1,
+        cursor: nextCursor === '0' ? undefined : { id: nextCursor },
+        select: {
+          id: true,
+          name: true,
+          storage: true,
+          category: { select: { name: true } },
+          image: {
+            select: {
+              url: true,
+              publicId: true,
+              width: true,
+              height: true,
+            },
+          },
+        },
+        orderBy: orderByFilter,
+      }),
+      prisma.item.count({
+        where: {
+          AND: [
+            { id: { contains: searchFilter, mode: 'insensitive' } },
+            {
+              category: categoriesFilter,
+            },
+          ],
+        },
+      }),
+    ])
+
+    return {
+      items: items.map((item) => ({
+        ...item,
+        category: item.category?.name ?? null,
+      })),
+      totalCount: totalItems,
+      nextCursor:
+        items.length === GALLERY_LIMIT
+          ? items[GALLERY_LIMIT - 1].id
+          : undefined,
+    }
+  }
 }
 
 export default async function handler(
@@ -78,33 +161,65 @@ export default async function handler(
   }
 
   if (
-    !isValidRequest<GalleryQuery>(req.query, [
+    isValidRequest<GalleryCursorQuery>(req.query, [
       'nextCursor',
       'search',
       'categories',
       'orderBy',
     ])
   ) {
-    return res.status(400).json({
-      error: {
-        message: 'Missing queries.',
-      },
-    })
+    const {
+      nextCursor: nextCursorQuery,
+      search,
+      categories,
+      orderBy,
+    } = req.query
+
+    try {
+      const { items, totalCount, nextCursor } = await fetchItems({
+        nextCursor: nextCursorQuery,
+        search,
+        categories,
+        orderBy,
+      })
+      return res.status(200).json({
+        items,
+        totalCount,
+        nextCursor,
+      })
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: { message: 'Failed to fetch data from the database.' } })
+    }
   }
 
-  let { nextCursor, search, categories, orderBy } = req.query
+  if (
+    isValidRequest<GalleryOffsetQuery>(req.query, [
+      'page',
+      'search',
+      'categories',
+      'orderBy',
+    ])
+  ) {
+    const { page: pageQuery, search, categories, orderBy } = req.query
 
-  try {
-    const items = await fetchItems({ nextCursor, search, categories, orderBy })
-    nextCursor =
-      items.length === GALLERY_LIMIT ? items[GALLERY_LIMIT - 1].id : undefined
-    return res.status(200).json({
-      items,
-      nextCursor,
-    })
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ error: { message: 'Failed to fetch data from the database.' } })
+    try {
+      const { items, totalCount, page } = await fetchItems({
+        page: pageQuery,
+        search,
+        categories,
+        orderBy,
+      })
+      return res.status(200).json({
+        items,
+        totalCount,
+        page,
+      })
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: { message: 'Failed to fetch data from the database.' } })
+    }
   }
 }

@@ -9,6 +9,10 @@ const useDrawer = () => {
     setIsOpen((prev) => !prev)
   }
 
+  const openDrawer = () => {
+    setIsOpen(true)
+  }
+
   const closeDrawer = () => {
     setIsOpen(false)
   }
@@ -16,6 +20,7 @@ const useDrawer = () => {
   return {
     isOpen,
     toggleDrawer,
+    openDrawer,
     closeDrawer,
   }
 }
