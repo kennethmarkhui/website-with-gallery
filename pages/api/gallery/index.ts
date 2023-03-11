@@ -43,108 +43,67 @@ export async function fetchItems({
       : undefined
     : { updatedAt: GALLERY_ORDER_BY_DIRECTION }
 
-  if (page) {
-    const [items, totalItems] = await prisma.$transaction([
-      prisma.item.findMany({
-        where: {
-          AND: [
-            { id: { contains: searchFilter, mode: 'insensitive' } },
-            {
-              category: categoriesFilter,
-            },
-          ],
-        },
-        take: GALLERY_LIMIT,
-        skip: (page - 1) * GALLERY_LIMIT,
-        select: {
-          id: true,
-          name: true,
-          storage: true,
-          category: { select: { name: true } },
-          image: {
-            select: {
-              url: true,
-              publicId: true,
-              width: true,
-              height: true,
-            },
+  const [items, totalItems] = await prisma.$transaction([
+    prisma.item.findMany({
+      where: {
+        AND: [
+          { id: { contains: searchFilter, mode: 'insensitive' } },
+          {
+            category: categoriesFilter,
+          },
+        ],
+      },
+      take: GALLERY_LIMIT,
+      ...(page
+        ? {
+            skip: (page - 1) * GALLERY_LIMIT,
+          }
+        : {
+            skip: nextCursor === '0' ? 0 : 1,
+            cursor: nextCursor === '0' ? undefined : { id: nextCursor },
+          }),
+      select: {
+        id: true,
+        name: true,
+        storage: true,
+        category: { select: { name: true } },
+        image: {
+          select: {
+            url: true,
+            publicId: true,
+            width: true,
+            height: true,
           },
         },
-        orderBy: orderByFilter,
-      }),
-      prisma.item.count({
-        where: {
-          AND: [
-            { id: { contains: searchFilter, mode: 'insensitive' } },
-            {
-              category: categoriesFilter,
-            },
-          ],
-        },
-      }),
-    ])
-
-    return {
-      items: items.map((item) => ({
-        ...item,
-        category: item.category?.name ?? null,
-      })),
-      totalCount: totalItems,
-      page,
-    }
-  } else {
-    const [items, totalItems] = await prisma.$transaction([
-      prisma.item.findMany({
-        where: {
-          AND: [
-            { id: { contains: searchFilter, mode: 'insensitive' } },
-            {
-              category: categoriesFilter,
-            },
-          ],
-        },
-        take: GALLERY_LIMIT,
-        skip: nextCursor === '0' ? 0 : 1,
-        cursor: nextCursor === '0' ? undefined : { id: nextCursor },
-        select: {
-          id: true,
-          name: true,
-          storage: true,
-          category: { select: { name: true } },
-          image: {
-            select: {
-              url: true,
-              publicId: true,
-              width: true,
-              height: true,
-            },
+      },
+      orderBy: orderByFilter,
+    }),
+    prisma.item.count({
+      where: {
+        AND: [
+          { id: { contains: searchFilter, mode: 'insensitive' } },
+          {
+            category: categoriesFilter,
           },
-        },
-        orderBy: orderByFilter,
-      }),
-      prisma.item.count({
-        where: {
-          AND: [
-            { id: { contains: searchFilter, mode: 'insensitive' } },
-            {
-              category: categoriesFilter,
-            },
-          ],
-        },
-      }),
-    ])
+        ],
+      },
+    }),
+  ])
 
-    return {
-      items: items.map((item) => ({
-        ...item,
-        category: item.category?.name ?? null,
-      })),
-      totalCount: totalItems,
-      nextCursor:
-        items.length === GALLERY_LIMIT
-          ? items[GALLERY_LIMIT - 1].id
-          : undefined,
-    }
+  return {
+    items: items.map((item) => ({
+      ...item,
+      category: item.category?.name ?? null,
+    })),
+    totalCount: totalItems,
+    ...(page
+      ? { page }
+      : {
+          nextCursor:
+            items.length === GALLERY_LIMIT
+              ? items[GALLERY_LIMIT - 1].id
+              : undefined,
+        }),
   }
 }
 

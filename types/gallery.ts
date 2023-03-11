@@ -26,7 +26,7 @@ export type GalleryFormKeys = keyof GalleryFormFields
 
 export type GalleryFormMode = 'create' | 'update'
 
-export type NextCursor = string | undefined
+export type NextCursor = string
 
 export type GalleryFilters = {
   search?: string
@@ -55,7 +55,7 @@ export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 export type GalleryOrderByDirection = 'asc' | 'desc'
 
 export type GalleryCursorResponse = GalleryItems & {
-  nextCursor: NextCursor
+  nextCursor?: NextCursor
 }
 
 export type GalleryOffsetResponse = GalleryItems & {
