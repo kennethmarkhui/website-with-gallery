@@ -129,9 +129,79 @@ const Pagination = ({
   totalPage,
 }: PaginationProps): JSX.Element => {
   const { query } = useRouter()
-  // TODO: currentPage is a string instead of a number
-  const hasPrevious = currentPage != 1
+  const hasPrevious = currentPage !== 1
   const hasNext = currentPage < totalPage
+
+  const pageRangeDisplayed = 2
+  const marginPagesDisplayed = 1
+
+  const pages: number[] = []
+  if (totalPage <= pageRangeDisplayed) {
+    for (let index = 1; index <= totalPage; index++) {
+      pages.push(index)
+    }
+  } else {
+    // paginate logic from react-paginate's paginate function
+    // https://github.com/AdeleD/react-paginate/blob/master/react_components/PaginationBoxView.js
+    let leftSide = pageRangeDisplayed / 2
+    let rightSide = pageRangeDisplayed - leftSide
+
+    if (currentPage > totalPage - pageRangeDisplayed / 2) {
+      rightSide = totalPage - currentPage
+      leftSide = pageRangeDisplayed - rightSide
+    } else if (currentPage < pageRangeDisplayed / 2) {
+      leftSide = currentPage
+      rightSide = pageRangeDisplayed - leftSide
+    }
+
+    for (let page = 1; page <= totalPage; page++) {
+      if (page <= marginPagesDisplayed) {
+        pages.push(page)
+        continue
+      }
+
+      if (page > totalPage - marginPagesDisplayed) {
+        pages.push(page)
+        continue
+      }
+
+      const adjustedRightSide =
+        currentPage === 0 && pageRangeDisplayed > 1 ? rightSide - 1 : rightSide
+
+      if (
+        page >= currentPage - leftSide &&
+        page <= currentPage + adjustedRightSide
+      ) {
+        pages.push(page)
+        continue
+      }
+
+      if (
+        pages.length > 0 &&
+        !isNaN(pages[pages.length - 1]) &&
+        (pageRangeDisplayed > 0 || marginPagesDisplayed > 0)
+      ) {
+        pages.push(NaN)
+      }
+    }
+
+    pages.forEach((page, i) => {
+      const pageBefore = pages[i - 1]
+      const pageAfter = pages[i + 1]
+
+      if (
+        isNaN(page) &&
+        pageBefore &&
+        !isNaN(pageBefore) &&
+        pageAfter &&
+        !isNaN(pageAfter) &&
+        pageAfter - pageBefore <= 2
+      ) {
+        page = (pageAfter + pageBefore) / 2
+      }
+      pages[i] = page
+    })
+  }
 
   return (
     <nav className="flex flex-col items-center justify-center space-y-3 p-4 md:flex-row md:justify-between md:space-y-0">
@@ -141,7 +211,7 @@ const Pagination = ({
       <ul className="inline-flex -space-x-px">
         <li>
           <Link
-            href={{ query: { ...query, page: +currentPage - 1 } }}
+            href={{ query: { ...query, page: currentPage - 1 } }}
             className={clsx(
               'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasPrevious && 'pointer-events-none'
@@ -151,56 +221,24 @@ const Pagination = ({
             <HiChevronLeft />
           </Link>
         </li>
-        {/* TODO: dynamic page numbers */}
-        <li>
-          <Link
-            href={{ query: { ...query, page: 1 } }}
-            className={clsx(
-              'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-              currentPage == 1
-                ? 'pointer-events-none bg-gray-50 text-gray-600'
-                : 'text-gray-500'
-            )}
-          >
-            1
-          </Link>
-        </li>
-        <li>
-          <Link
-            href={{ query: { ...query, page: totalPage } }}
-            className={clsx(
-              'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-              currentPage == totalPage
-                ? 'pointer-events-none bg-gray-50 text-gray-600'
-                : 'text-gray-500'
-            )}
-          >
-            {totalPage}
-          </Link>
-        </li>
-        {/* {Array.from({ length: totalPage }, (_, idx) => {
-        const pageNumber = idx + 1
-        const isActive = currentPage == pageNumber
-
-        return (
-          <li key={pageNumber}>
+        {pages.map((page, idx) => (
+          <li key={idx}>
             <Link
-              href={{ query: { page: pageNumber } }}
+              href={{ query: { ...query, page: page } }}
               className={clsx(
                 'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-                isActive
+                currentPage === page || isNaN(page)
                   ? 'pointer-events-none bg-gray-50 text-gray-600'
                   : 'text-gray-500'
               )}
             >
-              {pageNumber}
+              {!isNaN(page) ? page : '...'}
             </Link>
           </li>
-        )
-      })} */}
+        ))}
         <li>
           <Link
-            href={{ query: { ...query, page: +currentPage + 1 } }}
+            href={{ query: { ...query, page: currentPage + 1 } }}
             className={clsx(
               'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasNext && 'pointer-events-none'
@@ -237,6 +275,8 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     [data?.items]
   )
 
+  // TODO: currentPage is a typeof string instead of a number
+  // (currentPage + number) will break, but (currentPage - number) will not.
   const currentPage = data?.page ?? 1
   const totalCount = data?.totalCount ?? 0
   const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
@@ -245,7 +285,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     <div className="relative -mr-64 w-full space-y-4 overflow-hidden lg:mr-0">
       <Table items={items} />
       <Pagination
-        currentPage={currentPage}
+        currentPage={+currentPage}
         totalCount={totalCount}
         totalPage={totalPage}
       />
