@@ -87,25 +87,25 @@ const GalleryAdminLayout = ({
           />
         </div>
       </Sidebar>
-      <main
+      <div
         className={clsx(
-          'w-full p-8',
+          'w-full',
           'transition-all duration-150 ease-in',
           '-ml-64 lg:ml-0',
           isGalleryAdminHomePage && '-mr-64 lg:mr-0'
         )}
       >
-        <div className="sticky top-0 z-10 flex w-full items-center bg-white py-4">
-          <HiMenu className="cursor-pointer lg:hidden" onClick={openDrawer} />
+        <header className="sticky top-0 z-10 flex w-full items-center bg-white p-8 lg:hidden">
+          <HiMenu className="cursor-pointer" onClick={openDrawer} />
           {isGalleryAdminHomePage && (
             <HiOutlineSearch
-              className="ml-auto cursor-pointer lg:hidden"
+              className="ml-auto cursor-pointer"
               onClick={openFilter}
             />
           )}
-        </div>
-        {children}
-      </main>
+        </header>
+        <main className="w-full px-8 pb-8 lg:pt-8">{children}</main>
+      </div>
       {isGalleryAdminHomePage && (
         <Sidebar
           placement="right"

@@ -282,7 +282,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
   const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
 
   return (
-    <div className="relative -mr-64 w-full space-y-4 overflow-hidden lg:mr-0">
+    <div className="relative w-full space-y-4 overflow-hidden">
       <Table items={items} />
       <Pagination
         currentPage={+currentPage}
