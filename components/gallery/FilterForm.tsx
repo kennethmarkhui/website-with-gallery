@@ -190,7 +190,6 @@ const FilterForm = ({
   const { data, status, error } = useCategory()
 
   useEffect(() => {
-    if (!search && !categories && !orderBy) return
     reset({
       search: typeof search === 'string' ? search : undefined ?? '',
       categories:
