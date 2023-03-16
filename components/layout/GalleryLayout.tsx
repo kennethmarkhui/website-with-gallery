@@ -29,7 +29,7 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
         <GalleryHeader onSidebarButtonClicked={openDrawer} />
         <main
           className={clsx(
-            'w-full p-8',
+            'w-full px-8 pb-8 lg:pt-8',
             'transition-all duration-150 ease-in',
             'ml-0 lg:-mt-16'
           )}
