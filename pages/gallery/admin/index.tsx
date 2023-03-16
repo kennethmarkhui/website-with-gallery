@@ -212,6 +212,7 @@ const Pagination = ({
         <li>
           <Link
             href={{ query: { ...query, page: currentPage - 1 } }}
+            shallow
             className={clsx(
               'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasPrevious && 'pointer-events-none'
@@ -225,6 +226,7 @@ const Pagination = ({
           <li key={idx}>
             <Link
               href={{ query: { ...query, page: page } }}
+              shallow
               className={clsx(
                 'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
                 currentPage === page || isNaN(page)
@@ -239,6 +241,7 @@ const Pagination = ({
         <li>
           <Link
             href={{ query: { ...query, page: currentPage + 1 } }}
+            shallow
             className={clsx(
               'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasNext && 'pointer-events-none'
@@ -256,7 +259,7 @@ const Pagination = ({
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
 
-  const { data } = useOffsetGallery()
+  const { data, status, error, isPreviousData } = useOffsetGallery()
 
   const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
     () =>
@@ -282,7 +285,12 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
   const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
 
   return (
-    <div className="relative w-full space-y-4 overflow-hidden">
+    <div
+      className={clsx(
+        'relative w-full space-y-4 overflow-hidden',
+        isPreviousData && 'pointer-events-none opacity-50'
+      )}
+    >
       <Table items={items} />
       <Pagination
         currentPage={+currentPage}

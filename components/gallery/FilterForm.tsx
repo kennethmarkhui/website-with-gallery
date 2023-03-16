@@ -25,7 +25,7 @@ import Button from '../Button'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
-  callback?: () => void
+  onSubmitCallback: (data: Omit<GalleryFilters, 'page'>) => void
 }
 
 interface CheckboxesProps extends UseControllerProps {
@@ -171,7 +171,7 @@ const Accordion = ({ panels }: AccordionProps): JSX.Element => {
 
 const FilterForm = ({
   disabled = false,
-  callback,
+  onSubmitCallback,
   className,
 }: FilterFormProps): JSX.Element => {
   const router = useRouter()
@@ -222,8 +222,7 @@ const FilterForm = ({
         }
       }, {})
 
-    router.push(!queryObject ? router.pathname : { query: queryObject })
-    callback?.()
+    onSubmitCallback(queryObject)
   }
 
   return (

@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import clsx from 'clsx'
 
 import GalleryHeader from './header/GalleryHeader'
@@ -10,6 +11,7 @@ interface GalleryLayoutProps {
 }
 
 const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
+  const router = useRouter()
   const { isOpen, openDrawer, closeDrawer } = useDrawer()
 
   return (
@@ -17,7 +19,18 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
       <Sidebar isOpen={isOpen} close={closeDrawer}>
         <div className="flex h-full flex-col">
           {!isOpen && <GalleryHeader smallVersion />}
-          <FilterForm callback={closeDrawer} />
+          <FilterForm
+            onSubmitCallback={(data) => {
+              router.push(
+                !data ? router.pathname : { query: data },
+                undefined,
+                {
+                  shallow: true,
+                }
+              )
+              closeDrawer()
+            }}
+          />
         </div>
       </Sidebar>
       <div

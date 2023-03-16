@@ -65,7 +65,7 @@ const GalleryAdminLayoutNav = ({
 const GalleryAdminLayout = ({
   children,
 }: GalleryAdminLayoutProps): JSX.Element => {
-  const { pathname } = useRouter()
+  const router = useRouter()
   const { isOpen, openDrawer, closeDrawer } = useDrawer()
   const {
     isOpen: filterIsOpen,
@@ -73,7 +73,7 @@ const GalleryAdminLayout = ({
     closeDrawer: closeFilter,
   } = useDrawer()
 
-  const isGalleryAdminHomePage = pathname === '/gallery/admin'
+  const isGalleryAdminHomePage = router.pathname === '/gallery/admin'
 
   return (
     <div className="flex min-h-screen flex-row overflow-clip">
@@ -114,7 +114,18 @@ const GalleryAdminLayout = ({
           close={closeFilter}
         >
           <div className="flex h-full flex-col">
-            <FilterForm callback={closeFilter} />
+            <FilterForm
+              onSubmitCallback={(data) => {
+                router.push(
+                  !data ? router.pathname : { query: data },
+                  undefined,
+                  {
+                    shallow: true,
+                  }
+                )
+                closeFilter()
+              }}
+            />
           </div>
         </Sidebar>
       )}

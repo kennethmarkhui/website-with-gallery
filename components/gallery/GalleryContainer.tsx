@@ -1,5 +1,6 @@
 import { RenderContainerProps } from 'react-photo-album'
 import { FaSpinner } from 'react-icons/fa'
+import clsx from 'clsx'
 
 import PageStatus from '../PageStatus'
 
@@ -8,6 +9,7 @@ interface GalleryContainerProps extends RenderContainerProps {
   fetchNextPage: () => void
   isFetchingNextPage: boolean
   hasNextPage?: boolean
+  isPreviousData?: boolean
 }
 
 const GalleryContainer = ({
@@ -18,9 +20,18 @@ const GalleryContainer = ({
   fetchNextPage,
   isFetchingNextPage,
   hasNextPage,
+  isPreviousData,
 }: GalleryContainerProps): JSX.Element => {
+  const { className } = containerProps
   return (
-    <div ref={containerRef} {...containerProps}>
+    <div
+      ref={containerRef}
+      {...containerProps}
+      className={clsx(
+        className,
+        isPreviousData && 'pointer-events-none opacity-50'
+      )}
+    >
       {isEmpty && (
         <PageStatus
           title="No results found"

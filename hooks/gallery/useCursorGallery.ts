@@ -20,6 +20,7 @@ const useCursorGallery = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isPreviousData,
   } = useInfiniteQuery(
     queryKey,
     ({ pageParam, queryKey }) =>
@@ -32,6 +33,7 @@ const useCursorGallery = () => {
       ),
     {
       getNextPageParam: ({ nextCursor }) => nextCursor,
+      keepPreviousData: true,
     }
   )
 
@@ -42,6 +44,7 @@ const useCursorGallery = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isPreviousData,
   }
 }
 

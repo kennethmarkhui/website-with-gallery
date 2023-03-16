@@ -19,8 +19,13 @@ const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
-  const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useCursorGallery()
+  const {
+    data,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isPreviousData,
+  } = useCursorGallery()
 
   const photos: ExtendedPhoto[] = useMemo(
     () =>
@@ -68,6 +73,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
             fetchNextPage={fetchNextPage}
             isFetchingNextPage={isFetchingNextPage}
             hasNextPage={hasNextPage}
+            isPreviousData={isPreviousData}
           />
         )}
         onClick={({ event, photo, index }) => setModalData(photo)}

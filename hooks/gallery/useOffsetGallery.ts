@@ -14,7 +14,7 @@ const useOffsetGallery = () => {
   const queryKey = removeEmptyObjectFromArray(['gallery', 'offset', filters])
   const galleryFilters = queryKey[2] as GalleryFilters
 
-  const { data } = useQuery({
+  const { data, status, error, isPreviousData } = useQuery({
     queryKey,
     queryFn: () =>
       fetcher<GalleryOffsetResponse>(
@@ -24,10 +24,14 @@ const useOffsetGallery = () => {
             page: galleryFilters?.page ?? 1,
           })
       ),
+    keepPreviousData: true,
   })
 
   return {
     data,
+    status,
+    error,
+    isPreviousData,
   }
 }
 
