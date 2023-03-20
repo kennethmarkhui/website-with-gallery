@@ -97,7 +97,10 @@ export async function fetchItems({
     })),
     totalCount: totalItems,
     ...(page
-      ? { page }
+      ? {
+          // page could be typeof string if page arg is from the query string
+          page: +page,
+        }
       : {
           nextCursor:
             items.length === GALLERY_LIMIT

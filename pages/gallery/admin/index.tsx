@@ -278,8 +278,6 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     [data?.items]
   )
 
-  // TODO: currentPage is a typeof string instead of a number
-  // (currentPage + number) will break, but (currentPage - number) will not.
   const currentPage = data?.page ?? 1
   const totalCount = data?.totalCount ?? 0
   const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
@@ -293,7 +291,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     >
       <Table items={items} />
       <Pagination
-        currentPage={+currentPage}
+        currentPage={currentPage}
         totalCount={totalCount}
         totalPage={totalPage}
       />
