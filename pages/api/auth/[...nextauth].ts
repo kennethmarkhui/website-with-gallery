@@ -1,7 +1,6 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
+import EmailProvider from 'next-auth/providers/email'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { Role, User } from 'prisma/prisma-client'
 
 import { prisma } from 'lib/prisma'
 
@@ -9,9 +8,10 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   // Configure one or more authentication providers
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM,
+      maxAge: 1 * 60 * 60, // 1 hour
     }),
     // ...add more providers here
   ],
@@ -24,17 +24,22 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     // https://next-auth.js.org/configuration/callbacks#sign-in-callback
-    // async signIn({ user }) {
-    //   const isAllowedToSignIn = user.role === 'ADMIN'
-    //   if (isAllowedToSignIn) {
-    //     return true
-    //   } else {
-    //     // Return false to display a default error message
-    //     return false
-    //     // Or you can return a URL to redirect to:
-    //     // return '/unauthorized'
-    //   }
-    // },
+    async signIn({ user, email }) {
+      // send email verification first
+      if (email?.verificationRequest) {
+        return true
+      }
+      // then check if role is admin after user clicked the link in email
+      const isAllowedToSignIn = user.role === 'ADMIN'
+      if (isAllowedToSignIn) {
+        return true
+      } else {
+        // Return false to display a default error message
+        return false
+        // Or you can return a URL to redirect to:
+        // return '/unauthorized'
+      }
+    },
 
     // https://next-auth.js.org/tutorials/role-based-login-strategy
     async session({ session, token }) {
