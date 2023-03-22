@@ -23,24 +23,6 @@ export const authOptions: NextAuthOptions = {
   // pages: { error: '/auth/error' },
 
   callbacks: {
-    // https://next-auth.js.org/configuration/callbacks#sign-in-callback
-    async signIn({ user, email }) {
-      // send email verification first
-      if (email?.verificationRequest) {
-        return true
-      }
-      // then check if role is admin after user clicked the link in email
-      const isAllowedToSignIn = user.role === 'ADMIN'
-      if (isAllowedToSignIn) {
-        return true
-      } else {
-        // Return false to display a default error message
-        return false
-        // Or you can return a URL to redirect to:
-        // return '/unauthorized'
-      }
-    },
-
     // https://next-auth.js.org/tutorials/role-based-login-strategy
     async session({ session, token }) {
       if (token.role) session.user.role = token.role
