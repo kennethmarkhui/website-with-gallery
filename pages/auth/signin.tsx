@@ -20,6 +20,7 @@ interface FormProps {
 interface AuthSignInFormProps {
   callbackUrl?: string | string[]
   onSuccessSubmit: (email: string) => void
+  onError: (error: unknown) => void
   error: SignInErrorCode
 }
 
@@ -37,27 +38,33 @@ const errors = {
 const AuthSignInForm = ({
   callbackUrl,
   onSuccessSubmit,
+  onError,
   error,
 }: AuthSignInFormProps): JSX.Element => {
   const {
     register,
     formState: { errors: formErrors, isSubmitting },
     handleSubmit,
-    getValues,
   } = useForm<FormProps>({
     defaultValues: { email: '' },
   })
 
   const onSubmit: SubmitHandler<FormProps> = async ({ email }) => {
-    const res = await signIn('email', {
-      email,
-      redirect: false,
-      callbackUrl: typeof callbackUrl === 'string' ? callbackUrl : undefined,
-    })
-    if (res?.ok) {
-      onSuccessSubmit(getValues('email'))
+    try {
+      const res = await signIn('email', {
+        email,
+        redirect: false,
+        callbackUrl:
+          typeof callbackUrl === 'string' ? callbackUrl : '/gallery/admin',
+      })
+      if (res?.ok) {
+        onSuccessSubmit(email)
+      }
+    } catch (error) {
+      onError(error)
     }
   }
+
   return (
     <div className="w-full max-w-xs space-y-4">
       {typeof error === 'string' && (
@@ -99,16 +106,18 @@ const AuthSignInVerification = ({
 
 const AuthSignIn = (): JSX.Element => {
   const [emailValue, setEmailValue] = useState<string>()
-  const { callbackUrl, error } = useRouter().query
+  const { pathname, query, push } = useRouter()
+  const { callbackUrl, error } = query
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center p-4">
       {!emailValue ? (
         <AuthSignInForm
           callbackUrl={callbackUrl}
-          onSuccessSubmit={(email) => {
-            setEmailValue(email)
-          }}
+          onSuccessSubmit={(email) => setEmailValue(email)}
+          onError={(error) =>
+            push({ pathname, query: { ...query, error: 'Default' } })
+          }
           error={error as SignInErrorCode}
         />
       ) : (
