@@ -20,7 +20,10 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 1 * 60 * 60, // 1 hour
   },
-  // pages: { error: '/auth/error' },
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
 
   callbacks: {
     // https://next-auth.js.org/tutorials/role-based-login-strategy
