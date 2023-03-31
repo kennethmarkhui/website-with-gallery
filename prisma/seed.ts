@@ -67,18 +67,16 @@ const seed = async () => {
     await prisma.image.deleteMany()
     console.log('Images deleted.')
 
-    await Promise.all(
-      categories.map(
-        async (category) =>
-          await prisma.category.create({ data: { name: category } })
-      )
-    )
+    await prisma.category.createMany({
+      data: categories.map((category) => ({ name: category })),
+      skipDuplicates: true,
+    })
     console.log('Categories added.')
 
-    await Promise.all(
+    await prisma.$transaction(
       resources.map(
-        async ({ public_id, secure_url, width, height, filename }, index) =>
-          await prisma.item.create({
+        ({ public_id, secure_url, width, height, filename }, index) =>
+          prisma.item.create({
             data: {
               id: `${index + 1}`,
               name: filename,
