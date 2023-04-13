@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { HiArrowLeft, HiOutlineSearch } from 'react-icons/hi'
 
 import LocaleSwitcher from './LocaleSwitcher'
-import clsx from 'clsx'
+import { cn } from 'lib/utils'
 
 interface GalleryHeaderProps {
   onSidebarButtonClicked?: () => void
@@ -18,7 +18,7 @@ const GalleryHeader = ({
 
   return (
     <header
-      className={clsx(
+      className={cn(
         'flex h-16 w-full shrink-0 items-center justify-between',
         'transform transition-transform duration-150 ease-in',
         !smallVersion && 'translate-y-0 lg:-translate-y-full',

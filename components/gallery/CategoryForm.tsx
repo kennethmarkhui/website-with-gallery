@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
 import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
-import clsx from 'clsx'
 
 import type { GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -10,6 +9,7 @@ import useCreateCategory from 'hooks/gallery/category/mutations/useCreateCategor
 import useUpdateCategory from 'hooks/gallery/category/mutations/useUpdateCategory'
 import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
+import { cn } from 'lib/utils'
 
 const CategoryForm = (): JSX.Element => {
   const { data: categories, status: categoryStatus, error } = useCategory()
@@ -108,7 +108,7 @@ const CategoryForm = (): JSX.Element => {
       </form>
 
       <ul
-        className={clsx(
+        className={cn(
           'mt-8 flex flex-wrap gap-4 md:mt-16',
           categoryFormIsLoading && 'pointer-events-none opacity-70'
         )}
@@ -124,7 +124,7 @@ const CategoryForm = (): JSX.Element => {
           categories?.map(({ id, name }) => (
             <li key={id}>
               <span
-                className={clsx(
+                className={cn(
                   'flex items-center gap-4 rounded-full border px-4 py-2 text-lg shadow',
                   categoryToUpdate?.id === id && 'border-black'
                 )}

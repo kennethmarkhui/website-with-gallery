@@ -1,3 +1,8 @@
+import clsx, { type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
+
 // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_pick
 // https://stackoverflow.com/a/68167121
 export const pick = <

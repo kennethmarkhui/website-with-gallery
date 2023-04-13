@@ -2,14 +2,13 @@ import { ReactElement, ReactNode, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { Tab } from '@headlessui/react'
-import clsx from 'clsx'
 
 import { NextPageWithLayout } from 'pages/_app'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import GalleryForm from '@/components/gallery/Form'
 import CategoryForm from '@/components/gallery/CategoryForm'
-import { pick } from 'lib/utils'
+import { cn, pick } from 'lib/utils'
 
 const Create: NextPageWithLayout = (): JSX.Element => {
   const [tabs] = useState<{ name: string; node: ReactNode }[]>([
@@ -24,7 +23,7 @@ const Create: NextPageWithLayout = (): JSX.Element => {
           <Tab
             key={tab.name}
             className={({ selected }) =>
-              clsx(
+              cn(
                 'w-full border-b-2 text-xl focus:outline-none',
                 selected && 'border-black font-bold'
               )

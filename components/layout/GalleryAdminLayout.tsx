@@ -2,13 +2,13 @@ import { ReactNode } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { HiMenu, HiOutlineHome, HiOutlineSearch, HiPlus } from 'react-icons/hi'
-import clsx from 'clsx'
 
 import useDrawer from 'hooks/useDrawer'
 import LocaleSwitcher from './header/LocaleSwitcher'
 import Profile from '../Profile'
 import Sidebar from '../gallery/Sidebar'
 import FilterForm from '../gallery/FilterForm'
+import { cn } from 'lib/utils'
 
 interface GalleryAdminLayoutProps {
   children: React.ReactNode
@@ -88,7 +88,7 @@ const GalleryAdminLayout = ({
         </div>
       </Sidebar>
       <div
-        className={clsx(
+        className={cn(
           'w-full',
           'transition-all duration-150 ease-in',
           '-ml-64 lg:ml-0',
@@ -113,20 +113,18 @@ const GalleryAdminLayout = ({
           open={openFilter}
           close={closeFilter}
         >
-          <div className="flex h-full flex-col">
-            <FilterForm
-              onSubmitCallback={(data) => {
-                router.push(
-                  !data ? router.pathname : { query: data },
-                  undefined,
-                  {
-                    shallow: true,
-                  }
-                )
-                closeFilter()
-              }}
-            />
-          </div>
+          <FilterForm
+            onSubmitCallback={(data) => {
+              router.push(
+                !data ? router.pathname : { query: data },
+                undefined,
+                {
+                  shallow: true,
+                }
+              )
+              closeFilter()
+            }}
+          />
         </Sidebar>
       )}
     </div>

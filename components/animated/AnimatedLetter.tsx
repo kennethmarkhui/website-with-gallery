@@ -1,6 +1,5 @@
-import clsx from 'clsx'
-
 import useActiveAnimation from 'hooks/useActiveAnimation'
+import { cn } from 'lib/utils'
 
 interface AnimatedLetterProps {
   letter: string
@@ -16,7 +15,7 @@ const AnimatedLetter = ({
   return (
     <span
       onMouseEnter={() => setActiveAnimation(true)}
-      className={clsx('inline-block', activeAnimation && 'animate-rubber-band')}
+      className={cn('inline-block', activeAnimation && 'animate-rubber-band')}
     >
       {letter}
     </span>

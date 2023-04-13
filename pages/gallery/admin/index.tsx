@@ -4,7 +4,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
-import clsx from 'clsx'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 
 import type {
@@ -19,7 +18,7 @@ import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
-import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { cn, isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GALLERY_LIMIT } from 'constants/gallery'
 
 interface PaginationProps {
@@ -213,7 +212,7 @@ const Pagination = ({
           <Link
             href={{ query: { ...query, page: currentPage - 1 } }}
             shallow
-            className={clsx(
+            className={cn(
               'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasPrevious && 'pointer-events-none'
             )}
@@ -227,7 +226,7 @@ const Pagination = ({
             <Link
               href={{ query: { ...query, page: page } }}
               shallow
-              className={clsx(
+              className={cn(
                 'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
                 currentPage === page || isNaN(page)
                   ? 'pointer-events-none bg-gray-50 text-gray-600'
@@ -242,7 +241,7 @@ const Pagination = ({
           <Link
             href={{ query: { ...query, page: currentPage + 1 } }}
             shallow
-            className={clsx(
+            className={cn(
               'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasNext && 'pointer-events-none'
             )}
@@ -284,7 +283,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
 
   return (
     <div
-      className={clsx(
+      className={cn(
         'relative w-full space-y-4 overflow-hidden',
         isPreviousData && 'pointer-events-none opacity-50'
       )}

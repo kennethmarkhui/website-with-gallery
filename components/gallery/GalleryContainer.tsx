@@ -1,8 +1,8 @@
 import { RenderContainerProps } from 'react-photo-album'
 import { FaSpinner } from 'react-icons/fa'
-import clsx from 'clsx'
 
 import PageStatus from '../PageStatus'
+import { cn } from 'lib/utils'
 
 interface GalleryContainerProps extends RenderContainerProps {
   isEmpty: boolean
@@ -27,7 +27,7 @@ const GalleryContainer = ({
     <div
       ref={containerRef}
       {...containerProps}
-      className={clsx(
+      className={cn(
         className,
         isPreviousData && 'pointer-events-none opacity-50'
       )}

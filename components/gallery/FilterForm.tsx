@@ -11,7 +11,6 @@ import {
   HiArrowNarrowDown,
   HiOutlineSearch,
 } from 'react-icons/hi'
-import clsx from 'clsx'
 
 import type {
   GalleryOrderBy,
@@ -22,6 +21,7 @@ import type {
 import useCategory from 'hooks/gallery/category/useCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import Button from '../Button'
+import { cn } from 'lib/utils'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
@@ -101,7 +101,7 @@ const SortBy = ({ options, control, name }: SortByProps): JSX.Element => {
         <li className="pl-2 pr-6" key={idx}>
           <button
             type="button"
-            className={clsx(
+            className={cn(
               'flex w-full items-center justify-between text-xs font-medium',
               selected === name ? 'text-black' : 'text-gray-500'
             )}
@@ -110,10 +110,7 @@ const SortBy = ({ options, control, name }: SortByProps): JSX.Element => {
             <span>{name}</span>
             {selected === name && (
               <HiArrowNarrowDown
-                className={clsx(
-                  'transition-transform',
-                  !isDesc && 'rotate-180'
-                )}
+                className={cn('transition-transform', !isDesc && 'rotate-180')}
               />
             )}
           </button>
@@ -137,24 +134,23 @@ const Accordion = ({ panels }: AccordionProps): JSX.Element => {
         return (
           <fieldset
             key={idx}
-            className={clsx('flex flex-col gap-1', isActive && 'min-h-0')}
+            className={cn('flex flex-col gap-4', isActive && 'min-h-0')}
           >
             <button
               type="button"
-              className={clsx(
+              className={cn(
                 'flex w-full items-center justify-between text-sm',
                 isActive ? 'text-black' : 'text-gray-500'
               )}
               onClick={() => handleActive(idx)}
               aria-expanded={isActive}
-              {...(isActive && { 'aria-controls': title })}
+              {...(isActive && {
+                'aria-controls': title,
+              })}
             >
               <span>{title}</span>
               <HiChevronDown
-                className={clsx(
-                  'transition-transform',
-                  isActive && 'rotate-180'
-                )}
+                className={cn('transition-transform', isActive && 'rotate-180')}
               />
             </button>
             {isActive && (
@@ -227,7 +223,7 @@ const FilterForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx('flex min-h-0 w-full flex-col gap-4', className)}
+      className={cn('flex h-full min-h-0 w-full flex-col gap-4', className)}
     >
       <fieldset disabled={disabled}>
         <FloatingLabelInput id="search" {...register('search')} />

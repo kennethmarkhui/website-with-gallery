@@ -1,7 +1,6 @@
-import clsx from 'clsx'
-
 import useActiveAnimation from 'hooks/useActiveAnimation'
 import AnimatedLetter from './AnimatedLetter'
+import { cn } from 'lib/utils'
 
 interface AnimatedProps {
   children: React.ReactNode
@@ -36,7 +35,7 @@ const Animated = ({ children, timeout = 600 }: AnimatedProps) => {
       ) : (
         <span
           onMouseEnter={() => setActiveAnimation(true)}
-          className={clsx(
+          className={cn(
             'inline-block',
             activeAnimation && 'animate-rubber-band'
           )}

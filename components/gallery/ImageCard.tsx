@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Image, { ImageLoaderProps } from 'next/image'
 import { Photo, RenderPhotoProps } from 'react-photo-album'
-import clsx from 'clsx'
+
+import { cn } from 'lib/utils'
 
 export interface ExtendedPhoto extends Photo {
   name: string
@@ -34,7 +35,7 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
   return (
     <div style={wrapperStyle}>
       <div
-        className={clsx(
+        className={cn(
           'group relative cursor-pointer overflow-hidden rounded bg-gray-200',
           isLoading && 'animate-pulse'
         )}
@@ -47,7 +48,7 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
           sizes={sizes}
           width={width}
           height={height}
-          className={clsx(
+          className={cn(
             'duration-700 ease-in-out',
             isLoading
               ? 'scale-110 blur-2xl grayscale'

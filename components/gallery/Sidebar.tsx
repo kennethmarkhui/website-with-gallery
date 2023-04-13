@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from 'lib/utils'
 
 interface SidebarProps {
   children: React.ReactNode
@@ -23,7 +23,7 @@ const Sidebar = ({
   return (
     <>
       <aside
-        className={clsx(
+        className={cn(
           'sticky top-0 z-40 h-[100dvh] w-64 shrink-0 bg-white p-8',
           'transform transition-transform duration-150 ease-in lg:translate-x-0',
           !isOpen && sidebarPlacement[placement]

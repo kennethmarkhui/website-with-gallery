@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Dialog, Transition } from '@headlessui/react'
 import { HiMenu, HiX } from 'react-icons/hi'
-import clsx from 'clsx'
 
 import type { IMainHeader } from '../MainHeader'
+import { cn } from 'lib/utils'
 
 const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -46,7 +46,7 @@ const MobileNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
                     {items.map(
                       (item): JSX.Element => (
                         <li
-                          className={clsx(
+                          className={cn(
                             'capitalize',
                             router.asPath === item.path && 'font-black'
                           )}

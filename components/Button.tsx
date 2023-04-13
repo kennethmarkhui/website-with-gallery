@@ -1,5 +1,5 @@
 import { ComponentPropsWithoutRef } from 'react'
-import clsx from 'clsx'
+import { cn } from 'lib/utils'
 
 interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
   variant?: 'primary' | 'danger'
@@ -13,7 +13,7 @@ const Button = ({
 }: ButtonProps): JSX.Element => {
   return (
     <button
-      className={clsx(
+      className={cn(
         'flex items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none',
         variant === 'primary' &&
           'enabled:hover:border-black enabled:hover:text-black',

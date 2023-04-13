@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import clsx from 'clsx'
 
 import type { IMainHeader } from '../MainHeader'
+import { cn } from 'lib/utils'
 
 const MainNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
   const router = useRouter()
@@ -12,7 +12,7 @@ const MainNavigation = ({ items }: { items: IMainHeader[] }): JSX.Element => {
       {items.map(
         (item): JSX.Element => (
           <li
-            className={clsx(
+            className={cn(
               'p-2 capitalize',
               router.asPath === item.path && 'border-b-2 border-black'
             )}
