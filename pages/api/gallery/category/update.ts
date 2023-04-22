@@ -4,9 +4,9 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
-import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
+import { authOptions } from 'lib/auth'
 
 type RequestQuery = {
   id: string

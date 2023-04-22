@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 
 import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
-import { authOptions } from '../auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
 import { isValidRequest } from 'lib/utils'
+import { authOptions } from 'lib/auth'
 
 type RequestQuery = {
   id: string

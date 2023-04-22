@@ -8,11 +8,11 @@ import type {
   GalleryFormKeys,
   GalleryFormFields,
 } from 'types/gallery'
-import { authOptions } from '../auth/[...nextauth]'
 import cloudinary from 'lib/cloudinary'
 import { prisma } from 'lib/prisma'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes, isValidRequest } from 'lib/utils'
+import { authOptions } from 'lib/auth'
 
 export const config = {
   api: {

@@ -11,7 +11,7 @@ import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes, isValidRequest } from 'lib/utils'
-import { authOptions } from 'pages/api/auth/[...nextauth]'
+import { authOptions } from 'lib/auth'
 import { fetchImage } from '../[id]'
 
 export const config = {

@@ -3,9 +3,9 @@ import { getServerSession } from 'next-auth'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
-import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { prisma } from 'lib/prisma'
 import { isValidRequest } from 'lib/utils'
+import { authOptions } from 'lib/auth'
 
 type RequestBody = {
   category: string
