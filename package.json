@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier --write .",
+    "db:generate": "dotenv -e .env.local -- npx prisma generate",
+    "db:studio": "dotenv -e .env.local -- npx prisma studio",
     "db:migrate": "dotenv -e .env.local -- npx prisma migrate deploy",
     "db:migrate-dev": "dotenv -e .env.local -- npx prisma migrate dev",
-    "db:seed": "dotenv -e .env.local -- npx prisma db seed",
-    "db:generate": "dotenv -e .env.local -- npx prisma generate"
+    "db:pull": "dotenv -e .env.local -- npx prisma db pull",
+    "db:push": "dotenv -e .env.local -- npx prisma db push",
+    "db:seed": "dotenv -e .env.local -- npx prisma db seed"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",
