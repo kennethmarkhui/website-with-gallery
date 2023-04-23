@@ -4,58 +4,19 @@ import cloudinary from '../lib/cloudinary'
 
 const prisma = new PrismaClient()
 
-interface CloudinarySearchResource {
-  asset_id: string
-  public_id: string
-  folder: string
-  filename: string
-  format: string
-  version: number
-  resource_type: string
-  type: string
-  created_at: string
-  uploaded_at: string
-  bytes: number
-  backup_bytes: number
-  width: number
-  height: number
-  aspect_ratio: number
-  pixels: number
-  url: string
-  secure_url: string
-  status: string
-  access_mode: string
-  access_control: null
-  etag: string
-  created_by: null
-  uploaded_by: null
-}
-
-interface CloudinarySearchResponse {
-  total_count: number
-  time: number
-  resources: CloudinarySearchResource[]
-  rate_limit_allowed: number
-  rate_limit_reset_at: Date
-  rate_limit_remaining: number
-}
-
-const getSampleImages = async (): Promise<CloudinarySearchResponse> => {
+const getSeedImages = async (): Promise<string[]> => {
   try {
-    return await cloudinary.search
-      .expression(
-        `folder=${process.env.CLOUDINARY_SAMPLE_FOLDER} AND resource_type:image`
-      )
-      .max_results(100)
-      .execute()
+    // https://shibe.online/
+    const response = await fetch('https://shibe.online/api/cats?count=50')
+    return await response.json()
   } catch (error) {
-    throw new Error('getting cloudinary sample images failed.')
+    throw new Error('getting seed images failed.')
   }
 }
 
 const seed = async () => {
   const categories = Array.from({ length: 40 }, (_, index) => `${index + 1}`)
-  const { resources } = await getSampleImages()
+  const images = await getSeedImages()
 
   try {
     await prisma.category.deleteMany()
@@ -65,6 +26,9 @@ const seed = async () => {
     console.log('Items deleted.')
 
     await prisma.image.deleteMany()
+    await cloudinary.api.delete_resources_by_prefix(
+      process.env.CLOUDINARY_SEED_FOLDER!
+    )
     console.log('Images deleted.')
 
     await prisma.category.createMany({
@@ -73,8 +37,20 @@ const seed = async () => {
     })
     console.log('Categories added.')
 
+    let promises = []
+    for (let index = 0; index < images.length; index++) {
+      let url = images[index]
+      promises.push(
+        cloudinary.uploader.upload(url, {
+          folder: process.env.CLOUDINARY_SEED_FOLDER,
+        })
+      )
+    }
+
+    const cloudinaryResponse = await Promise.all(promises)
+
     await prisma.$transaction(
-      resources.map(
+      cloudinaryResponse.map(
         ({ public_id, secure_url, width, height, filename }, index) =>
           prisma.item.create({
             data: {
@@ -101,6 +77,7 @@ const seed = async () => {
     )
     console.log('Items added.')
   } catch (error) {
+    console.log(error)
     process.exit(1)
   } finally {
     await prisma.$disconnect()
