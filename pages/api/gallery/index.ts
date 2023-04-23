@@ -37,11 +37,20 @@ export async function fetchItems({
       ? { name: { in: categories.split(',') } }
       : undefined
 
+  // https://github.com/prisma/prisma/discussions/4888#discussioncomment-403826
   const orderByFilter = orderBy
     ? typeof orderBy === 'string'
-      ? Object.fromEntries([orderBy.split(',')])
+      ? orderBy.startsWith('id')
+        ? Object.fromEntries([orderBy.split(',')])
+        : [
+            Object.fromEntries([orderBy.split(',')]),
+            { id: GALLERY_ORDER_BY_DIRECTION },
+          ]
       : undefined
-    : { updatedAt: GALLERY_ORDER_BY_DIRECTION }
+    : [
+        { updatedAt: GALLERY_ORDER_BY_DIRECTION },
+        { id: GALLERY_ORDER_BY_DIRECTION },
+      ]
 
   const [items, totalItems] = await prisma.$transaction([
     prisma.item.findMany({
