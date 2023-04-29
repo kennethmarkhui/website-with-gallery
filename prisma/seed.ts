@@ -27,7 +27,7 @@ const seed = async () => {
 
     await prisma.image.deleteMany()
     await cloudinary.api.delete_resources_by_prefix(
-      process.env.CLOUDINARY_SEED_FOLDER!
+      process.env.CLOUDINARY_DEV_FOLDER!
     )
     console.log('Images deleted.')
 
@@ -42,7 +42,7 @@ const seed = async () => {
       let url = images[index]
       promises.push(
         cloudinary.uploader.upload(url, {
-          folder: process.env.CLOUDINARY_SEED_FOLDER,
+          folder: process.env.CLOUDINARY_DEV_FOLDER,
         })
       )
     }

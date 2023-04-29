@@ -106,7 +106,10 @@ export default async function handler(
 
       if (typeof filepath === 'string') {
         cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
-          folder: process.env.CLOUDINARY_FOLDER,
+          folder:
+            process.env.NODE_ENV === 'development'
+              ? process.env.CLOUDINARY_DEV_FOLDER
+              : process.env.CLOUDINARY_FOLDER,
         })
       }
     }
@@ -144,6 +147,8 @@ export default async function handler(
     })
     return res.status(201).json({ message: `id ${item.id} has been created!` })
   } catch (error) {
+    console.log(error)
+
     if (error instanceof PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {

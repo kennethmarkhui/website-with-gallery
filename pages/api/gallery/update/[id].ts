@@ -108,7 +108,10 @@ export default async function handler(
 
       if (typeof filepath === 'string') {
         cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
-          folder: process.env.CLOUDINARY_FOLDER,
+          folder:
+            process.env.NODE_ENV === 'development'
+              ? process.env.CLOUDINARY_DEV_FOLDER
+              : process.env.CLOUDINARY_FOLDER,
         })
       }
 
