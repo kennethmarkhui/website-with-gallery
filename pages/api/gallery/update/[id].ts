@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Prisma } from '@prisma/client'
 
 import type {
   GalleryMutateResponse,
@@ -168,7 +168,7 @@ export default async function handler(
     })
     return res.status(200).json({ message: `id ${item.id} has been updated!` })
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return res.status(400).json({
         error: {
           message: 'Something went wrong with prisma.',

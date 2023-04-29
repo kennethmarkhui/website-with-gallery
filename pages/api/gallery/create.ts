@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Prisma } from '@prisma/client'
 
 import type {
   GalleryMutateResponse,
@@ -149,7 +149,7 @@ export default async function handler(
   } catch (error) {
     console.log(error)
 
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {
         const target = error.meta?.target as GalleryFormKeys[]

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Prisma } from '@prisma/client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
@@ -64,7 +64,7 @@ export default async function handler(
       .status(201)
       .json({ message: `${createdCategory.name} has been created.` })
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
         const target = error.meta?.target as string[]
         if (target.includes('name')) {
