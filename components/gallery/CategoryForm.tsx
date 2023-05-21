@@ -3,13 +3,15 @@ import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
 import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
 
-import type { GalleryFormMode } from 'types/gallery'
+import type { GalleryCategoryFormFields, GalleryFormMode } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useCreateCategory from 'hooks/gallery/category/mutations/useCreateCategory'
 import useUpdateCategory from 'hooks/gallery/category/mutations/useUpdateCategory'
 import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import { cn } from 'lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
 const CategoryForm = (): JSX.Element => {
   const { data: categories, status: categoryStatus, error } = useCategory()
@@ -42,9 +44,11 @@ const CategoryForm = (): JSX.Element => {
     setError,
     setFocus,
     reset,
-  } = useForm<{ category: string }>()
+  } = useForm<GalleryCategoryFormFields>({
+    resolver: zodResolver(GalleryCategoryFormFieldsSchema),
+  })
 
-  const onSubmit: SubmitHandler<{ category: string }> = (data) => {
+  const onSubmit: SubmitHandler<GalleryCategoryFormFields> = (data) => {
     return formMode === 'update'
       ? updateCategoryMutate(
           {
@@ -93,14 +97,7 @@ const CategoryForm = (): JSX.Element => {
       >
         <FloatingLabelInput
           id="category"
-          {...register('category', {
-            required: 'Must not be empty.',
-            maxLength: { value: 20, message: 'Max character of 20.' },
-            pattern: {
-              value: /^[a-zA-Z\d]+$/,
-              message: 'Alphanumerics only.',
-            },
-          })}
+          {...register('category')}
           errorMessage={errors.category?.message}
           icon={<HiPlus />}
           disabled={categoryFormIsLoading}

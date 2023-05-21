@@ -6,14 +6,13 @@ import { HiPhotograph, HiX } from 'react-icons/hi'
 import useFilePreview from 'hooks/gallery/useFilePreview'
 import type { GalleryFormFields } from 'types/gallery'
 import { formatBytes } from 'lib/utils'
-
-export const maxFileSize = 2 * 1024 * 1024 // 2MB
+import { MAX_FILE_SIZE } from 'constants/gallery'
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   defaultPreview?: string
   fileList?: FileList
   errorMessage?: string
-  setFormValue: UseFormSetValue<GalleryFormFields<FileList>>
+  setFormValue: UseFormSetValue<GalleryFormFields>
   removeFormValue: () => void
 }
 
@@ -69,13 +68,13 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
               unoptimized
             />
           ) : (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            <div className="flex flex-col items-center justify-center pb-6 pt-5">
               <HiPhotograph className="mb-3 h-10 w-10 text-gray-400" />
               <p className="mb-2 text-sm text-gray-500">
                 <span className="font-semibold">Click to upload</span>
               </p>
               <p className="text-xs text-gray-500">
-                {`Image only. (MAX. ${formatBytes(maxFileSize)})`}
+                {`Image only. (MAX. ${formatBytes(MAX_FILE_SIZE)})`}
               </p>
             </div>
           )}
@@ -83,7 +82,7 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
         {preview && fileListRef.current && (
           <button
             type="button"
-            className="absolute -top-2 -right-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 disabled:pointer-events-none"
+            className="absolute -right-2 -top-2 rounded-full border-2 border-dashed border-red-300 bg-red-100 p-1 text-red-300 hover:border-red-500 hover:text-red-500 disabled:pointer-events-none"
             onClick={() => removeFile(removeFormValue)}
           >
             <HiX />

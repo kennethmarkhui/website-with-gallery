@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { signIn } from 'next-auth/react'
 import { SubmitHandler, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
+import { GalleryAuthSigninFormFieldsSchema } from 'lib/validations'
 
 // https://next-auth.js.org/configuration/pages#sign-in-page
 type SignInErrorCode =
@@ -46,6 +48,7 @@ const AuthSignInForm = ({
     formState: { errors: formErrors, isSubmitting },
     handleSubmit,
   } = useForm<FormProps>({
+    resolver: zodResolver(GalleryAuthSigninFormFieldsSchema),
     defaultValues: { email: '' },
   })
 
@@ -74,13 +77,7 @@ const AuthSignInForm = ({
         <fieldset disabled={isSubmitting} className="flex flex-col gap-6">
           <FloatingLabelInput
             id="email"
-            {...register('email', {
-              required: true,
-              pattern: {
-                value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-                message: 'Must be an email.',
-              },
-            })}
+            {...register('email')}
             errorMessage={formErrors.email?.message}
           />
           <Button>Sign In</Button>

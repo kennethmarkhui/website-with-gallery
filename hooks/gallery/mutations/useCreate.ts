@@ -6,7 +6,7 @@ import { queryClient } from 'lib/query'
 
 const useCreate = () => {
   return useMutation(
-    async (data: GalleryFormFields<FileList>) => {
+    async (data: GalleryFormFields) => {
       const formData = new FormData()
       formData.append('id', data.id)
       formData.append('name', data.name)

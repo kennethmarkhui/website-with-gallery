@@ -3,7 +3,7 @@ import type { GetServerSideProps } from 'next'
 import PhotoAlbum from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { GalleryFilters, GalleryCursorResponse } from 'types/gallery'
+import type { GalleryCursorResponse } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
@@ -12,7 +12,8 @@ import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useCursorGallery from 'hooks/gallery/useCursorGallery'
-import { isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { GalleryFiltersSchema } from 'lib/validations'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
@@ -99,17 +100,20 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const queryClient = new QueryClient()
 
-  if (
-    !isValidRequest<GalleryFilters>(query, ['search', 'categories', 'orderBy'])
-  ) {
+  const parsedQuery = GalleryFiltersSchema.omit({ page: true }).safeParse(query)
+  if (!parsedQuery.success) {
     return { redirect: { destination: '/gallery', permanent: false } }
   }
-  const queryKey = removeEmptyObjectFromArray(['gallery', 'cursor', query])
+  const queryKey = removeEmptyObjectFromArray([
+    'gallery',
+    'cursor',
+    parsedQuery.data,
+  ])
 
   try {
     await queryClient.fetchInfiniteQuery<GalleryCursorResponse>(
       queryKey,
-      () => fetchItems({ nextCursor: '0', ...query }),
+      () => fetchItems({ nextCursor: '0', ...parsedQuery.data }),
       {
         getNextPageParam: ({ nextCursor }) => nextCursor,
       }

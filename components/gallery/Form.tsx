@@ -1,22 +1,27 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useForm, SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { FaSpinner } from 'react-icons/fa'
 
 import FloatingLabelInput from '../FloatingLabelInput'
 import FloatingLabelSelect from '../FloatingLabelSelect'
 import Button from '../Button'
-import ImagePreviewInput, { maxFileSize } from '../ImagePreviewInput'
-import type { GalleryFormMode, GalleryFormFields } from 'types/gallery'
+import ImagePreviewInput from '../ImagePreviewInput'
+import type {
+  GalleryFormMode,
+  GalleryFormFields,
+  DefaultGalleryFormFields,
+} from 'types/gallery'
+import { GalleryFormFieldsSchema } from 'lib/validations'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useCreate from 'hooks/gallery/mutations/useCreate'
 import useUpdate from 'hooks/gallery/mutations/useUpdate'
 import useDelete from 'hooks/gallery/mutations/useDelete'
-import { formatBytes } from 'lib/utils'
 
 interface GalleryFormProps {
   mode?: GalleryFormMode
-  defaultFormValues?: GalleryFormFields
+  defaultFormValues?: DefaultGalleryFormFields
 }
 
 interface GalleryFormCreateProps {
@@ -25,7 +30,7 @@ interface GalleryFormCreateProps {
 
 interface GalleryFormUpdateProps {
   mode: 'update'
-  defaultFormValues: GalleryFormFields
+  defaultFormValues: DefaultGalleryFormFields
 }
 
 function GalleryForm({ mode }: GalleryFormCreateProps): JSX.Element
@@ -48,7 +53,8 @@ function GalleryForm({
     resetField,
     setError,
     setValue,
-  } = useForm<GalleryFormFields<FileList>>({
+  } = useForm<GalleryFormFields>({
+    resolver: zodResolver(GalleryFormFieldsSchema),
     defaultValues: {
       id: '',
       name: '',
@@ -78,7 +84,7 @@ function GalleryForm({
 
   const imageFileList = watch('image')
 
-  const onSubmit: SubmitHandler<GalleryFormFields<FileList>> = (data) => {
+  const onSubmit: SubmitHandler<GalleryFormFields> = (data) => {
     return mode === 'update'
       ? updateMutate(data, {
           onSuccess: () => {
@@ -118,13 +124,7 @@ function GalleryForm({
         <FloatingLabelInput
           id="id"
           readOnly={mode === 'update'}
-          {...register('id', {
-            required: 'id is required.',
-            pattern: {
-              value: /^[a-zA-Z\d]+$/,
-              message: 'Alphanumerics only.',
-            },
-          })}
+          {...register('id')}
           errorMessage={errors.id?.message}
         />
         <FloatingLabelInput id="name" {...register('name')} />
@@ -138,17 +138,7 @@ function GalleryForm({
         />
         <ImagePreviewInput
           id="image"
-          {...register('image', {
-            validate: {
-              fileSize: (files) => {
-                if (!files || !files[0]) return true
-                return (
-                  files[0]?.size < maxFileSize ||
-                  `Max filesize ${formatBytes(maxFileSize)}.`
-                )
-              },
-            },
-          })}
+          {...register('image')}
           defaultPreview={defaultFormValues?.image?.url}
           fileList={imageFileList}
           errorMessage={errors.image?.message}

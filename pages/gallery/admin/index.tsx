@@ -7,18 +7,17 @@ import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 
 import type {
-  GalleryFilters,
   GalleryItem,
   GalleryOffsetResponse,
   NonNullableRecursive,
-  RequireKeys,
 } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
-import { cn, isValidRequest, pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { GalleryFiltersSchema } from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
 
 interface PaginationProps {
@@ -213,7 +212,7 @@ const Pagination = ({
             href={{ query: { ...query, page: currentPage - 1 } }}
             shallow
             className={cn(
-              'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+              'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasPrevious && 'pointer-events-none'
             )}
           >
@@ -242,7 +241,7 @@ const Pagination = ({
             href={{ query: { ...query, page: currentPage + 1 } }}
             shallow
             className={cn(
-              'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white py-1.5 px-3 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+              'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               !hasNext && 'pointer-events-none'
             )}
           >
@@ -290,7 +289,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     >
       <Table items={items} />
       <Pagination
-        currentPage={currentPage}
+        currentPage={+currentPage}
         totalCount={totalCount}
         totalPage={totalPage}
       />
@@ -308,21 +307,21 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const queryClient = new QueryClient()
 
-  if (
-    !isValidRequest<RequireKeys<GalleryFilters, 'page'>>(query, [
-      'page',
-      'search',
-      'categories',
-      'orderBy',
-    ])
-  ) {
-    return { redirect: { destination: '/gallery/admin', permanent: false } }
+  const parsedQuery = GalleryFiltersSchema.safeParse(query)
+
+  if (!parsedQuery.success) {
+    return { redirect: { destination: '/500', permanent: false } }
   }
-  const queryKey = removeEmptyObjectFromArray(['gallery', 'offset', query])
+
+  const queryKey = removeEmptyObjectFromArray([
+    'gallery',
+    'offset',
+    parsedQuery.data,
+  ])
 
   try {
     await queryClient.fetchQuery<GalleryOffsetResponse>(queryKey, () =>
-      fetchItems({ ...query, page: query.page ?? 1 })
+      fetchItems({ ...parsedQuery.data, page: parsedQuery.data.page ?? '1' })
     )
     await queryClient.fetchQuery(['categories'], () => fetchCategories())
   } catch (error) {

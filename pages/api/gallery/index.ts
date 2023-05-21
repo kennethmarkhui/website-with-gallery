@@ -10,7 +10,7 @@ import type {
   GalleryOffsetResponse,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { isValidRequest } from 'lib/utils'
+import { GalleryQuerySchema } from 'lib/validations'
 import { GALLERY_LIMIT, GALLERY_ORDER_BY_DIRECTION } from 'constants/gallery'
 
 export async function fetchItems({
@@ -65,7 +65,8 @@ export async function fetchItems({
       take: GALLERY_LIMIT,
       ...(page
         ? {
-            skip: (page - 1) * GALLERY_LIMIT,
+            // TODO: safely check and convert page string into number
+            skip: (+page - 1) * GALLERY_LIMIT,
           }
         : {
             skip: nextCursor === '0' ? 0 : 1,
@@ -107,8 +108,7 @@ export async function fetchItems({
     totalCount: totalItems,
     ...(page
       ? {
-          // page could be typeof string if page arg is from the query string
-          page: +page,
+          page,
         }
       : {
           nextCursor:
@@ -131,66 +131,17 @@ export default async function handler(
     })
   }
 
-  if (
-    isValidRequest<GalleryCursorQuery>(req.query, [
-      'nextCursor',
-      'search',
-      'categories',
-      'orderBy',
-    ])
-  ) {
-    const {
-      nextCursor: nextCursorQuery,
-      search,
-      categories,
-      orderBy,
-    } = req.query
-
-    try {
-      const { items, totalCount, nextCursor } = await fetchItems({
-        nextCursor: nextCursorQuery,
-        search,
-        categories,
-        orderBy,
-      })
-      return res.status(200).json({
-        items,
-        totalCount,
-        nextCursor,
-      })
-    } catch (error) {
-      return res
-        .status(500)
-        .json({ error: { message: 'Failed to fetch data from the database.' } })
-    }
+  const parsedGalleryQuery = GalleryQuerySchema.safeParse(req.query)
+  if (!parsedGalleryQuery.success) {
+    return res.status(422).json({ error: { message: 'Invalid Input.' } })
   }
 
-  if (
-    isValidRequest<GalleryOffsetQuery>(req.query, [
-      'page',
-      'search',
-      'categories',
-      'orderBy',
-    ])
-  ) {
-    const { page: pageQuery, search, categories, orderBy } = req.query
-
-    try {
-      const { items, totalCount, page } = await fetchItems({
-        page: pageQuery,
-        search,
-        categories,
-        orderBy,
-      })
-      return res.status(200).json({
-        items,
-        totalCount,
-        page,
-      })
-    } catch (error) {
-      return res
-        .status(500)
-        .json({ error: { message: 'Failed to fetch data from the database.' } })
-    }
+  try {
+    const items = await fetchItems(parsedGalleryQuery.data)
+    return res.status(200).json(items)
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: { message: 'Failed to fetch data from the database.' } })
   }
 }

@@ -6,6 +6,7 @@ import {
   UseControllerProps,
   useForm,
 } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   HiChevronDown,
   HiArrowNarrowDown,
@@ -22,6 +23,7 @@ import useCategory from 'hooks/gallery/category/useCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import Button from '../Button'
 import { cn } from 'lib/utils'
+import { GalleryFiltersSchema } from 'lib/validations'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
@@ -180,6 +182,7 @@ const FilterForm = ({
     reset,
     control,
   } = useForm<GalleryFilters>({
+    resolver: zodResolver(GalleryFiltersSchema),
     defaultValues: { search: '', categories: [], orderBy: [] },
   })
 

@@ -5,17 +5,11 @@ import { Category } from 'prisma/prisma-client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { isValidRequest } from 'lib/utils'
 import { authOptions } from 'lib/auth'
+import { z } from 'zod'
 
-type RequestQuery = {
-  id: string
-}
-
-type RequestBody = {
-  name: string
-  oldName: string
-}
+const RequestQuerySchema = z.object({ id: z.string() })
+const RequestBodySchema = z.object({ name: z.string(), oldName: z.string() })
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,19 +33,19 @@ export default async function handler(
     })
   }
 
-  if (
-    !isValidRequest<RequestQuery>(req.query, ['id']) ||
-    !isValidRequest<RequestBody>(req.body, ['name', 'oldName'])
-  ) {
+  const parseQuery = RequestQuerySchema.safeParse(req.query)
+  const parsedBody = RequestBodySchema.safeParse(req.body)
+
+  if (!parseQuery.success || !parsedBody.success) {
     return res.status(422).json({
       error: {
-        message: 'Provide an id, name and oldName.',
+        message: 'Invalid Input.',
       },
     })
   }
 
-  const { id } = req.query
-  const { name: newName, oldName } = req.body
+  const { id } = parseQuery.data
+  const { name: newName, oldName } = parsedBody.data
 
   if (oldName === newName) {
     return res.status(422).json({

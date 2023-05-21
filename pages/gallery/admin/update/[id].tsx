@@ -3,7 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { GalleryFormFields } from 'types/gallery'
+import type { DefaultGalleryFormFields } from 'types/gallery'
 import { NextPageWithLayout } from 'pages/_app'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
@@ -27,13 +27,13 @@ const Update: NextPageWithLayout<UpdateProps> = (): JSX.Element => {
     return <></>
   }
 
-  const fetchedData: GalleryFormFields = {
+  const fetchedData = {
     id: data.id,
     name: data.name ?? '',
     storage: data.storage ?? '',
     category: data.category ?? '',
     image: data.image ?? undefined,
-  }
+  } satisfies DefaultGalleryFormFields
 
   return (
     <div className="w-full">

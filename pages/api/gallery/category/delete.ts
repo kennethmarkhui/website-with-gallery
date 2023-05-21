@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
+import { z } from 'zod'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { isValidRequest } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 
-type RequestQuery = {
-  id: string
-}
+const RequestQuerySchema = z.object({ id: z.string() })
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,15 +30,17 @@ export default async function handler(
     })
   }
 
-  if (!isValidRequest<RequestQuery>(req.query, ['id'])) {
-    return res.status(400).json({
+  const parsedQuery = RequestQuerySchema.safeParse(req.query)
+
+  if (!parsedQuery.success) {
+    return res.status(422).json({
       error: {
-        message: 'Provide an id.',
+        message: 'Invalid Input.',
       },
     })
   }
 
-  const { id } = req.query
+  const { id } = parsedQuery.data
 
   try {
     const deleteResponse = await prisma.category.delete({
