@@ -2,26 +2,19 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
-import type {
-  GalleryMutateResponse,
-  GalleryErrorResponse,
-  GalleryFormFields,
-} from 'types/gallery'
+import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
-import { formatBytes, isValidRequest } from 'lib/utils'
+import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
+import { GalleryFormFieldsSchema } from 'lib/validations'
 import { fetchImage } from '../[id]'
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
-
-type RequestQuery = {
-  id: string
 }
 
 export default async function handler(
@@ -46,13 +39,19 @@ export default async function handler(
     })
   }
 
-  if (!isValidRequest<RequestQuery>(req.query, ['id'])) {
-    return res.status(400).json({
+  const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).safeParse(
+    req.query
+  )
+
+  if (!parsedQuery.success) {
+    return res.status(422).json({
       error: {
-        message: 'Provide an id.',
+        message: 'Invalid Input.',
       },
     })
   }
+
+  const { id } = parsedQuery.data
 
   let formData
   try {
@@ -80,22 +79,22 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
-  if (
-    !isValidRequest<Omit<GalleryFormFields, 'id' | 'image'>>(formData.fields, [
-      'name',
-      'storage',
-      'category',
-    ])
-  ) {
-    return res.status(400).json({
+  const parsedFormData = GalleryFormFieldsSchema.omit({
+    id: true,
+    image: true,
+  }).safeParse(formData.fields)
+
+  if (!parsedFormData.success) {
+    return res.status(422).json({
       error: {
-        message: 'Missing Fields.',
+        message: 'Invalid Fields.',
       },
     })
   }
 
+  const { name, storage, category } = parsedFormData.data
+
   const {
-    fields: { name, storage, category },
     files: { image },
   } = formData
 
@@ -115,14 +114,14 @@ export default async function handler(
         })
       }
 
-      const existingImage = await fetchImage(req.query.id) // return null if no image
+      const existingImage = await fetchImage(id) // return null if no image
       if (!!existingImage) {
         await cloudinary.uploader.destroy(existingImage.publicId)
       }
     }
 
     const item = await prisma.item.update({
-      where: { id: req.query.id },
+      where: { id },
       data: {
         name: name !== '' ? name : null,
         storage: storage !== '' ? storage : null,

@@ -4,12 +4,8 @@ import { Prisma } from '@prisma/client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { isValidRequest } from 'lib/utils'
 import { authOptions } from 'lib/auth'
-
-type RequestBody = {
-  category: string
-}
+import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,23 +29,17 @@ export default async function handler(
     })
   }
 
-  if (!isValidRequest<RequestBody>(req.body, ['category'])) {
+  const parsedBody = GalleryCategoryFormFieldsSchema.safeParse(req.body)
+
+  if (!parsedBody.success) {
     return res.status(422).json({
       error: {
-        message: 'Provide a category.',
+        message: 'Invalid Input.',
       },
     })
   }
 
-  const { category } = req.body
-
-  if (category === '') {
-    return res.status(422).json({
-      error: {
-        message: 'Empty string is not allowed.',
-      },
-    })
-  }
+  const { category } = parsedBody.data
 
   try {
     const createdCategory = await prisma.category.create({

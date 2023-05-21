@@ -1,15 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import type { GalleryErrorResponse, GalleryItem } from 'types/gallery'
+import type {
+  GalleryErrorResponse,
+  GalleryFormFields,
+  GalleryItem,
+} from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { isValidRequest } from 'lib/utils'
-
-type RequestQuery = {
-  id: string
-}
+import { GalleryFormFieldsSchema } from 'lib/validations'
 
 export async function fetchItem(
-  id: RequestQuery['id']
+  id: GalleryFormFields['id']
 ): Promise<GalleryItem | null> {
   const data = await prisma.item.findUnique({
     where: { id },
@@ -32,7 +32,7 @@ export async function fetchItem(
   return data ? { ...data, category: data.category?.name ?? null } : null
 }
 
-export async function fetchImage(id: RequestQuery['id']) {
+export async function fetchImage(id: GalleryFormFields['id']) {
   return await prisma.image.findFirst({
     where: { itemId: id },
     select: {
@@ -54,15 +54,19 @@ export default async function handler(
     })
   }
 
-  if (!isValidRequest<RequestQuery>(req.query, ['id'])) {
+  const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).safeParse(
+    req.query
+  )
+
+  if (!parsedQuery.success) {
     return res.status(400).json({
       error: {
-        message: 'Provide an id.',
+        message: 'Invalid Input.',
       },
     })
   }
 
-  const { id } = req.query
+  const { id } = parsedQuery.data
 
   try {
     const item = await fetchItem(id)

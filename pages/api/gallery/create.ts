@@ -6,13 +6,13 @@ import type {
   GalleryMutateResponse,
   GalleryErrorResponse,
   GalleryFormKeys,
-  GalleryFormFields,
 } from 'types/gallery'
 import cloudinary from 'lib/cloudinary'
 import { prisma } from 'lib/prisma'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
-import { formatBytes, isValidRequest } from 'lib/utils'
+import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
+import { GalleryFormFieldsSchema } from 'lib/validations'
 
 export const config = {
   api: {
@@ -68,34 +68,23 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
-  if (
-    !isValidRequest<Omit<GalleryFormFields, 'image'>>(formData.fields, [
-      'id',
-      'name',
-      'storage',
-      'category',
-    ])
-  ) {
-    return res.status(400).json({
-      error: {
-        message: 'Missing Fields.',
-      },
-    })
-  }
+  const parsedFormData = GalleryFormFieldsSchema.omit({
+    image: true,
+  }).safeParse(formData.fields)
 
-  const {
-    fields: { id, name, storage, category },
-    files: { image },
-  } = formData
-
-  if (id === '') {
+  if (!parsedFormData.success) {
     return res.status(422).json({
       error: {
-        target: 'id',
-        message: 'id is required.',
+        message: 'Invalid Fields.',
       },
     })
   }
+
+  const { id, name, storage, category } = parsedFormData.data
+
+  const {
+    files: { image },
+  } = formData
 
   let cloudinaryResponse
   try {

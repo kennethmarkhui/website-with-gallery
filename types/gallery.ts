@@ -1,4 +1,14 @@
 import { Item, Image, Category } from 'prisma/prisma-client'
+import { z } from 'zod'
+
+import {
+  GalleryCategoryFormFieldsSchema,
+  GalleryCursorQuerySchema,
+  GalleryFiltersSchema,
+  GalleryFormFieldsSchema,
+  GalleryOffsetQuerySchema,
+  GalleryQuerySchema,
+} from 'lib/validations'
 
 export type GalleryItemKeys = keyof Item
 
@@ -17,10 +27,15 @@ export type GalleryItems = {
   totalCount: number
 }
 
-export type GalleryFormFields<TImage = void> =
-  NonNullableRecursive<GalleryItemInfo> & {
-    image?: TImage extends void ? GalleryImage : TImage
-  }
+export type GalleryCategoryFormFields = z.infer<
+  typeof GalleryCategoryFormFieldsSchema
+>
+
+export type GalleryFormFields = z.infer<typeof GalleryFormFieldsSchema>
+
+export type DefaultGalleryFormFields = Omit<GalleryFormFields, 'image'> & {
+  image?: GalleryImage
+}
 
 export type GalleryFormKeys = keyof GalleryFormFields
 
@@ -28,27 +43,15 @@ export type GalleryFormMode = 'create' | 'update'
 
 export type NextCursor = string
 
-export type GalleryFilters = {
-  search?: string
-  categories?: string[] | string
-  orderBy?: string | GalleryOrderBy
-  page?: number
-}
+export type GalleryFilters = z.infer<typeof GalleryFiltersSchema>
 
 export type PaginationType = 'cursor' | 'offset'
 
-export type GalleryCursorQuery = {
-  nextCursor: NextCursor
-} & GalleryFilters
+export type GalleryCursorQuery = z.infer<typeof GalleryCursorQuerySchema>
 
-export type GalleryOffsetQuery = {
-  page: number
-} & GalleryFilters
+export type GalleryOffsetQuery = z.infer<typeof GalleryOffsetQuerySchema>
 
-export type GalleryQuery = {
-  nextCursor?: NextCursor
-  page?: number
-} & GalleryFilters
+export type GalleryQuery = z.infer<typeof GalleryQuerySchema>
 
 export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 
@@ -78,11 +81,3 @@ export type NonNullableRecursive<Type> = {
     ? NonNullableRecursive<NonNullable<Type[Key]>>
     : NonNullable<Type[Key]>
 }
-
-// https://stackoverflow.com/a/66680470
-export type RequireKeys<T extends object, K extends keyof T> = Required<
-  Pick<T, K>
-> &
-  Omit<T, K> extends infer O
-  ? { [P in keyof O]: O[P] }
-  : never

@@ -6,7 +6,7 @@ import fetcher from 'lib/fetcher'
 
 const useUpdate = () => {
   return useMutation(
-    async (data: GalleryFormFields<FileList>) => {
+    async (data: GalleryFormFields) => {
       const formData = new FormData()
       formData.append('name', data.name)
       formData.append('storage', data.storage)
