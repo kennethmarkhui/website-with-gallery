@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import { ParsedUrlQuery } from 'querystring'
 
 import type { GalleryFilters, GalleryOffsetResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
@@ -8,9 +8,11 @@ import {
   removeEmptyObjectFromArray,
 } from 'lib/utils'
 
-const useOffsetGallery = () => {
-  const router = useRouter()
-  const filters = router.query
+interface UseOffsetGalleryProps {
+  filters: ParsedUrlQuery
+}
+
+const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {
   const queryKey = removeEmptyObjectFromArray(['gallery', 'offset', filters])
   const galleryFilters = queryKey[2] as GalleryFilters
 

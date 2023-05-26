@@ -5,6 +5,14 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
+import {
+  useReactTable,
+  flexRender,
+  getCoreRowModel,
+  functionalUpdate,
+  ColumnDef,
+  PaginationState,
+} from '@tanstack/react-table'
 
 import type {
   GalleryItem,
@@ -24,99 +32,201 @@ interface PaginationProps {
   currentPage: number
   totalCount: number
   totalPage: number
+  setPageIndex: (index: number) => void
+  previousPage: () => void
+  nextPage: () => void
+  hasPreviousPage: boolean
+  hasNextPage: boolean
 }
 
-interface TableProps {
+interface DataTableProps {
   items: NonNullableRecursive<GalleryItem[]>
+  page?: number
+  itemCount?: number
+  isPreviousData: boolean
 }
 
-const Table = ({ items }: TableProps): JSX.Element => {
+const DataTable = ({
+  items,
+  page,
+  itemCount,
+  isPreviousData,
+}: DataTableProps): JSX.Element => {
+  const router = useRouter()
+
+  const currentPage = page ?? 1
+  const totalCount = itemCount ?? 0
+  const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
+
+  const pagination = {
+    pageIndex: currentPage - 1,
+    pageSize: GALLERY_LIMIT,
+  } satisfies PaginationState
+
+  const columns: ColumnDef<NonNullableRecursive<GalleryItem>>[] = [
+    { accessorKey: 'id', header: 'ID' },
+    {
+      accessorKey: 'image',
+      header: 'Image',
+      cell: ({ row }) => {
+        // TODO: getValue type is not inferred and is unknown
+        // https://github.com/TanStack/table/pull/4109
+        const {
+          id,
+          image: { url, width, height },
+        } = row.original
+        return (
+          <div className="relative h-32 w-32">
+            <Image
+              src={url}
+              alt={id}
+              className="absolute inset-0 h-full w-full object-contain"
+              width={width}
+              height={height}
+            />
+          </div>
+        )
+      },
+    },
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'storage', header: 'Storage' },
+    {
+      accessorKey: 'category',
+      header: 'Category',
+      cell: ({ row }) => (
+        <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
+          {row.original.category}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const {
+          id,
+          name,
+          storage,
+          category,
+          image: { url, publicId, width, height },
+        } = row.original
+        return (
+          <Link
+            href={{
+              pathname: `/gallery/admin/update/${id}`,
+              query: {
+                data: JSON.stringify({
+                  name,
+                  storage,
+                  category,
+                  image: {
+                    url, // if no image this should be the placeholder image
+                    publicId,
+                    width,
+                    height,
+                  },
+                }),
+              },
+            }}
+            className="font-medium text-gray-500 hover:text-black hover:underline"
+            aria-label="edit image"
+          >
+            Edit
+          </Link>
+        )
+      },
+    },
+  ]
+
+  const {
+    getHeaderGroups,
+    getRowModel,
+    setPageIndex,
+    previousPage,
+    nextPage,
+    getCanPreviousPage,
+    getCanNextPage,
+  } = useReactTable({
+    data: items,
+    columns,
+    pageCount: totalPage,
+    state: {
+      pagination,
+    },
+    onPaginationChange: (updater) => {
+      const { pageIndex } = functionalUpdate(updater, pagination)
+      router.push(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, page: pageIndex + 1 },
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    debugTable: true,
+  })
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b text-xs uppercase">
-          <tr>
-            <th scope="col" className="px-4 py-3">
-              id
-            </th>
-            <th scope="col" className="px-4 py-3">
-              image
-            </th>
-            <th scope="col" className="px-4 py-3">
-              name
-            </th>
-            <th scope="col" className="px-4 py-3">
-              storage
-            </th>
-            <th scope="col" className="px-4 py-3">
-              category
-            </th>
-            <th scope="col" className="px-4 py-3">
-              <span className="sr-only">Edit</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map(
-            ({
-              id,
-              name,
-              storage,
-              category,
-              image: { url, width, height, publicId },
-            }) => (
-              <tr key={id} className="border-b hover:bg-gray-50">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-4 py-3 font-medium"
-                >
-                  {id}
-                </th>
-                <td className="relative h-32 w-32 bg-white">
-                  <Image
-                    src={url}
-                    alt={id}
-                    className="absolute inset-0 h-full w-full object-contain p-1"
-                    width={width}
-                    height={height}
-                  />
-                </td>
-                <td className="px-4 py-3">{name}</td>
-                <td className="px-4 py-3">{storage}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
-                    {category}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={{
-                      pathname: `/gallery/admin/update/${id}`,
-                      query: {
-                        data: JSON.stringify({
-                          name: name,
-                          storage: storage,
-                          category: category,
-                          image: {
-                            url, // if no image this should be the placeholder image
-                            publicId,
-                            width,
-                            height,
-                          },
-                        }),
-                      },
-                    }}
-                    className="font-medium text-gray-500 hover:text-black hover:underline"
-                    aria-label="edit image"
-                  >
-                    Edit
-                  </Link>
+    <div
+      className={cn(
+        'relative w-full space-y-4 overflow-hidden',
+        isPreviousData && 'pointer-events-none opacity-50'
+      )}
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b text-xs uppercase">
+            {getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} scope="col" className="px-4 py-3">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {getRowModel().rows.length ? (
+              getRowModel().rows.map((row) => (
+                <tr key={row.id} className="border-b hover:bg-gray-50">
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-4 py-3">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="h-24 p-4 text-center" colSpan={columns.length}>
+                  No results.
                 </td>
               </tr>
-            )
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <Pagination
+        currentPage={+currentPage}
+        totalCount={totalCount}
+        totalPage={totalPage}
+        setPageIndex={(idx) => setPageIndex(idx)}
+        previousPage={previousPage}
+        nextPage={nextPage}
+        hasPreviousPage={getCanPreviousPage()}
+        hasNextPage={getCanNextPage()}
+      />
     </div>
   )
 }
@@ -125,11 +235,12 @@ const Pagination = ({
   currentPage,
   totalCount,
   totalPage,
+  setPageIndex,
+  previousPage,
+  nextPage,
+  hasPreviousPage,
+  hasNextPage,
 }: PaginationProps): JSX.Element => {
-  const { query } = useRouter()
-  const hasPrevious = currentPage !== 1
-  const hasNext = currentPage < totalPage
-
   const pageRangeDisplayed = 2
   const marginPagesDisplayed = 1
 
@@ -208,46 +319,49 @@ const Pagination = ({
       </p>
       <ul className="inline-flex -space-x-px">
         <li>
-          <Link
-            href={{ query: { ...query, page: currentPage - 1 } }}
-            shallow
+          <button
             className={cn(
               'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-              !hasPrevious && 'pointer-events-none'
+              !hasPreviousPage && 'pointer-events-none'
             )}
+            onClick={previousPage}
+            disabled={!hasPreviousPage}
           >
             <span className="sr-only">Previous</span>
             <HiChevronLeft />
-          </Link>
+          </button>
         </li>
-        {pages.map((page, idx) => (
-          <li key={idx}>
-            <Link
-              href={{ query: { ...query, page: page } }}
-              shallow
-              className={cn(
-                'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-                currentPage === page || isNaN(page)
-                  ? 'pointer-events-none bg-gray-50 text-gray-600'
-                  : 'text-gray-500'
-              )}
-            >
-              {!isNaN(page) ? page : '...'}
-            </Link>
-          </li>
-        ))}
+        {pages.map((page, idx) => {
+          const disabled = currentPage === page || isNaN(page)
+          return (
+            <li key={idx}>
+              <button
+                className={cn(
+                  'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
+                  disabled
+                    ? 'pointer-events-none bg-gray-50 text-gray-600'
+                    : 'text-gray-500'
+                )}
+                onClick={() => setPageIndex(page - 1)}
+                disabled={disabled}
+              >
+                {!isNaN(page) ? page : '...'}
+              </button>
+            </li>
+          )
+        })}
         <li>
-          <Link
-            href={{ query: { ...query, page: currentPage + 1 } }}
-            shallow
+          <button
             className={cn(
               'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-              !hasNext && 'pointer-events-none'
+              !hasNextPage && 'pointer-events-none'
             )}
+            onClick={nextPage}
+            disabled={!hasNextPage}
           >
             <span className="sr-only">Next</span>
             <HiChevronRight />
-          </Link>
+          </button>
         </li>
       </ul>
     </nav>
@@ -256,8 +370,10 @@ const Pagination = ({
 
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
+  const router = useRouter()
+  const filters = router.query
 
-  const { data, status, error, isPreviousData } = useOffsetGallery()
+  const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
 
   const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
     () =>
@@ -276,24 +392,13 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     [data?.items]
   )
 
-  const currentPage = data?.page ?? 1
-  const totalCount = data?.totalCount ?? 0
-  const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
-
   return (
-    <div
-      className={cn(
-        'relative w-full space-y-4 overflow-hidden',
-        isPreviousData && 'pointer-events-none opacity-50'
-      )}
-    >
-      <Table items={items} />
-      <Pagination
-        currentPage={+currentPage}
-        totalCount={totalCount}
-        totalPage={totalPage}
-      />
-    </div>
+    <DataTable
+      items={items}
+      page={data?.page}
+      itemCount={data?.totalCount}
+      isPreviousData={isPreviousData}
+    />
   )
 }
 
