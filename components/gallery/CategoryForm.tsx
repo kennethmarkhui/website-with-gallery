@@ -1,40 +1,35 @@
 import { useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
-import { HiX, HiTrash, HiPlus } from 'react-icons/hi'
+import { HiX, HiTrash, HiPlus, HiPencil } from 'react-icons/hi'
+import { ColumnDef } from '@tanstack/react-table'
+import { zodResolver } from '@hookform/resolvers/zod'
 
-import type { GalleryCategoryFormFields, GalleryFormMode } from 'types/gallery'
+import DataTable from '../DataTable'
+import type { GalleryCategoryFormFields } from 'types/gallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useCreateCategory from 'hooks/gallery/category/mutations/useCreateCategory'
 import useUpdateCategory from 'hooks/gallery/category/mutations/useUpdateCategory'
 import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import { cn } from 'lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
 const CategoryForm = (): JSX.Element => {
-  const { data: categories, status: categoryStatus, error } = useCategory()
+  const { data, status, error } = useCategory()
 
-  const { mutate: createCategoryMutate, status: createCategoryStatus } =
-    useCreateCategory()
-  const { mutate: updateCategoryMutate, status: updateCategoryStatus } =
-    useUpdateCategory()
-  const { mutate: deleteCategoryMutate, status: deleteCategoryStatus } =
-    useDeleteCategory()
+  const { mutate: createMutate, status: createStatus } = useCreateCategory()
+  const { mutate: updateMutate, status: updateStatus } = useUpdateCategory()
+  const { mutate: deleteMutate, status: deleteStatus } = useDeleteCategory()
 
-  const categoryFormIsLoading =
-    categoryStatus === 'loading' ||
-    createCategoryStatus === 'loading' ||
-    updateCategoryStatus === 'loading' ||
-    deleteCategoryStatus === 'loading'
+  const isLoading =
+    status === 'loading' ||
+    createStatus === 'loading' ||
+    updateStatus === 'loading' ||
+    deleteStatus === 'loading'
 
-  const [formMode, setFormMode] = useState<GalleryFormMode>('create')
-
-  const [categoryToUpdate, setCategoryToUpdate] = useState<Pick<
-    Category,
-    'id' | 'name'
-  > | null>(null)
+  const [categoryToUpdate, setCategoryToUpdate] =
+    useState<Pick<Category, 'id' | 'name'>>()
 
   const {
     register,
@@ -49,12 +44,12 @@ const CategoryForm = (): JSX.Element => {
   })
 
   const onSubmit: SubmitHandler<GalleryCategoryFormFields> = (data) => {
-    return formMode === 'update'
-      ? updateCategoryMutate(
+    return categoryToUpdate
+      ? updateMutate(
           {
-            id: categoryToUpdate?.id as string,
+            id: categoryToUpdate.id,
             name: data.category,
-            oldName: categoryToUpdate?.name as string,
+            oldName: categoryToUpdate.name,
           },
           {
             onError: ({ error }, variables, context) => {
@@ -68,12 +63,11 @@ const CategoryForm = (): JSX.Element => {
             },
             onSuccess: (data, variables, context) => {
               reset()
-              setFormMode('create')
-              setCategoryToUpdate(null)
+              setCategoryToUpdate(undefined)
             },
           }
         )
-      : createCategoryMutate(data, {
+      : createMutate(data, {
           onError: ({ error }, variables, context) => {
             if (error?.target === 'category') {
               setError(
@@ -89,6 +83,49 @@ const CategoryForm = (): JSX.Element => {
         })
   }
 
+  const columns: ColumnDef<Pick<Category, 'id' | 'name'>>[] = [
+    { accessorKey: 'name', header: 'Name' },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const { id, name } = row.original
+        return (
+          <div className="flex gap-4">
+            {categoryToUpdate?.id === id ? (
+              <button
+                onClick={() => {
+                  reset()
+                  setCategoryToUpdate(undefined)
+                }}
+                title="Cancel update"
+              >
+                <HiX className="h-5 w-5" />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setValue('category', name)
+                  setCategoryToUpdate({ id, name })
+                  setFocus('category', { shouldSelect: true })
+                }}
+                title={`Update '${name}'`}
+              >
+                <HiPencil className="h-5 w-5" />
+              </button>
+            )}
+            <button
+              disabled={!!categoryToUpdate}
+              onClick={() => deleteMutate(id)}
+              title="Delete"
+            >
+              <HiTrash className="h-5 w-5 text-red-500" />
+            </button>
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
     <>
       <form
@@ -100,69 +137,22 @@ const CategoryForm = (): JSX.Element => {
           {...register('category')}
           errorMessage={errors.category?.message}
           icon={<HiPlus />}
-          disabled={categoryFormIsLoading}
+          disabled={isLoading}
         />
       </form>
 
-      <ul
+      <div
         className={cn(
-          'mt-8 flex flex-wrap gap-4 md:mt-16',
-          categoryFormIsLoading && 'pointer-events-none opacity-70'
+          'mt-8 md:mt-16',
+          isLoading && 'pointer-events-none opacity-70'
         )}
       >
-        {categoryStatus === 'loading' && <p>loading</p>}
-        {categoryStatus === 'error' && error instanceof Error && (
-          <p>{error.message}</p>
-        )}
-        {categoryStatus === 'success' && categories?.length === 0 && (
-          <p>empty category list</p>
-        )}
-        {categoryStatus === 'success' &&
-          categories?.map(({ id, name }) => (
-            <li key={id}>
-              <span
-                className={cn(
-                  'flex items-center gap-4 rounded-full border px-4 py-2 text-lg shadow',
-                  categoryToUpdate?.id === id && 'border-black'
-                )}
-              >
-                <button
-                  className="hover:underline"
-                  onClick={() => {
-                    // reset()
-                    setValue('category', name)
-                    setFormMode('update')
-                    setCategoryToUpdate({ id, name })
-                    setFocus('category', { shouldSelect: true })
-                  }}
-                  title={`Update ${name}`}
-                >
-                  {name}
-                </button>
-                {formMode === 'update' && categoryToUpdate?.id === id ? (
-                  <button
-                    onClick={() => {
-                      reset()
-                      setFormMode('create')
-                      setCategoryToUpdate(null)
-                    }}
-                    title="Cancel update"
-                  >
-                    <HiX className="h-5 w-5" />
-                  </button>
-                ) : (
-                  <button
-                    disabled={formMode === 'update'}
-                    onClick={() => deleteCategoryMutate(id)}
-                    title="Delete"
-                  >
-                    <HiTrash className="h-5 w-5 text-red-500" />
-                  </button>
-                )}
-              </span>
-            </li>
-          ))}
-      </ul>
+        <DataTable
+          columns={columns}
+          data={data ?? []}
+          isLoading={status === 'loading'}
+        />
+      </div>
     </>
   )
 }
