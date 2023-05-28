@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import { HiArrowNarrowDown } from 'react-icons/hi'
 
 import type {
   GalleryItem,
@@ -15,13 +16,11 @@ import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
+import DataTable from '@/components/DataTable'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GalleryFiltersSchema } from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
-import DataTable, {
-  DataTableExtendedPaginationProps,
-} from '@/components/DataTable'
 
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
@@ -48,7 +47,25 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
   )
 
   const columns: ColumnDef<NonNullableRecursive<GalleryItem>>[] = [
-    { accessorKey: 'id', header: 'ID' },
+    {
+      accessorKey: 'id',
+      header: ({ column }) => {
+        const isDesc = column.getIsSorted() === 'desc'
+        return (
+          <button
+            className="flex items-center gap-2"
+            onClick={() => {
+              column.toggleSorting(!isDesc)
+            }}
+          >
+            ID
+            <HiArrowNarrowDown
+              className={cn('transition-transform', !isDesc && 'rotate-180')}
+            />
+          </button>
+        )
+      },
+    },
     {
       accessorKey: 'image',
       header: 'Image',
@@ -121,29 +138,54 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     },
   ]
 
-  const pagination = {
-    state: {
-      pageIndex: data?.page ? data.page - 1 : 0,
-      pageSize: GALLERY_LIMIT,
-    },
-    dataCount: data?.totalCount ?? 0,
-    onPaginationChange: ({ pageIndex }) => {
-      router.push(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, page: pageIndex + 1 },
-        },
-        undefined,
-        { shallow: true }
-      )
-    },
-  } satisfies DataTableExtendedPaginationProps
-
   return (
     <DataTable
       columns={columns}
       data={items}
-      manualPagination={pagination}
+      manualSorting={{
+        state: [
+          {
+            id:
+              typeof filters.orderBy === 'string'
+                ? filters.orderBy.split(',')[0]
+                : 'id',
+            desc:
+              typeof filters.orderBy === 'string'
+                ? filters.orderBy.split(',')[1] === 'desc'
+                : true,
+          },
+        ],
+        onSortingChange: (state) => {
+          const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
+          router.push(
+            {
+              pathname: router.pathname,
+              query: {
+                orderBy,
+              },
+            },
+            undefined,
+            { shallow: true }
+          )
+        },
+      }}
+      manualPagination={{
+        state: {
+          pageIndex: data?.page ? data.page - 1 : 0,
+          pageSize: GALLERY_LIMIT,
+        },
+        dataCount: data?.totalCount ?? 0,
+        onPaginationChange: ({ pageIndex }) => {
+          router.push(
+            {
+              pathname: router.pathname,
+              query: { ...router.query, page: pageIndex + 1 },
+            },
+            undefined,
+            { shallow: true }
+          )
+        },
+      }}
       isLoading={isPreviousData}
     />
   )

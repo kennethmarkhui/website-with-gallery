@@ -1,10 +1,12 @@
 import {
   useReactTable,
   getCoreRowModel,
+  getSortedRowModel,
   getPaginationRowModel,
   flexRender,
   functionalUpdate,
   ColumnDef,
+  SortingState,
   PaginationState,
 } from '@tanstack/react-table'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
@@ -22,6 +24,11 @@ interface PaginationProps {
   hasNextPage: boolean
 }
 
+interface DataTableExtendedSortingProps {
+  state: SortingState
+  onSortingChange: (sortingState: SortingState) => void
+}
+
 export interface DataTableExtendedPaginationProps {
   state: PaginationState
   dataCount: number
@@ -31,6 +38,7 @@ export interface DataTableExtendedPaginationProps {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  manualSorting?: DataTableExtendedSortingProps
   manualPagination?: DataTableExtendedPaginationProps
   isLoading: boolean
 }
@@ -175,6 +183,7 @@ const Pagination = ({
 const DataTable = <TData, TValue>({
   columns,
   data,
+  manualSorting,
   manualPagination,
   isLoading,
 }: DataTableProps<TData, TValue>): JSX.Element => {
@@ -191,9 +200,21 @@ const DataTable = <TData, TValue>({
   } = useReactTable({
     data,
     columns,
+    state: {
+      sorting: manualSorting?.state,
+      pagination: manualPagination?.state ?? { pageIndex: 0, pageSize: 10 },
+    },
+    ...(manualSorting
+      ? {
+          manualSorting: true,
+          onSortingChange: (updater) => {
+            const sortingState = functionalUpdate(updater, manualSorting.state)
+            manualSorting.onSortingChange(sortingState)
+          },
+        }
+      : { getSortedRowModel: getSortedRowModel() }),
     ...(manualPagination
       ? {
-          state: { pagination: manualPagination.state },
           manualPagination: true,
           pageCount: Math.ceil(
             manualPagination.dataCount / manualPagination.state.pageSize
