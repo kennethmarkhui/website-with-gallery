@@ -5,7 +5,9 @@ import {
   getPaginationRowModel,
   flexRender,
   functionalUpdate,
+  Table,
   ColumnDef,
+  ColumnFiltersState,
   SortingState,
   PaginationState,
 } from '@tanstack/react-table'
@@ -24,12 +26,24 @@ interface PaginationProps {
   hasNextPage: boolean
 }
 
-interface DataTableExtendedSortingProps {
+interface FilterProps {
+  id: string
+  data: { id: string; name: string }[]
+}
+
+interface DataTableColumnFiltersProps<TData> {
+  state: ColumnFiltersState
+  onColumnFiltersChange: (columnFiltersState: ColumnFiltersState) => void
+  filters: FilterProps[]
+  render?: (table: Table<TData>) => React.ReactNode
+}
+
+interface DataTableSortingProps {
   state: SortingState
   onSortingChange: (sortingState: SortingState) => void
 }
 
-export interface DataTableExtendedPaginationProps {
+export interface DataTablePaginationProps {
   state: PaginationState
   dataCount: number
   onPaginationChange: (paginationState: PaginationState) => void
@@ -38,8 +52,9 @@ export interface DataTableExtendedPaginationProps {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  manualSorting?: DataTableExtendedSortingProps
-  manualPagination?: DataTableExtendedPaginationProps
+  manualFiltering?: DataTableColumnFiltersProps<TData>
+  manualSorting?: DataTableSortingProps
+  manualPagination?: DataTablePaginationProps
   isLoading: boolean
 }
 
@@ -183,27 +198,33 @@ const Pagination = ({
 const DataTable = <TData, TValue>({
   columns,
   data,
+  manualFiltering,
   manualSorting,
   manualPagination,
   isLoading,
 }: DataTableProps<TData, TValue>): JSX.Element => {
-  const {
-    getState,
-    getRowModel,
-    getHeaderGroups,
-    setPageIndex,
-    getCanPreviousPage,
-    getCanNextPage,
-    previousPage,
-    nextPage,
-    getPageCount,
-  } = useReactTable({
+  const table = useReactTable({
     data,
     columns,
     state: {
       sorting: manualSorting?.state,
       pagination: manualPagination?.state ?? { pageIndex: 0, pageSize: 10 },
+      columnFilters: manualFiltering?.state,
     },
+    ...(manualFiltering
+      ? {
+          manualFiltering: true,
+          onColumnFiltersChange: (updater) => {
+            const columnFilters = functionalUpdate(
+              updater,
+              manualFiltering.state
+            )
+            manualFiltering.onColumnFiltersChange(columnFilters)
+          },
+        }
+      : {
+          //
+        }),
     ...(manualSorting
       ? {
           manualSorting: true,
@@ -241,10 +262,11 @@ const DataTable = <TData, TValue>({
         isLoading && 'pointer-events-none opacity-50'
       )}
     >
+      {manualFiltering?.render && manualFiltering.render(table)}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b text-xs uppercase">
-            {getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} scope="col" className="px-4 py-3">
@@ -260,8 +282,8 @@ const DataTable = <TData, TValue>({
             ))}
           </thead>
           <tbody>
-            {getRowModel().rows.length ? (
-              getRowModel().rows.map((row) => (
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b hover:bg-gray-50">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">
@@ -287,7 +309,7 @@ const DataTable = <TData, TValue>({
         currentPage={
           manualPagination
             ? manualPagination.state.pageIndex + 1
-            : getState().pagination.pageIndex + 1
+            : table.getState().pagination.pageIndex + 1
         }
         totalCount={manualPagination ? manualPagination.dataCount : data.length}
         totalPage={
@@ -295,13 +317,13 @@ const DataTable = <TData, TValue>({
             ? Math.ceil(
                 manualPagination.dataCount / manualPagination.state.pageSize
               )
-            : getPageCount()
+            : table.getPageCount()
         }
-        setPageIndex={(idx) => setPageIndex(idx)}
-        previousPage={previousPage}
-        nextPage={nextPage}
-        hasPreviousPage={getCanPreviousPage()}
-        hasNextPage={getCanNextPage()}
+        setPageIndex={(idx) => table.setPageIndex(idx)}
+        previousPage={table.previousPage}
+        nextPage={table.nextPage}
+        hasPreviousPage={table.getCanPreviousPage()}
+        hasNextPage={table.getCanNextPage()}
       />
     </div>
   )

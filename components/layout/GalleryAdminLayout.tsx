@@ -1,13 +1,11 @@
 import { ReactNode } from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { HiMenu, HiOutlineHome, HiOutlineSearch, HiPlus } from 'react-icons/hi'
+import { HiMenu, HiOutlineHome, HiPlus } from 'react-icons/hi'
 
 import useDrawer from 'hooks/useDrawer'
 import LocaleSwitcher from './header/LocaleSwitcher'
 import Profile from '../Profile'
 import Sidebar from '../gallery/Sidebar'
-import FilterForm from '../gallery/FilterForm'
 import { cn } from 'lib/utils'
 
 interface GalleryAdminLayoutProps {
@@ -65,15 +63,7 @@ const GalleryAdminLayoutNav = ({
 const GalleryAdminLayout = ({
   children,
 }: GalleryAdminLayoutProps): JSX.Element => {
-  const router = useRouter()
   const { isOpen, openDrawer, closeDrawer } = useDrawer()
-  const {
-    isOpen: filterIsOpen,
-    openDrawer: openFilter,
-    closeDrawer: closeFilter,
-  } = useDrawer()
-
-  const isGalleryAdminHomePage = router.pathname === '/gallery/admin'
 
   return (
     <div className="flex min-h-screen flex-row overflow-clip">
@@ -91,42 +81,14 @@ const GalleryAdminLayout = ({
         className={cn(
           'w-full',
           'transition-all duration-150 ease-in',
-          '-ml-64 lg:ml-0',
-          isGalleryAdminHomePage && '-mr-64 lg:mr-0'
+          '-ml-64 lg:ml-0'
         )}
       >
         <header className="sticky top-0 z-10 flex w-full items-center bg-white p-8 lg:hidden">
           <HiMenu className="cursor-pointer" onClick={openDrawer} />
-          {isGalleryAdminHomePage && (
-            <HiOutlineSearch
-              className="ml-auto cursor-pointer"
-              onClick={openFilter}
-            />
-          )}
         </header>
         <main className="w-full px-8 pb-8 lg:pt-8">{children}</main>
       </div>
-      {isGalleryAdminHomePage && (
-        <Sidebar
-          placement="right"
-          isOpen={filterIsOpen}
-          open={openFilter}
-          close={closeFilter}
-        >
-          <FilterForm
-            onSubmitCallback={(data) => {
-              router.push(
-                !data ? router.pathname : { query: data },
-                undefined,
-                {
-                  shallow: true,
-                }
-              )
-              closeFilter()
-            }}
-          />
-        </Sidebar>
-      )}
     </div>
   )
 }

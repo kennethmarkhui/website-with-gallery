@@ -1,13 +1,26 @@
-import { ReactElement, useMemo } from 'react'
+import { ReactElement, useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
-import { HiArrowNarrowDown } from 'react-icons/hi'
+import {
+  useForm,
+  useController,
+  SubmitHandler,
+  UseControllerProps,
+} from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Popover } from '@headlessui/react'
+import {
+  HiArrowNarrowDown,
+  HiChevronDown,
+  HiOutlineSearch,
+} from 'react-icons/hi'
 
 import type {
+  GalleryFilters,
   GalleryItem,
   GalleryOffsetResponse,
   NonNullableRecursive,
@@ -17,10 +30,120 @@ import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import DataTable from '@/components/DataTable'
+import FloatingLabelInput from '@/components/FloatingLabelInput'
+import Button from '@/components/Button'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
+import useCategory from 'hooks/gallery/category/useCategory'
 import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GalleryFiltersSchema } from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
+
+interface DataTableCheckBoxesProps extends UseControllerProps {
+  options: { id: string; name: string }[]
+}
+
+interface TableFilterFormProps {
+  defaultValues: Pick<GalleryFilters, 'search' | 'category'>
+  onSubmitCallback: (data: { id: string; value: string | string[] }[]) => void
+}
+
+const Checkboxes = ({
+  options,
+  control,
+  name,
+}: DataTableCheckBoxesProps): JSX.Element => {
+  const { field } = useController({ control, name })
+  const checked = new Set(field.value as string)
+
+  const handleOnChange = (name: string) => {
+    if (checked.has(name)) {
+      checked.delete(name)
+    } else {
+      checked.add(name)
+    }
+    field.onChange(Array.from(checked))
+  }
+
+  return (
+    <Popover className="relative inline-block">
+      <Popover.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+        <span className="block truncate capitalize">{name}</span>
+        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </span>
+      </Popover.Button>
+      <Popover.Panel
+        as="ul"
+        className="absolute right-0 z-10 mt-2 max-h-44 w-28 origin-top-right overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+      >
+        {options.map(({ id, name }) => (
+          <li key={id} className="flex space-x-2 px-2 py-1">
+            <input
+              id={id}
+              type="checkbox"
+              checked={checked.has(name)}
+              className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
+              onChange={() => handleOnChange(name)}
+              value={name}
+            />
+            <label
+              htmlFor={id}
+              className="cursor-pointer truncate text-xs font-medium text-gray-500"
+            >
+              {name}
+            </label>
+          </li>
+        ))}
+      </Popover.Panel>
+    </Popover>
+  )
+}
+
+const TableFilterForm = ({
+  defaultValues,
+  onSubmitCallback,
+}: TableFilterFormProps) => {
+  const { data } = useCategory()
+
+  const { register, formState, handleSubmit, reset, control } = useForm<
+    Pick<GalleryFilters, 'search' | 'category'>
+  >({
+    resolver: zodResolver(
+      GalleryFiltersSchema.pick({ search: true, category: true })
+    ),
+    defaultValues,
+  })
+
+  useEffect(() => {
+    reset(defaultValues)
+  }, [defaultValues, reset])
+
+  const onSubmit: SubmitHandler<Pick<GalleryFilters, 'search' | 'category'>> = (
+    data
+  ) => {
+    onSubmitCallback(
+      Object.entries(data).map(([id, value]) => {
+        if (id === 'search') {
+          return { id: 'id', value }
+        }
+        return { id, value }
+      })
+    )
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
+    >
+      <FloatingLabelInput id="search" {...register('search')} />
+      <Checkboxes control={control} name="category" options={data ?? []} />
+      <Button disabled={!formState.isDirty} type="submit">
+        <HiOutlineSearch />
+      </Button>
+    </form>
+  )
+}
 
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
@@ -28,6 +151,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
   const filters = router.query
 
   const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
+  const { data: categories } = useCategory()
 
   const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
     () =>
@@ -138,10 +262,62 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     },
   ]
 
+  const filterState = Object.entries(filters).map(([id, value]) => {
+    if (id === 'search' && typeof value === 'string') {
+      return { id: 'id', value }
+    }
+    if (id === 'category' && typeof value === 'string') {
+      return {
+        id,
+        value:
+          typeof value === 'string' && value.includes(',')
+            ? value.split(',')
+            : [value],
+      }
+    }
+    return {} as { id: string; value: string | string[] }
+  })
+
   return (
     <DataTable
       columns={columns}
       data={items}
+      manualFiltering={{
+        state: filterState,
+        render: (table) => (
+          <TableFilterForm
+            defaultValues={{
+              search:
+                (typeof filters.search === 'string' && filters.search) || '',
+              category:
+                typeof filters.category === 'string'
+                  ? filters.category.includes(',')
+                    ? filters.category.split(',')
+                    : [filters.category]
+                  : [],
+            }}
+            onSubmitCallback={(data) => table.setColumnFilters(data)}
+          />
+        ),
+        onColumnFiltersChange: (state) => {
+          const query = state.reduce((prev, { id, value }) => {
+            return Object.assign(
+              prev,
+              Array.isArray(value)
+                ? value.length !== 0
+                  ? { [id]: value.join(',') }
+                  : {}
+                : id === 'id'
+                ? { search: value }
+                : {}
+            )
+          }, {})
+          router.push({ pathname: router.pathname, query }, undefined, {
+            shallow: true,
+          })
+        },
+        filters: [{ id: 'category', data: categories ?? [] }],
+      }}
       manualSorting={{
         state: [
           {

@@ -173,7 +173,7 @@ const FilterForm = ({
   className,
 }: FilterFormProps): JSX.Element => {
   const router = useRouter()
-  const { search, categories, orderBy } = router.query
+  const { search, category, orderBy } = router.query
 
   const {
     register,
@@ -183,7 +183,7 @@ const FilterForm = ({
     control,
   } = useForm<GalleryFilters>({
     resolver: zodResolver(GalleryFiltersSchema),
-    defaultValues: { search: '', categories: [], orderBy: [] },
+    defaultValues: { search: '', category: [], orderBy: [] },
   })
 
   const { data, status, error } = useCategory()
@@ -191,16 +191,14 @@ const FilterForm = ({
   useEffect(() => {
     reset({
       search: typeof search === 'string' ? search : undefined ?? '',
-      categories:
-        typeof categories === 'string'
-          ? categories.split(',')
-          : undefined ?? [],
+      category:
+        typeof category === 'string' ? category.split(',') : undefined ?? [],
       orderBy:
         typeof orderBy === 'string'
           ? (orderBy.split(',') as GalleryOrderBy)
           : undefined ?? [],
     })
-  }, [search, categories, orderBy, reset])
+  }, [search, category, orderBy, reset])
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
     // filter out falsy and empty arrays
@@ -234,9 +232,9 @@ const FilterForm = ({
       <Accordion
         panels={[
           {
-            title: 'Categories',
+            title: 'Category',
             content: (
-              <Checkboxes options={data!} control={control} name="categories" />
+              <Checkboxes options={data!} control={control} name="category" />
             ),
           },
           {
