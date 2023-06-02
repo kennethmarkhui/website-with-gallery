@@ -1,12 +1,26 @@
-import { ReactElement, useMemo } from 'react'
+import { ReactElement, useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
-import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
+import { ColumnDef } from '@tanstack/react-table'
+import {
+  useForm,
+  useController,
+  SubmitHandler,
+  UseControllerProps,
+} from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Popover } from '@headlessui/react'
+import {
+  HiArrowNarrowDown,
+  HiChevronDown,
+  HiOutlineSearch,
+} from 'react-icons/hi'
 
 import type {
+  GalleryFilters,
   GalleryItem,
   GalleryOffsetResponse,
   NonNullableRecursive,
@@ -15,249 +29,129 @@ import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
+import DataTable from '@/components/DataTable'
+import FloatingLabelInput from '@/components/FloatingLabelInput'
+import Button from '@/components/Button'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
+import useCategory from 'hooks/gallery/category/useCategory'
 import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GalleryFiltersSchema } from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
 
-interface PaginationProps {
-  currentPage: number
-  totalCount: number
-  totalPage: number
+interface DataTableCheckBoxesProps extends UseControllerProps {
+  options: { id: string; name: string }[]
 }
 
-interface TableProps {
-  items: NonNullableRecursive<GalleryItem[]>
+interface TableFilterFormProps {
+  defaultValues: Pick<GalleryFilters, 'search' | 'category'>
+  onSubmitCallback: (data: { id: string; value: string | string[] }[]) => void
 }
 
-const Table = ({ items }: TableProps): JSX.Element => {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b text-xs uppercase">
-          <tr>
-            <th scope="col" className="px-4 py-3">
-              id
-            </th>
-            <th scope="col" className="px-4 py-3">
-              image
-            </th>
-            <th scope="col" className="px-4 py-3">
-              name
-            </th>
-            <th scope="col" className="px-4 py-3">
-              storage
-            </th>
-            <th scope="col" className="px-4 py-3">
-              category
-            </th>
-            <th scope="col" className="px-4 py-3">
-              <span className="sr-only">Edit</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map(
-            ({
-              id,
-              name,
-              storage,
-              category,
-              image: { url, width, height, publicId },
-            }) => (
-              <tr key={id} className="border-b hover:bg-gray-50">
-                <th
-                  scope="row"
-                  className="whitespace-nowrap px-4 py-3 font-medium"
-                >
-                  {id}
-                </th>
-                <td className="relative h-32 w-32 bg-white">
-                  <Image
-                    src={url}
-                    alt={id}
-                    className="absolute inset-0 h-full w-full object-contain p-1"
-                    width={width}
-                    height={height}
-                  />
-                </td>
-                <td className="px-4 py-3">{name}</td>
-                <td className="px-4 py-3">{storage}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
-                    {category}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={{
-                      pathname: `/gallery/admin/update/${id}`,
-                      query: {
-                        data: JSON.stringify({
-                          name: name,
-                          storage: storage,
-                          category: category,
-                          image: {
-                            url, // if no image this should be the placeholder image
-                            publicId,
-                            width,
-                            height,
-                          },
-                        }),
-                      },
-                    }}
-                    className="font-medium text-gray-500 hover:text-black hover:underline"
-                    aria-label="edit image"
-                  >
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            )
-          )}
-        </tbody>
-      </table>
-    </div>
-  )
-}
+const Checkboxes = ({
+  options,
+  control,
+  name,
+}: DataTableCheckBoxesProps): JSX.Element => {
+  const { field } = useController({ control, name })
+  const checked = new Set(field.value as string)
 
-const Pagination = ({
-  currentPage,
-  totalCount,
-  totalPage,
-}: PaginationProps): JSX.Element => {
-  const { query } = useRouter()
-  const hasPrevious = currentPage !== 1
-  const hasNext = currentPage < totalPage
-
-  const pageRangeDisplayed = 2
-  const marginPagesDisplayed = 1
-
-  const pages: number[] = []
-  if (totalPage <= pageRangeDisplayed) {
-    for (let index = 1; index <= totalPage; index++) {
-      pages.push(index)
+  const handleOnChange = (name: string) => {
+    if (checked.has(name)) {
+      checked.delete(name)
+    } else {
+      checked.add(name)
     }
-  } else {
-    // paginate logic from react-paginate's paginate function
-    // https://github.com/AdeleD/react-paginate/blob/master/react_components/PaginationBoxView.js
-    let leftSide = pageRangeDisplayed / 2
-    let rightSide = pageRangeDisplayed - leftSide
-
-    if (currentPage > totalPage - pageRangeDisplayed / 2) {
-      rightSide = totalPage - currentPage
-      leftSide = pageRangeDisplayed - rightSide
-    } else if (currentPage < pageRangeDisplayed / 2) {
-      leftSide = currentPage
-      rightSide = pageRangeDisplayed - leftSide
-    }
-
-    for (let page = 1; page <= totalPage; page++) {
-      if (page <= marginPagesDisplayed) {
-        pages.push(page)
-        continue
-      }
-
-      if (page > totalPage - marginPagesDisplayed) {
-        pages.push(page)
-        continue
-      }
-
-      const adjustedRightSide =
-        currentPage === 0 && pageRangeDisplayed > 1 ? rightSide - 1 : rightSide
-
-      if (
-        page >= currentPage - leftSide &&
-        page <= currentPage + adjustedRightSide
-      ) {
-        pages.push(page)
-        continue
-      }
-
-      if (
-        pages.length > 0 &&
-        !isNaN(pages[pages.length - 1]) &&
-        (pageRangeDisplayed > 0 || marginPagesDisplayed > 0)
-      ) {
-        pages.push(NaN)
-      }
-    }
-
-    pages.forEach((page, i) => {
-      const pageBefore = pages[i - 1]
-      const pageAfter = pages[i + 1]
-
-      if (
-        isNaN(page) &&
-        pageBefore &&
-        !isNaN(pageBefore) &&
-        pageAfter &&
-        !isNaN(pageAfter) &&
-        pageAfter - pageBefore <= 2
-      ) {
-        page = (pageAfter + pageBefore) / 2
-      }
-      pages[i] = page
-    })
+    field.onChange(Array.from(checked))
   }
 
   return (
-    <nav className="flex flex-col items-center justify-center space-y-3 p-4 md:flex-row md:justify-between md:space-y-0">
-      <p className="text-sm">
-        Total Items: <span className="font-semibold">{totalCount}</span>
-      </p>
-      <ul className="inline-flex -space-x-px">
-        <li>
-          <Link
-            href={{ query: { ...query, page: currentPage - 1 } }}
-            shallow
-            className={cn(
-              'flex h-full items-center justify-center rounded-l-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-              !hasPrevious && 'pointer-events-none'
-            )}
-          >
-            <span className="sr-only">Previous</span>
-            <HiChevronLeft />
-          </Link>
-        </li>
-        {pages.map((page, idx) => (
-          <li key={idx}>
-            <Link
-              href={{ query: { ...query, page: page } }}
-              shallow
-              className={cn(
-                'flex items-center justify-center border border-gray-300 px-3 py-2 text-sm leading-tight text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-                currentPage === page || isNaN(page)
-                  ? 'pointer-events-none bg-gray-50 text-gray-600'
-                  : 'text-gray-500'
-              )}
+    <Popover className="relative inline-block">
+      <Popover.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+        <span className="block truncate capitalize">{name}</span>
+        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </span>
+      </Popover.Button>
+      <Popover.Panel
+        as="ul"
+        className="absolute right-0 z-10 mt-2 max-h-44 w-28 origin-top-right overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+      >
+        {options.map(({ id, name }) => (
+          <li key={id} className="flex space-x-2 px-2 py-1">
+            <input
+              id={id}
+              type="checkbox"
+              checked={checked.has(name)}
+              className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
+              onChange={() => handleOnChange(name)}
+              value={name}
+            />
+            <label
+              htmlFor={id}
+              className="cursor-pointer truncate text-xs font-medium text-gray-500"
             >
-              {!isNaN(page) ? page : '...'}
-            </Link>
+              {name}
+            </label>
           </li>
         ))}
-        <li>
-          <Link
-            href={{ query: { ...query, page: currentPage + 1 } }}
-            shallow
-            className={cn(
-              'flex h-full items-center justify-center rounded-r-lg border border-gray-300 bg-white px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-              !hasNext && 'pointer-events-none'
-            )}
-          >
-            <span className="sr-only">Next</span>
-            <HiChevronRight />
-          </Link>
-        </li>
-      </ul>
-    </nav>
+      </Popover.Panel>
+    </Popover>
+  )
+}
+
+const TableFilterForm = ({
+  defaultValues,
+  onSubmitCallback,
+}: TableFilterFormProps) => {
+  const { data } = useCategory()
+
+  const { register, formState, handleSubmit, reset, control } = useForm<
+    Pick<GalleryFilters, 'search' | 'category'>
+  >({
+    resolver: zodResolver(
+      GalleryFiltersSchema.pick({ search: true, category: true })
+    ),
+    defaultValues,
+  })
+
+  useEffect(() => {
+    reset(defaultValues)
+  }, [defaultValues, reset])
+
+  const onSubmit: SubmitHandler<Pick<GalleryFilters, 'search' | 'category'>> = (
+    data
+  ) => {
+    onSubmitCallback(
+      Object.entries(data).map(([id, value]) => {
+        if (id === 'search') {
+          return { id: 'id', value }
+        }
+        return { id, value }
+      })
+    )
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
+    >
+      <FloatingLabelInput id="search" {...register('search')} />
+      <Checkboxes control={control} name="category" options={data ?? []} />
+      <Button disabled={!formState.isDirty} type="submit">
+        <HiOutlineSearch />
+      </Button>
+    </form>
   )
 }
 
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
+  const router = useRouter()
+  const filters = router.query
 
-  const { data, status, error, isPreviousData } = useOffsetGallery()
+  const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
+  const { data: categories } = useCategory()
 
   const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
     () =>
@@ -276,24 +170,200 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
     [data?.items]
   )
 
-  const currentPage = data?.page ?? 1
-  const totalCount = data?.totalCount ?? 0
-  const totalPage = Math.ceil(totalCount / GALLERY_LIMIT)
+  const columns: ColumnDef<NonNullableRecursive<GalleryItem>>[] = [
+    {
+      accessorKey: 'id',
+      header: ({ column }) => {
+        const isDesc = column.getIsSorted() === 'desc'
+        return (
+          <button
+            className="flex items-center gap-2"
+            onClick={() => {
+              column.toggleSorting(!isDesc)
+            }}
+          >
+            ID
+            <HiArrowNarrowDown
+              className={cn('transition-transform', !isDesc && 'rotate-180')}
+            />
+          </button>
+        )
+      },
+    },
+    {
+      accessorKey: 'image',
+      header: 'Image',
+      cell: ({ row }) => {
+        // TODO: getValue type is not inferred and is unknown
+        // https://github.com/TanStack/table/pull/4109
+        const {
+          id,
+          image: { url, width, height },
+        } = row.original
+        return (
+          <div className="relative h-32 w-32">
+            <Image
+              src={url}
+              alt={id}
+              className="absolute inset-0 h-full w-full object-contain"
+              width={width}
+              height={height}
+            />
+          </div>
+        )
+      },
+    },
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'storage', header: 'Storage' },
+    {
+      accessorKey: 'category',
+      header: 'Category',
+      cell: ({ row }) => (
+        <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
+          {row.original.category}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const {
+          id,
+          name,
+          storage,
+          category,
+          image: { url, publicId, width, height },
+        } = row.original
+        return (
+          <Link
+            href={{
+              pathname: `/gallery/admin/update/${id}`,
+              query: {
+                data: JSON.stringify({
+                  name,
+                  storage,
+                  category,
+                  image: {
+                    url, // if no image this should be the placeholder image
+                    publicId,
+                    width,
+                    height,
+                  },
+                }),
+              },
+            }}
+            className="font-medium text-gray-500 hover:text-black hover:underline"
+            aria-label="edit image"
+          >
+            Edit
+          </Link>
+        )
+      },
+    },
+  ]
+
+  const filterState = Object.entries(filters).map(([id, value]) => {
+    if (id === 'search' && typeof value === 'string') {
+      return { id: 'id', value }
+    }
+    if (id === 'category' && typeof value === 'string') {
+      return {
+        id,
+        value:
+          typeof value === 'string' && value.includes(',')
+            ? value.split(',')
+            : [value],
+      }
+    }
+    return {} as { id: string; value: string | string[] }
+  })
 
   return (
-    <div
-      className={cn(
-        'relative w-full space-y-4 overflow-hidden',
-        isPreviousData && 'pointer-events-none opacity-50'
-      )}
-    >
-      <Table items={items} />
-      <Pagination
-        currentPage={+currentPage}
-        totalCount={totalCount}
-        totalPage={totalPage}
-      />
-    </div>
+    <DataTable
+      columns={columns}
+      data={items}
+      manualFiltering={{
+        state: filterState,
+        render: (table) => (
+          <TableFilterForm
+            defaultValues={{
+              search:
+                (typeof filters.search === 'string' && filters.search) || '',
+              category:
+                typeof filters.category === 'string'
+                  ? filters.category.includes(',')
+                    ? filters.category.split(',')
+                    : [filters.category]
+                  : [],
+            }}
+            onSubmitCallback={(data) => table.setColumnFilters(data)}
+          />
+        ),
+        onColumnFiltersChange: (state) => {
+          const query = state.reduce((prev, { id, value }) => {
+            return Object.assign(
+              prev,
+              Array.isArray(value)
+                ? value.length !== 0
+                  ? { [id]: value.join(',') }
+                  : {}
+                : id === 'id'
+                ? { search: value }
+                : {}
+            )
+          }, {})
+          router.push({ pathname: router.pathname, query }, undefined, {
+            shallow: true,
+          })
+        },
+        filters: [{ id: 'category', data: categories ?? [] }],
+      }}
+      manualSorting={{
+        state: [
+          {
+            id:
+              typeof filters.orderBy === 'string'
+                ? filters.orderBy.split(',')[0]
+                : 'id',
+            desc:
+              typeof filters.orderBy === 'string'
+                ? filters.orderBy.split(',')[1] === 'desc'
+                : true,
+          },
+        ],
+        onSortingChange: (state) => {
+          const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
+          router.push(
+            {
+              pathname: router.pathname,
+              query: {
+                orderBy,
+              },
+            },
+            undefined,
+            { shallow: true }
+          )
+        },
+      }}
+      manualPagination={{
+        state: {
+          pageIndex: data?.page ? data.page - 1 : 0,
+          pageSize: GALLERY_LIMIT,
+        },
+        dataCount: data?.totalCount ?? 0,
+        onPaginationChange: ({ pageIndex }) => {
+          router.push(
+            {
+              pathname: router.pathname,
+              query: { ...router.query, page: pageIndex + 1 },
+            },
+            undefined,
+            { shallow: true }
+          )
+        },
+      }}
+      isLoading={isPreviousData}
+    />
   )
 }
 

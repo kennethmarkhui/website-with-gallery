@@ -16,25 +16,25 @@ import { GALLERY_LIMIT, GALLERY_ORDER_BY_DIRECTION } from 'constants/gallery'
 export async function fetchItems({
   page,
   search,
-  categories,
+  category,
   orderBy,
 }: GalleryOffsetQuery): Promise<GalleryOffsetResponse>
 export async function fetchItems({
   nextCursor,
   search,
-  categories,
+  category,
   orderBy,
 }: GalleryCursorQuery): Promise<GalleryCursorResponse>
 export async function fetchItems({
   nextCursor,
   page,
   search: searchFilter,
-  categories,
+  category,
   orderBy,
 }: GalleryQuery): Promise<GalleryResponse> {
-  const categoriesFilter =
-    typeof categories === 'string'
-      ? { name: { in: categories.split(',') } }
+  const categoryFilter =
+    typeof category === 'string'
+      ? { name: { in: category.split(',') } }
       : undefined
 
   // https://github.com/prisma/prisma/discussions/4888#discussioncomment-403826
@@ -58,7 +58,7 @@ export async function fetchItems({
         AND: [
           { id: { contains: searchFilter, mode: 'insensitive' } },
           {
-            category: categoriesFilter,
+            category: categoryFilter,
           },
         ],
       },
@@ -93,7 +93,7 @@ export async function fetchItems({
         AND: [
           { id: { contains: searchFilter, mode: 'insensitive' } },
           {
-            category: categoriesFilter,
+            category: categoryFilter,
           },
         ],
       },
