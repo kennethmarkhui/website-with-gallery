@@ -12,6 +12,7 @@ import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useCursorGallery from 'hooks/gallery/useCursorGallery'
+import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GalleryFiltersSchema } from 'lib/validations'
 
@@ -20,13 +21,15 @@ const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 const Gallery: NextPageWithLayout = (): JSX.Element => {
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
+  const { filters } = useUrlGalleryFilters()
+
   const {
     data,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
     isPreviousData,
-  } = useCursorGallery()
+  } = useCursorGallery({ filters })
 
   const photos: ExtendedPhoto[] = useMemo(
     () =>

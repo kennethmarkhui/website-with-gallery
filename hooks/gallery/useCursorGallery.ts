@@ -1,5 +1,4 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
 
 import type { GalleryFilters, GalleryCursorResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
@@ -8,9 +7,11 @@ import {
   removeEmptyObjectFromArray,
 } from 'lib/utils'
 
-const useCursorGallery = () => {
-  const router = useRouter()
-  const filters = router.query
+interface UseCursorGalleryProps {
+  filters: GalleryFilters
+}
+
+const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
   const queryKey = removeEmptyObjectFromArray(['gallery', 'cursor', filters])
 
   const {

@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { ParsedUrlQuery } from 'querystring'
 
 import type { GalleryFilters, GalleryOffsetResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
@@ -9,7 +8,7 @@ import {
 } from 'lib/utils'
 
 interface UseOffsetGalleryProps {
-  filters: ParsedUrlQuery
+  filters: GalleryFilters
 }
 
 const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {

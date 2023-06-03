@@ -2,7 +2,6 @@ import { ReactElement, useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import {
@@ -34,6 +33,7 @@ import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import useCategory from 'hooks/gallery/category/useCategory'
+import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
 import { GalleryFiltersSchema } from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
@@ -147,8 +147,7 @@ const TableFilterForm = ({
 
 const Admin: NextPageWithLayout = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
-  const router = useRouter()
-  const filters = router.query
+  const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
   const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
   const { data: categories } = useCategory()
@@ -312,9 +311,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
                 : {}
             )
           }, {})
-          router.push({ pathname: router.pathname, query }, undefined, {
-            shallow: true,
-          })
+          setUrlGalleryFilters({ query })
         },
         filters: [{ id: 'category', data: categories ?? [] }],
       }}
@@ -333,16 +330,7 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
         ],
         onSortingChange: (state) => {
           const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
-          router.push(
-            {
-              pathname: router.pathname,
-              query: {
-                orderBy,
-              },
-            },
-            undefined,
-            { shallow: true }
-          )
+          setUrlGalleryFilters({ query: { orderBy } })
         },
       }}
       manualPagination={{
@@ -352,14 +340,9 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
         },
         dataCount: data?.totalCount ?? 0,
         onPaginationChange: ({ pageIndex }) => {
-          router.push(
-            {
-              pathname: router.pathname,
-              query: { ...router.query, page: pageIndex + 1 },
-            },
-            undefined,
-            { shallow: true }
-          )
+          setUrlGalleryFilters((prev) => ({
+            query: { ...prev, page: pageIndex + 1 + '' },
+          }))
         },
       }}
       isLoading={isPreviousData}

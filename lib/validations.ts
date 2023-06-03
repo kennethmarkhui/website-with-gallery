@@ -53,7 +53,9 @@ export const GalleryFormFieldsSchema = z.object({
 export const GalleryFiltersSchema = z.object({
   search: z.string().optional(),
   category: z.union([z.string(), z.array(z.string())]).optional(),
-  orderBy: z.union([z.string(), z.custom<GalleryOrderBy>()]).optional(),
+  orderBy: z
+    .union([z.string(), z.array(z.string()), z.custom<GalleryOrderBy>()])
+    .optional(),
   page: z.string().regex(/^\d+$/, { message: 'Numerics only.' }).optional(),
 })
 

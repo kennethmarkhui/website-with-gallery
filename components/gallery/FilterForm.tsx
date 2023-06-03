@@ -1,5 +1,4 @@
 import { ComponentPropsWithoutRef, ReactNode, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import {
   SubmitHandler,
   useController,
@@ -14,7 +13,6 @@ import {
 } from 'react-icons/hi'
 
 import type {
-  GalleryOrderBy,
   GalleryFilters,
   GalleryOrderByDirection,
   GalleryItemKeys,
@@ -27,6 +25,7 @@ import { GalleryFiltersSchema } from 'lib/validations'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
+  defaultValues: GalleryFilters
   onSubmitCallback: (data: Omit<GalleryFilters, 'page'>) => void
 }
 
@@ -169,12 +168,10 @@ const Accordion = ({ panels }: AccordionProps): JSX.Element => {
 
 const FilterForm = ({
   disabled = false,
+  defaultValues,
   onSubmitCallback,
   className,
 }: FilterFormProps): JSX.Element => {
-  const router = useRouter()
-  const { search, category, orderBy } = router.query
-
   const {
     register,
     formState: { isDirty },
@@ -183,22 +180,14 @@ const FilterForm = ({
     control,
   } = useForm<GalleryFilters>({
     resolver: zodResolver(GalleryFiltersSchema),
-    defaultValues: { search: '', category: [], orderBy: [] },
+    defaultValues,
   })
 
   const { data, status, error } = useCategory()
 
   useEffect(() => {
-    reset({
-      search: typeof search === 'string' ? search : undefined ?? '',
-      category:
-        typeof category === 'string' ? category.split(',') : undefined ?? [],
-      orderBy:
-        typeof orderBy === 'string'
-          ? (orderBy.split(',') as GalleryOrderBy)
-          : undefined ?? [],
-    })
-  }, [search, category, orderBy, reset])
+    reset(defaultValues)
+  }, [defaultValues, reset])
 
   const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
     // filter out falsy and empty arrays

@@ -1,9 +1,9 @@
-import { useRouter } from 'next/router'
-
 import GalleryHeader from './header/GalleryHeader'
 import Sidebar from '../gallery/Sidebar'
 import FilterForm from '../gallery/FilterForm'
 import useDrawer from 'hooks/useDrawer'
+import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
+import { GalleryOrderBy } from 'types/gallery'
 import { cn } from 'lib/utils'
 
 interface GalleryLayoutProps {
@@ -11,7 +11,10 @@ interface GalleryLayoutProps {
 }
 
 const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
-  const router = useRouter()
+  const {
+    filters: { search, category, orderBy },
+    setUrlGalleryFilters,
+  } = useUrlGalleryFilters()
   const { isOpen, openDrawer, closeDrawer } = useDrawer()
 
   return (
@@ -20,14 +23,19 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
         <div className="flex h-full flex-col">
           {!isOpen && <GalleryHeader smallVersion />}
           <FilterForm
+            defaultValues={{
+              search: typeof search === 'string' ? search : undefined ?? '',
+              category:
+                typeof category === 'string'
+                  ? category.split(',')
+                  : undefined ?? [],
+              orderBy:
+                typeof orderBy === 'string'
+                  ? (orderBy.split(',') as GalleryOrderBy)
+                  : undefined ?? [],
+            }}
             onSubmitCallback={(data) => {
-              router.push(
-                !data ? router.pathname : { query: data },
-                undefined,
-                {
-                  shallow: true,
-                }
-              )
+              setUrlGalleryFilters({ query: data })
               closeDrawer()
             }}
           />
