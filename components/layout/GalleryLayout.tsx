@@ -50,8 +50,6 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
                   }
                 }, {}) as GalleryOffsetQuery
 
-              console.log(query)
-
               setUrlGalleryFilters({ query })
               closeDrawer()
             }}

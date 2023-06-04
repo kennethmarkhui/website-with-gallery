@@ -84,8 +84,8 @@ const Checkboxes = ({
 
 const SortBy = ({ options, control, name }: SortByProps): JSX.Element => {
   const { field } = useController({ control, name })
-  const selected = field.value[0]
-  const isDesc = field.value[1] === 'desc'
+  const selected = field.value?.[0]
+  const isDesc = field.value?.[1] === 'desc'
 
   const sortDirection = (bool: boolean): GalleryOrderByDirection =>
     bool ? 'desc' : 'asc'
