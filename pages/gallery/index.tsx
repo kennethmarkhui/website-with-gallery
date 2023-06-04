@@ -14,7 +14,7 @@ import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useCursorGallery from 'hooks/gallery/useCursorGallery'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { pick, removeEmptyObjectFromArray } from 'lib/utils'
-import { GalleryFiltersSchema } from 'lib/validations'
+import { GalleryOffsetQuerySchema } from 'lib/validations'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
@@ -103,7 +103,9 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const queryClient = new QueryClient()
 
-  const parsedQuery = GalleryFiltersSchema.omit({ page: true }).safeParse(query)
+  const parsedQuery = GalleryOffsetQuerySchema.omit({ page: true }).safeParse(
+    query
+  )
   if (!parsedQuery.success) {
     return { redirect: { destination: '/gallery', permanent: false } }
   }

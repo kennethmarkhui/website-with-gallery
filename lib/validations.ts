@@ -50,22 +50,24 @@ export const GalleryFormFieldsSchema = z.object({
     .optional(),
 })
 
-export const GalleryFiltersSchema = z.object({
+export const GalleryFormFiltersSchema = z.object({
   search: z.string().optional(),
-  category: z.union([z.string(), z.array(z.string())]).optional(),
-  orderBy: z
-    .union([z.string(), z.array(z.string()), z.custom<GalleryOrderBy>()])
-    .optional(),
+  category: z.array(z.string()).optional(),
+  orderBy: z.custom<GalleryOrderBy>().optional(),
+})
+
+export const GalleryOffsetQuerySchema = z.object({
+  search: z.string().optional(),
+  category: z.string().optional(),
+  orderBy: z.string().optional(),
   page: z.string().regex(/^\d+$/, { message: 'Numerics only.' }).optional(),
 })
 
-export const GalleryCursorQuerySchema = GalleryFiltersSchema.omit({
+export const GalleryCursorQuerySchema = GalleryOffsetQuerySchema.omit({
   page: true,
 }).extend({
   nextCursor: z.string().optional(),
 })
-
-export const GalleryOffsetQuerySchema = GalleryFiltersSchema
 
 export const GalleryQuerySchema = GalleryCursorQuerySchema.merge(
   GalleryOffsetQuerySchema

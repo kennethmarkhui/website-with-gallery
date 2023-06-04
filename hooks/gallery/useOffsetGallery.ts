@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { GalleryFilters, GalleryOffsetResponse } from 'types/gallery'
+import type { GalleryOffsetQuery, GalleryOffsetResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 import {
   generateQueryStringFromObject,
@@ -8,12 +8,12 @@ import {
 } from 'lib/utils'
 
 interface UseOffsetGalleryProps {
-  filters: GalleryFilters
+  filters: GalleryOffsetQuery
 }
 
 const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {
   const queryKey = removeEmptyObjectFromArray(['gallery', 'offset', filters])
-  const galleryFilters = queryKey[2] as GalleryFilters
+  const galleryFilters = queryKey[2] as GalleryOffsetQuery
 
   const { data, status, error, isPreviousData } = useQuery({
     queryKey,
@@ -22,7 +22,7 @@ const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {
         '/api/gallery' +
           generateQueryStringFromObject({
             ...galleryFilters,
-            page: galleryFilters?.page ?? 1,
+            page: galleryFilters?.page ?? '1',
           })
       ),
     keepPreviousData: true,

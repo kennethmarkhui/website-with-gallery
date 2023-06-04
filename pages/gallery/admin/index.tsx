@@ -19,7 +19,7 @@ import {
 } from 'react-icons/hi'
 
 import type {
-  GalleryFilters,
+  GalleryFormFilters,
   GalleryItem,
   GalleryOffsetResponse,
   NonNullableRecursive,
@@ -35,15 +35,20 @@ import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
-import { GalleryFiltersSchema } from 'lib/validations'
+import {
+  GalleryFormFiltersSchema,
+  GalleryOffsetQuerySchema,
+} from 'lib/validations'
 import { GALLERY_LIMIT } from 'constants/gallery'
+
+type TableFilterFormValues = Omit<GalleryFormFilters, 'orderBy'>
 
 interface DataTableCheckBoxesProps extends UseControllerProps {
   options: { id: string; name: string }[]
 }
 
 interface TableFilterFormProps {
-  defaultValues: Pick<GalleryFilters, 'search' | 'category'>
+  defaultValues: TableFilterFormValues
   onSubmitCallback: (data: { id: string; value: string | string[] }[]) => void
 }
 
@@ -105,22 +110,19 @@ const TableFilterForm = ({
 }: TableFilterFormProps) => {
   const { data } = useCategory()
 
-  const { register, formState, handleSubmit, reset, control } = useForm<
-    Pick<GalleryFilters, 'search' | 'category'>
-  >({
-    resolver: zodResolver(
-      GalleryFiltersSchema.pick({ search: true, category: true })
-    ),
-    defaultValues,
-  })
+  const { register, formState, handleSubmit, reset, control } =
+    useForm<TableFilterFormValues>({
+      resolver: zodResolver(
+        GalleryFormFiltersSchema.pick({ search: true, category: true })
+      ),
+      defaultValues,
+    })
 
   useEffect(() => {
     reset(defaultValues)
   }, [defaultValues, reset])
 
-  const onSubmit: SubmitHandler<Pick<GalleryFilters, 'search' | 'category'>> = (
-    data
-  ) => {
+  const onSubmit: SubmitHandler<TableFilterFormValues> = (data) => {
     onSubmitCallback(
       Object.entries(data).map(([id, value]) => {
         if (id === 'search') {
@@ -360,7 +362,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const queryClient = new QueryClient()
 
-  const parsedQuery = GalleryFiltersSchema.safeParse(query)
+  const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
 
   if (!parsedQuery.success) {
     return { redirect: { destination: '/500', permanent: false } }

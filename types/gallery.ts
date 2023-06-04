@@ -4,7 +4,7 @@ import { z } from 'zod'
 import {
   GalleryCategoryFormFieldsSchema,
   GalleryCursorQuerySchema,
-  GalleryFiltersSchema,
+  GalleryFormFiltersSchema,
   GalleryFormFieldsSchema,
   GalleryOffsetQuerySchema,
   GalleryQuerySchema,
@@ -43,13 +43,13 @@ export type GalleryFormMode = 'create' | 'update'
 
 export type NextCursor = string
 
-export type GalleryFilters = z.infer<typeof GalleryFiltersSchema>
+export type GalleryFormFilters = z.infer<typeof GalleryFormFiltersSchema>
 
 export type PaginationType = 'cursor' | 'offset'
 
-export type GalleryCursorQuery = z.infer<typeof GalleryCursorQuerySchema>
-
 export type GalleryOffsetQuery = z.infer<typeof GalleryOffsetQuerySchema>
+
+export type GalleryCursorQuery = z.infer<typeof GalleryCursorQuerySchema>
 
 export type GalleryQuery = z.infer<typeof GalleryQuerySchema>
 

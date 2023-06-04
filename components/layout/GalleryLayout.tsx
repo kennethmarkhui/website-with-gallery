@@ -3,7 +3,11 @@ import Sidebar from '../gallery/Sidebar'
 import FilterForm from '../gallery/FilterForm'
 import useDrawer from 'hooks/useDrawer'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
-import { GalleryOrderBy } from 'types/gallery'
+import {
+  GalleryFormFilters,
+  GalleryOrderBy,
+  GalleryOffsetQuery,
+} from 'types/gallery'
 import { cn } from 'lib/utils'
 
 interface GalleryLayoutProps {
@@ -24,18 +28,31 @@ const GalleryLayout = ({ children }: GalleryLayoutProps): JSX.Element => {
           {!isOpen && <GalleryHeader smallVersion />}
           <FilterForm
             defaultValues={{
-              search: typeof search === 'string' ? search : undefined ?? '',
-              category:
-                typeof category === 'string'
-                  ? category.split(',')
-                  : undefined ?? [],
-              orderBy:
-                typeof orderBy === 'string'
-                  ? (orderBy.split(',') as GalleryOrderBy)
-                  : undefined ?? [],
+              search: search ?? '',
+              category: category?.split(',') ?? [],
+              orderBy: orderBy?.split(',') as GalleryOrderBy,
             }}
             onSubmitCallback={(data) => {
-              setUrlGalleryFilters({ query: data })
+              // filter out falsy and empty arrays
+              // https://stackoverflow.com/a/38340730
+              const query = (Object.keys(data) as (keyof GalleryFormFilters)[])
+                .filter((key) => {
+                  const value = data[key]
+                  return Array.isArray(value) ? value.length !== 0 : !!value
+                })
+                .reduce((newData, currentKey) => {
+                  const currentValue = data[currentKey]
+                  return {
+                    ...newData,
+                    [currentKey]: Array.isArray(currentValue)
+                      ? currentValue.join(',')
+                      : currentValue,
+                  }
+                }, {}) as GalleryOffsetQuery
+
+              console.log(query)
+
+              setUrlGalleryFilters({ query })
               closeDrawer()
             }}
           />

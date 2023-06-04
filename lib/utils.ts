@@ -31,19 +31,8 @@ export const formatBytes = (bytes: number): string => {
 }
 
 export const generateQueryStringFromObject = (
-  queries: Record<string, unknown>
-): string => {
-  if (queries) {
-    return (
-      '?' +
-      Object.keys(queries)
-        .map((key) => key + '=' + queries[key])
-        .filter((queryString) => !queryString.endsWith('='))
-        .join('&')
-    )
-  }
-  return ''
-}
+  queries: Record<string, string>
+): string => (queries ? '?' + new URLSearchParams(queries).toString() : '')
 
 export const removeEmptyObjectFromArray = (
   array: Array<string | Record<string, unknown>>

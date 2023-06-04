@@ -1,27 +1,31 @@
 import { useRouter } from 'next/router'
 
-import { GalleryFilters } from 'types/gallery'
-import { GalleryFiltersSchema } from 'lib/validations'
+import { GalleryOffsetQuery } from 'types/gallery'
+import { GalleryOffsetQuerySchema } from 'lib/validations'
 
 const useUrlGalleryFilters = () => {
   const router = useRouter()
 
-  const parsedFilters = GalleryFiltersSchema.safeParse(router.query)
+  const parsedFilters = GalleryOffsetQuerySchema.safeParse(router.query)
   const filters = parsedFilters.success ? parsedFilters.data : {}
 
   const setUrlGalleryFilters = (
     props:
-      | ((filters: GalleryFilters) => {
-          query: GalleryFilters
+      | ((filters: GalleryOffsetQuery) => {
+          query: GalleryOffsetQuery
         })
       | {
-          query: GalleryFilters
+          query: GalleryOffsetQuery
         }
   ) =>
-    router.push({
-      pathname: router.pathname,
-      query: typeof props === 'function' ? props(filters).query : props.query,
-    })
+    router.push(
+      {
+        pathname: router.pathname,
+        query: typeof props === 'function' ? props(filters).query : props.query,
+      },
+      undefined,
+      { shallow: true }
+    )
 
   return {
     filters,

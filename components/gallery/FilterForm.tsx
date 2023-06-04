@@ -13,7 +13,7 @@ import {
 } from 'react-icons/hi'
 
 import type {
-  GalleryFilters,
+  GalleryFormFilters,
   GalleryOrderByDirection,
   GalleryItemKeys,
 } from 'types/gallery'
@@ -21,12 +21,12 @@ import useCategory from 'hooks/gallery/category/useCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import Button from '../Button'
 import { cn } from 'lib/utils'
-import { GalleryFiltersSchema } from 'lib/validations'
+import { GalleryFormFiltersSchema } from 'lib/validations'
 
 interface FilterFormProps extends ComponentPropsWithoutRef<'form'> {
   disabled?: boolean
-  defaultValues: GalleryFilters
-  onSubmitCallback: (data: Omit<GalleryFilters, 'page'>) => void
+  defaultValues: GalleryFormFilters
+  onSubmitCallback: (data: GalleryFormFilters) => void
 }
 
 interface CheckboxesProps extends UseControllerProps {
@@ -178,8 +178,8 @@ const FilterForm = ({
     handleSubmit,
     reset,
     control,
-  } = useForm<GalleryFilters>({
-    resolver: zodResolver(GalleryFiltersSchema),
+  } = useForm<GalleryFormFilters>({
+    resolver: zodResolver(GalleryFormFiltersSchema),
     defaultValues,
   })
 
@@ -189,25 +189,8 @@ const FilterForm = ({
     reset(defaultValues)
   }, [defaultValues, reset])
 
-  const onSubmit: SubmitHandler<GalleryFilters> = (data) => {
-    // filter out falsy and empty arrays
-    // https://stackoverflow.com/a/38340730
-    const queryObject = (Object.keys(data) as (keyof GalleryFilters)[])
-      .filter((key) => {
-        const value = data[key]
-        return Array.isArray(value) ? value.length !== 0 : !!value
-      })
-      .reduce((newData, currentKey) => {
-        const currentValue = data[currentKey]
-        return {
-          ...newData,
-          [currentKey]: Array.isArray(currentValue)
-            ? currentValue.join(',')
-            : currentValue,
-        }
-      }, {})
-
-    onSubmitCallback(queryObject)
+  const onSubmit: SubmitHandler<GalleryFormFilters> = (data) => {
+    onSubmitCallback(data)
   }
 
   return (

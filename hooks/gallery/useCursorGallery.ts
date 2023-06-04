@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 
-import type { GalleryFilters, GalleryCursorResponse } from 'types/gallery'
+import type { GalleryOffsetQuery, GalleryCursorResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 import {
   generateQueryStringFromObject,
@@ -8,7 +8,7 @@ import {
 } from 'lib/utils'
 
 interface UseCursorGalleryProps {
-  filters: GalleryFilters
+  filters: Omit<GalleryOffsetQuery, 'page'>
 }
 
 const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
@@ -29,7 +29,7 @@ const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
         '/api/gallery' +
           generateQueryStringFromObject({
             nextCursor: pageParam ?? 0,
-            ...(queryKey[2] as GalleryFilters),
+            ...(queryKey[2] as Omit<GalleryOffsetQuery, 'page'>),
           })
       ),
     {
