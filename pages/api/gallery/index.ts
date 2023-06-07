@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { Prisma } from 'prisma/prisma-client'
 
 import type {
   GalleryErrorResponse,
@@ -28,44 +29,40 @@ export async function fetchItems({
 export async function fetchItems({
   nextCursor,
   page,
-  search: searchFilter,
+  search,
   category,
-  orderBy,
+  orderBy: orderByFilter,
 }: GalleryQuery): Promise<GalleryResponse> {
-  const categoryFilter =
-    typeof category === 'string'
-      ? { name: { in: category.split(',') } }
-      : undefined
-
   // https://github.com/prisma/prisma/discussions/4888#discussioncomment-403826
-  const orderByFilter = orderBy
-    ? typeof orderBy === 'string'
-      ? orderBy.startsWith('id')
-        ? Object.fromEntries([orderBy.split(',')])
+  const orderBy = (
+    orderByFilter
+      ? orderByFilter.startsWith('id')
+        ? Object.fromEntries([orderByFilter.split(',')])
         : [
-            Object.fromEntries([orderBy.split(',')]),
+            Object.fromEntries([orderByFilter.split(',')]),
             { id: GALLERY_ORDER_BY_DIRECTION },
           ]
-      : undefined
-    : [
-        { updatedAt: GALLERY_ORDER_BY_DIRECTION },
-        { id: GALLERY_ORDER_BY_DIRECTION },
-      ]
+      : [
+          { updatedAt: GALLERY_ORDER_BY_DIRECTION },
+          { id: GALLERY_ORDER_BY_DIRECTION },
+        ]
+  ) satisfies Prisma.Enumerable<Prisma.ItemOrderByWithRelationInput>
+
+  const where = {
+    AND: [
+      { id: { contains: search, mode: 'insensitive' } },
+      {
+        category: category ? { name: { in: category.split(',') } } : undefined,
+      },
+    ],
+  } satisfies Prisma.ItemWhereInput
 
   const [items, totalItems] = await prisma.$transaction([
     prisma.item.findMany({
-      where: {
-        AND: [
-          { id: { contains: searchFilter, mode: 'insensitive' } },
-          {
-            category: categoryFilter,
-          },
-        ],
-      },
+      where,
       take: GALLERY_LIMIT,
       ...(page
         ? {
-            // TODO: safely check and convert page string into number
             skip: (+page - 1) * GALLERY_LIMIT,
           }
         : {
@@ -86,17 +83,10 @@ export async function fetchItems({
           },
         },
       },
-      orderBy: orderByFilter,
+      orderBy,
     }),
     prisma.item.count({
-      where: {
-        AND: [
-          { id: { contains: searchFilter, mode: 'insensitive' } },
-          {
-            category: categoryFilter,
-          },
-        ],
-      },
+      where,
     }),
   ])
 

@@ -33,14 +33,3 @@ export const formatBytes = (bytes: number): string => {
 export const generateQueryStringFromObject = (
   queries: Record<string, string>
 ): string => (queries ? '?' + new URLSearchParams(queries).toString() : '')
-
-export const removeEmptyObjectFromArray = (
-  array: Array<string | Record<string, unknown>>
-): Array<string | Record<string, unknown>> =>
-  array.filter((el) =>
-    typeof el === 'string'
-      ? true
-      : typeof el === 'object' && Object.keys(el).length !== 0
-      ? true
-      : false
-  )

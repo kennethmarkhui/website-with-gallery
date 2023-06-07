@@ -14,6 +14,7 @@ import {
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 
 import { cn } from 'lib/utils'
+import { GALLERY_LIMIT } from 'constants/gallery'
 
 interface PaginationProps {
   currentPage: number
@@ -208,7 +209,10 @@ const DataTable = <TData, TValue>({
     columns,
     state: {
       sorting: manualSorting?.state,
-      pagination: manualPagination?.state ?? { pageIndex: 0, pageSize: 10 },
+      pagination: manualPagination?.state ?? {
+        pageIndex: 0,
+        pageSize: GALLERY_LIMIT,
+      },
       columnFilters: manualFiltering?.state,
     },
     ...(manualFiltering

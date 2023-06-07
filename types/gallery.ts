@@ -1,4 +1,4 @@
-import { Item, Image, Category } from 'prisma/prisma-client'
+import { Prisma, Item, Image, Category } from 'prisma/prisma-client'
 import { z } from 'zod'
 
 import {
@@ -55,7 +55,7 @@ export type GalleryQuery = z.infer<typeof GalleryQuerySchema>
 
 export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 
-export type GalleryOrderByDirection = 'asc' | 'desc'
+export type GalleryOrderByDirection = Prisma.SortOrder
 
 export type GalleryCursorResponse = GalleryItems & {
   nextCursor?: NextCursor

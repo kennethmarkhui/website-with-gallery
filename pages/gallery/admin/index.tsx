@@ -21,7 +21,6 @@ import {
 import type {
   GalleryFormFilters,
   GalleryItem,
-  GalleryOffsetResponse,
   NonNullableRecursive,
 } from 'types/gallery'
 import type { NextPageWithLayout } from 'pages/_app'
@@ -34,7 +33,7 @@ import Button from '@/components/Button'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
-import { cn, pick, removeEmptyObjectFromArray } from 'lib/utils'
+import { cn, pick } from 'lib/utils'
 import {
   GalleryFormFiltersSchema,
   GalleryOffsetQuerySchema,
@@ -368,17 +367,16 @@ export const getServerSideProps: GetServerSideProps = async ({
     return { redirect: { destination: '/500', permanent: false } }
   }
 
-  const queryKey = removeEmptyObjectFromArray([
-    'gallery',
-    'offset',
-    parsedQuery.data,
-  ])
-
   try {
-    await queryClient.fetchQuery<GalleryOffsetResponse>(queryKey, () =>
-      fetchItems({ ...parsedQuery.data, page: parsedQuery.data.page ?? '1' })
-    )
-    await queryClient.fetchQuery(['categories'], () => fetchCategories())
+    await queryClient.fetchQuery({
+      queryKey: ['gallery', 'offset', parsedQuery.data] as const,
+      queryFn: ({ queryKey }) =>
+        fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
+    })
+    await queryClient.fetchQuery({
+      queryKey: ['categories'] as const,
+      queryFn: () => fetchCategories(),
+    })
   } catch (error) {
     return {
       redirect: { destination: '/500', permanent: false },

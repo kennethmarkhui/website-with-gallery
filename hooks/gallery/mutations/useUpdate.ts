@@ -5,45 +5,44 @@ import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
 const useUpdate = () => {
-  return useMutation(
-    async (data: GalleryFormFields) => {
+  return useMutation({
+    mutationFn: (data: GalleryFormFields) => {
       const formData = new FormData()
-      formData.append('name', data.name)
-      formData.append('storage', data.storage)
-      formData.append('category', data.category)
-      if (data.image && data.image.length !== 0) {
-        formData.append('image', data.image[0])
+      for (const [key, value] of Object.entries(data)) {
+        if (value instanceof FileList) {
+          formData.append(key, value[0])
+          break
+        }
+        formData.append(key, value)
       }
 
-      return await fetcher(`/api/gallery/update/${data.id}`, {
+      return fetcher(`/api/gallery/update/${data.id}`, {
         method: 'PUT',
         body: formData,
       })
     },
-    {
-      onMutate: async (item) => {
-        // await queryClient.cancelQueries(['gallery'])
-        // const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
-        //   'gallery',
-        // ])
-        // queryClient.setQueryData<GalleryFormFields[]>(
-        //   ['gallery'],
-        //   (prevItems) =>
-        //     prevItems?.map((current) =>
-        //       current.id === item.id ? item : current
-        //     )
-        // )
-        // return { snapshot }
-      },
-      onError: (error: GalleryErrorResponse, item, context) => {
-        // queryClient.setQueryData(['gallery'], context?.snapshot)
-      },
-      onSuccess: (data, item, context) => {
-        queryClient.invalidateQueries(['gallery'])
-      },
-      onSettled: (data, error, item, context) => {},
-    }
-  )
+    onMutate: async (item) => {
+      // await queryClient.cancelQueries(['gallery'])
+      // const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
+      //   'gallery',
+      // ])
+      // queryClient.setQueryData<GalleryFormFields[]>(
+      //   ['gallery'],
+      //   (prevItems) =>
+      //     prevItems?.map((current) =>
+      //       current.id === item.id ? item : current
+      //     )
+      // )
+      // return { snapshot }
+    },
+    onError: (error: GalleryErrorResponse, item, context) => {
+      // queryClient.setQueryData(['gallery'], context?.snapshot)
+    },
+    onSuccess: (data, item, context) => {
+      queryClient.invalidateQueries(['gallery'])
+    },
+    onSettled: (data, error, item, context) => {},
+  })
 }
 
 export default useUpdate
