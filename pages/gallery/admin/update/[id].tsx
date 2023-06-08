@@ -1,10 +1,9 @@
-import type { ReactElement } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
+import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import type { DefaultGalleryFormFields } from 'types/gallery'
-import { NextPageWithLayout } from 'pages/_app'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -16,34 +15,6 @@ interface UpdateProps {}
 
 type Params = {
   id: string
-}
-
-const Update: NextPageWithLayout<UpdateProps> = (): JSX.Element => {
-  const router = useRouter()
-
-  const { data } = useItem(router.query.id as string)
-
-  if (!data) {
-    return <></>
-  }
-
-  const fetchedData = {
-    id: data.id,
-    name: data.name ?? '',
-    storage: data.storage ?? '',
-    category: data.category ?? '',
-    image: data.image ?? undefined,
-  } satisfies DefaultGalleryFormFields
-
-  return (
-    <div className="w-full">
-      <GalleryForm mode="update" defaultFormValues={fetchedData} />
-    </div>
-  )
-}
-
-Update.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryAdminLayout>{page}</GalleryAdminLayout>
 }
 
 export const getServerSideProps: GetServerSideProps<
@@ -85,11 +56,36 @@ export const getServerSideProps: GetServerSideProps<
   return {
     props: {
       messages: pick(await import(`../../../../intl/${locale}.json`), [
-        'gallery',
+        'gallery-admin',
       ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }
+}
+
+const Update = (): JSX.Element => {
+  const t = useTranslations('gallery-admin')
+  const router = useRouter()
+
+  const { data } = useItem(router.query.id as string)
+
+  if (!data) {
+    return <></>
+  }
+
+  const fetchedData = {
+    id: data.id,
+    name: data.name ?? '',
+    storage: data.storage ?? '',
+    category: data.category ?? '',
+    image: data.image ?? undefined,
+  } satisfies DefaultGalleryFormFields
+
+  return (
+    <GalleryAdminLayout title={t('update-title')}>
+      <GalleryForm mode="update" defaultFormValues={fetchedData} />
+    </GalleryAdminLayout>
+  )
 }
 
 export default Update

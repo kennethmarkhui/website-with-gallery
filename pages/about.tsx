@@ -1,38 +1,26 @@
-import Head from 'next/head'
-import { ReactElement } from 'react'
-import { GetStaticProps, GetStaticPropsContext } from 'next'
-import { useRouter } from 'next/router'
+import { GetStaticProps } from 'next'
 import { useTranslations } from 'next-intl'
 
-import { pick } from 'lib/utils'
-import { NextPageWithLayout } from './_app'
 import Layout from '@/components/layout/Layout'
+import { pick } from 'lib/utils'
 
-const About: NextPageWithLayout = () => {
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      messages: pick(await import(`../intl/${locale}.json`), [
+        'about',
+        'navigation',
+      ]),
+    },
+  }
+}
+
+const About = () => {
   const t = useTranslations('about')
-  const router = useRouter()
 
   return (
-    <>
-      <Head>
-        <title>{t('title')}</title>
-        <link
-          rel="alternate"
-          href="https://website-with-gallery.vercel.app/about"
-          hrefLang="x-default"
-        />
-        {router.locales?.map((locale) => (
-          <link
-            key={locale}
-            rel="alternate"
-            href={`https://website-with-gallery.vercel.app${
-              locale === 'en' ? '/' : `/${locale}/`
-            }about`}
-            hrefLang={locale}
-          />
-        ))}
-      </Head>
-      <div className="flex flex-wrap justify-between py-8 px-0">
+    <Layout title={t('title')} description={t('description')}>
+      <div className="flex flex-wrap justify-between px-0 py-8">
         <div className="m-0 p-2 lg:max-w-[66.666667%] lg:grow-0 lg:basis-4/6">
           <p className="whitespace-pre-line leading-6">{t('description')}</p>
         </div>
@@ -43,25 +31,8 @@ const About: NextPageWithLayout = () => {
           </div>
         </div>
       </div>
-    </>
+    </Layout>
   )
-}
-
-About.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
-}
-
-export const getStaticProps: GetStaticProps = async ({
-  locale,
-}: GetStaticPropsContext) => {
-  return {
-    props: {
-      messages: pick(await import(`../intl/${locale}.json`), [
-        'about',
-        'navigation',
-      ]),
-    },
-  }
 }
 
 export default About

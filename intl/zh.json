@@ -5,6 +5,7 @@
   },
   "index": {
     "title": "zh home",
+    "description": "chinese home description",
     "name": "chinese",
     "gallery": "zh gallery",
     "github": "zh github"
@@ -14,7 +15,25 @@
     "description": "chinese about description"
   },
   "gallery": {
+    "title": "zh gallery",
+    "description": "chinese gallery description",
     "return": "zh Go Back",
-    "return-gallery": "zh Go Back Gallery"
+    "return-gallery": "zh Go Back Gallery",
+    "load-more": "zh Load More",
+    "no-load-more": "zh Nothing more to load",
+    "no-results": "zh No results found",
+    "no-results-description": "zh Try adjusting your search or filter to find what you&#39;re looking for."
+  },
+  "gallery-admin": {
+    "title": "zh gallery admin",
+    "create-title": "zh create",
+    "update-title": "zh update",
+    "home": "zh home",
+    "create": "zh create"
+  },
+  "auth": {
+    "signin-title": "zh sign in",
+    "error-title": "zh auth error",
+    "logout": "zh logout"
   }
 }

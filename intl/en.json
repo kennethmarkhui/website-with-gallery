@@ -5,6 +5,7 @@
   },
   "index": {
     "title": "home",
+    "description": "english home description",
     "name": "english",
     "gallery": "en gallery",
     "github": "en github"
@@ -14,7 +15,25 @@
     "description": "english about description"
   },
   "gallery": {
+    "title": "gallery",
+    "description": "english gallery description",
     "return": "en Go Back",
-    "return-gallery": "en Go Back Gallery"
+    "return-gallery": "en Go Back Gallery",
+    "load-more": "Load More",
+    "no-load-more": "Nothing more to load",
+    "no-results": "No results found",
+    "no-results-description": "Try adjusting your search or filter to find what you&#39;re looking for."
+  },
+  "gallery-admin": {
+    "title": "gallery admin",
+    "create-title": "create",
+    "update-title": "update",
+    "home": "home",
+    "create": "create"
+  },
+  "auth": {
+    "signin-title": "sign in",
+    "error-title": "auth error",
+    "logout": "logout"
   }
 }

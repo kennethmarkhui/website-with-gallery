@@ -1,10 +1,13 @@
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
+import { useTranslations } from 'next-intl'
 import { FaSignOutAlt } from 'react-icons/fa'
+
 import Button from './Button'
 
 const Profile = (): JSX.Element => {
   const { data: session, status } = useSession()
+  const t = useTranslations('auth')
   const router = useRouter()
 
   // https://next-auth.js.org/getting-started/client#signout
@@ -26,7 +29,7 @@ const Profile = (): JSX.Element => {
           <div className="mt-5">
             <Button onClick={handleSignOut} fullWidth>
               <FaSignOutAlt />
-              <span className="ml-2">Logout</span>
+              <span className="ml-2">{t('logout')}</span>
             </Button>
           </div>
         </>

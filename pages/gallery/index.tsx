@@ -1,9 +1,9 @@
-import { ReactElement, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { GetServerSideProps } from 'next'
+import { useTranslations } from 'next-intl'
 import PhotoAlbum from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
@@ -17,7 +17,46 @@ import { GalleryOffsetQuerySchema } from 'lib/validations'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
-const Gallery: NextPageWithLayout = (): JSX.Element => {
+export const getServerSideProps: GetServerSideProps = async ({
+  locale,
+  query,
+}) => {
+  const queryClient = new QueryClient()
+
+  const parsedQuery = GalleryOffsetQuerySchema.omit({ page: true }).safeParse(
+    query
+  )
+  if (!parsedQuery.success) {
+    return { redirect: { destination: '/gallery', permanent: false } }
+  }
+
+  try {
+    await queryClient.fetchInfiniteQuery({
+      queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
+      queryFn: ({ queryKey }) =>
+        fetchItems({ nextCursor: '0', ...queryKey[2] }),
+      getNextPageParam: ({ nextCursor }) => nextCursor,
+    })
+    await queryClient.fetchQuery({
+      queryKey: ['categories'] as const,
+      queryFn: () => fetchCategories(),
+    })
+  } catch (error) {
+    return {
+      redirect: { destination: '/500', permanent: false },
+    }
+  }
+
+  return {
+    props: {
+      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
+    },
+  }
+}
+
+const Gallery = (): JSX.Element => {
+  const t = useTranslations('gallery')
   const [modalData, setModalData] = useState<ExtendedPhoto>()
 
   const { filters } = useUrlGalleryFilters()
@@ -58,7 +97,7 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
   )
 
   return (
-    <>
+    <GalleryLayout title={t('title')} description={t('description')}>
       <PhotoAlbum
         layout="rows"
         photos={photos}
@@ -88,50 +127,8 @@ const Gallery: NextPageWithLayout = (): JSX.Element => {
           close={() => setModalData(undefined)}
         />
       )}
-    </>
+    </GalleryLayout>
   )
-}
-
-Gallery.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryLayout>{page}</GalleryLayout>
-}
-
-export const getServerSideProps: GetServerSideProps = async ({
-  locale,
-  query,
-}) => {
-  const queryClient = new QueryClient()
-
-  const parsedQuery = GalleryOffsetQuerySchema.omit({ page: true }).safeParse(
-    query
-  )
-  if (!parsedQuery.success) {
-    return { redirect: { destination: '/gallery', permanent: false } }
-  }
-
-  try {
-    await queryClient.fetchInfiniteQuery({
-      queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
-      queryFn: ({ queryKey }) =>
-        fetchItems({ nextCursor: '0', ...queryKey[2] }),
-      getNextPageParam: ({ nextCursor }) => nextCursor,
-    })
-    await queryClient.fetchQuery({
-      queryKey: ['categories'] as const,
-      queryFn: () => fetchCategories(),
-    })
-  } catch (error) {
-    return {
-      redirect: { destination: '/500', permanent: false },
-    }
-  }
-
-  return {
-    props: {
-      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
-      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
-    },
-  }
 }
 
 export default Gallery

@@ -1,7 +1,8 @@
-import { ReactElement, useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
 import {
@@ -23,7 +24,6 @@ import type {
   GalleryItem,
   NonNullableRecursive,
 } from 'types/gallery'
-import type { NextPageWithLayout } from 'pages/_app'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -49,6 +49,45 @@ interface DataTableCheckBoxesProps extends UseControllerProps {
 interface TableFilterFormProps {
   defaultValues: TableFilterFormValues
   onSubmitCallback: (data: { id: string; value: string | string[] }[]) => void
+}
+
+export const getServerSideProps: GetServerSideProps = async ({
+  locale,
+  query,
+}) => {
+  const queryClient = new QueryClient()
+
+  const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
+
+  if (!parsedQuery.success) {
+    return { redirect: { destination: '/500', permanent: false } }
+  }
+
+  try {
+    await queryClient.fetchQuery({
+      queryKey: ['gallery', 'offset', parsedQuery.data] as const,
+      queryFn: ({ queryKey }) =>
+        fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
+    })
+    await queryClient.fetchQuery({
+      queryKey: ['categories'] as const,
+      queryFn: () => fetchCategories(),
+    })
+  } catch (error) {
+    return {
+      redirect: { destination: '/500', permanent: false },
+    }
+  }
+
+  return {
+    props: {
+      messages: pick(await import(`../../../intl/${locale}.json`), [
+        'gallery-admin',
+        'auth',
+      ]),
+      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
+    },
+  }
 }
 
 const Checkboxes = ({
@@ -146,7 +185,8 @@ const TableFilterForm = ({
   )
 }
 
-const Admin: NextPageWithLayout = (): JSX.Element => {
+const Admin = (): JSX.Element => {
+  const t = useTranslations('gallery-admin')
   // TODO: use ImageViewerModal to view the image
   const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
@@ -279,116 +319,78 @@ const Admin: NextPageWithLayout = (): JSX.Element => {
   })
 
   return (
-    <DataTable
-      columns={columns}
-      data={items}
-      manualFiltering={{
-        state: filterState,
-        render: (table) => (
-          <TableFilterForm
-            defaultValues={{
-              search:
-                (typeof filters.search === 'string' && filters.search) || '',
-              category:
-                typeof filters.category === 'string'
-                  ? filters.category.includes(',')
-                    ? filters.category.split(',')
-                    : [filters.category]
-                  : [],
-            }}
-            onSubmitCallback={(data) => table.setColumnFilters(data)}
-          />
-        ),
-        onColumnFiltersChange: (state) => {
-          const query = state.reduce((prev, { id, value }) => {
-            return Object.assign(
-              prev,
-              Array.isArray(value)
-                ? value.length !== 0
-                  ? { [id]: value.join(',') }
+    <GalleryAdminLayout title={t('title')}>
+      <DataTable
+        columns={columns}
+        data={items}
+        manualFiltering={{
+          state: filterState,
+          render: (table) => (
+            <TableFilterForm
+              defaultValues={{
+                search:
+                  (typeof filters.search === 'string' && filters.search) || '',
+                category:
+                  typeof filters.category === 'string'
+                    ? filters.category.includes(',')
+                      ? filters.category.split(',')
+                      : [filters.category]
+                    : [],
+              }}
+              onSubmitCallback={(data) => table.setColumnFilters(data)}
+            />
+          ),
+          onColumnFiltersChange: (state) => {
+            const query = state.reduce((prev, { id, value }) => {
+              return Object.assign(
+                prev,
+                Array.isArray(value)
+                  ? value.length !== 0
+                    ? { [id]: value.join(',') }
+                    : {}
+                  : id === 'id'
+                  ? { search: value }
                   : {}
-                : id === 'id'
-                ? { search: value }
-                : {}
-            )
-          }, {})
-          setUrlGalleryFilters({ query })
-        },
-        filters: [{ id: 'category', data: categories ?? [] }],
-      }}
-      manualSorting={{
-        state: [
-          {
-            id:
-              typeof filters.orderBy === 'string'
-                ? filters.orderBy.split(',')[0]
-                : 'id',
-            desc:
-              typeof filters.orderBy === 'string'
-                ? filters.orderBy.split(',')[1] === 'desc'
-                : true,
+              )
+            }, {})
+            setUrlGalleryFilters({ query })
           },
-        ],
-        onSortingChange: (state) => {
-          const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
-          setUrlGalleryFilters({ query: { orderBy } })
-        },
-      }}
-      manualPagination={{
-        state: {
-          pageIndex: data?.page ? data.page - 1 : 0,
-          pageSize: GALLERY_LIMIT,
-        },
-        dataCount: data?.totalCount ?? 0,
-        onPaginationChange: ({ pageIndex }) => {
-          setUrlGalleryFilters((prev) => ({
-            query: { ...prev, page: pageIndex + 1 + '' },
-          }))
-        },
-      }}
-      isLoading={isPreviousData}
-    />
+          filters: [{ id: 'category', data: categories ?? [] }],
+        }}
+        manualSorting={{
+          state: [
+            {
+              id:
+                typeof filters.orderBy === 'string'
+                  ? filters.orderBy.split(',')[0]
+                  : 'id',
+              desc:
+                typeof filters.orderBy === 'string'
+                  ? filters.orderBy.split(',')[1] === 'desc'
+                  : true,
+            },
+          ],
+          onSortingChange: (state) => {
+            const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
+            setUrlGalleryFilters({ query: { orderBy } })
+          },
+        }}
+        manualPagination={{
+          state: {
+            pageIndex: data?.page ? data.page - 1 : 0,
+            pageSize: GALLERY_LIMIT,
+          },
+          dataCount: data?.totalCount ?? 0,
+          onPaginationChange: ({ pageIndex }) => {
+            setUrlGalleryFilters((prev) => ({
+              query: { ...prev, page: pageIndex + 1 + '' },
+            }))
+          },
+        }}
+        isLoading={isPreviousData}
+      />
+    </GalleryAdminLayout>
   )
-}
-
-Admin.getLayout = function getLayout(page: ReactElement) {
-  return <GalleryAdminLayout>{page}</GalleryAdminLayout>
-}
-
-export const getServerSideProps: GetServerSideProps = async ({
-  locale,
-  query,
-}) => {
-  const queryClient = new QueryClient()
-
-  const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
-
-  if (!parsedQuery.success) {
-    return { redirect: { destination: '/500', permanent: false } }
-  }
-
-  try {
-    await queryClient.fetchQuery({
-      queryKey: ['gallery', 'offset', parsedQuery.data] as const,
-      queryFn: ({ queryKey }) =>
-        fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
-    })
-    await queryClient.fetchQuery({
-      queryKey: ['categories'] as const,
-      queryFn: () => fetchCategories(),
-    })
-  } catch (error) {
-    return {
-      redirect: { destination: '/500', permanent: false },
-    }
-  }
-
-  return {
-    props: {
-      messages: pick(await import(`../../../intl/${locale}.json`), ['gallery']),
-      dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
-    },
-  }
 }
 
 export default Admin

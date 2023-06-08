@@ -1,4 +1,5 @@
 import { RenderContainerProps } from 'react-photo-album'
+import { useTranslations } from 'next-intl'
 import { FaSpinner } from 'react-icons/fa'
 
 import PageStatus from '../PageStatus'
@@ -22,6 +23,7 @@ const GalleryContainer = ({
   hasNextPage,
   isPreviousData,
 }: GalleryContainerProps): JSX.Element => {
+  const t = useTranslations('gallery')
   const { className } = containerProps
   return (
     <div
@@ -34,9 +36,8 @@ const GalleryContainer = ({
     >
       {isEmpty && (
         <PageStatus
-          title="No results found"
-          description="Try adjusting your search or filter to find what you&#39;re
-        looking for."
+          title={t('no-results')}
+          description={t('no-results-description')}
         />
       )}
       {!isEmpty && (
@@ -50,9 +51,9 @@ const GalleryContainer = ({
             {isFetchingNextPage ? (
               <FaSpinner className="animate-spin" />
             ) : hasNextPage ? (
-              'Load More'
+              t('load-more')
             ) : (
-              'Nothing more to load'
+              t('no-load-more')
             )}
           </button>
         </>

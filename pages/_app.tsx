@@ -1,5 +1,4 @@
-import { ReactElement, ReactNode, useState } from 'react'
-import type { NextPage } from 'next'
+import { useState } from 'react'
 import type { AppProps } from 'next/app'
 import { AbstractIntlMessages, NextIntlProvider } from 'next-intl'
 import { SessionProvider } from 'next-auth/react'
@@ -11,23 +10,14 @@ import { NProgressBar } from '@/components/NProgressBar'
 import { queryClient } from 'lib/query'
 import '../styles/globals.css'
 
-// https://dev.to/carloschida/comment/1h99b
-export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
-  getLayout?: (page: ReactElement) => ReactNode
-}
-
-type AppPropsWithLayout<
-  P = {
-    messages: AbstractIntlMessages | undefined
-    session: Session | null | undefined
-    dehydratedState: unknown
-  }
-> = AppProps<P> & {
-  Component: NextPageWithLayout<P>
-}
-
-function MyApp({ Component, pageProps }: AppPropsWithLayout) {
-  const getLayout = Component.getLayout ?? ((page) => page)
+function MyApp({
+  Component,
+  pageProps,
+}: AppProps<{
+  messages: AbstractIntlMessages | undefined
+  session: Session | null | undefined
+  dehydratedState: unknown
+}>) {
   const [queryClientState] = useState(() => queryClient)
 
   return (
@@ -35,7 +25,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       <NextIntlProvider messages={pageProps.messages}>
         <SessionProvider session={pageProps.session}>
           <Hydrate state={pageProps.dehydratedState}>
-            {getLayout(<Component {...pageProps} />)}
+            <Component {...pageProps} />
           </Hydrate>
           <NProgressBar />
         </SessionProvider>

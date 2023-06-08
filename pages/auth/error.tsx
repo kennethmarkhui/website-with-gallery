@@ -1,7 +1,11 @@
+import { GetStaticProps } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useTranslations } from 'next-intl'
 
+import AuthLayout from '@/components/layout/AuthLayout'
 import Button from '@/components/Button'
+import { pick } from 'lib/utils'
 
 // https://next-auth.js.org/configuration/pages#error-codes
 type ErrorCode = 'Configuration' | 'AccessDenied' | 'Verification' | 'Default'
@@ -25,13 +29,22 @@ const errors = {
   },
 } satisfies Record<ErrorCode, Record<'title' | 'reason', string>>
 
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      messages: pick(await import(`../../intl/${locale}.json`), ['auth']),
+    },
+  }
+}
+
 const AuthError = (): JSX.Element => {
+  const t = useTranslations('auth')
   const { query } = useRouter()
   const { error = 'Default' } = query
   const { title, reason } = errors[error as ErrorCode]
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center gap-4 px-4 text-center">
+    <AuthLayout title={t('error-title')}>
       <p className="text-2xl">{title}</p>
       <p>{reason}</p>
       <div className="flex gap-4">
@@ -44,7 +57,7 @@ const AuthError = (): JSX.Element => {
           </Link>
         )}
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 

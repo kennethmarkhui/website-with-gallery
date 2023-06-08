@@ -1,12 +1,16 @@
 import { useState } from 'react'
+import { GetStaticProps } from 'next'
 import { useRouter } from 'next/router'
 import { signIn } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+import AuthLayout from '@/components/layout/AuthLayout'
 import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
 import { GalleryAuthSigninFormFieldsSchema } from 'lib/validations'
+import { pick } from 'lib/utils'
 
 // https://next-auth.js.org/configuration/pages#sign-in-page
 type SignInErrorCode =
@@ -36,6 +40,14 @@ const errors = {
   SessionRequired: 'You need to be signed in.',
   Default: 'Something went wrong.',
 } satisfies Record<SignInErrorCode, string>
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      messages: pick(await import(`../../intl/${locale}.json`), ['auth']),
+    },
+  }
+}
 
 const AuthSignInForm = ({
   callbackUrl,
@@ -102,12 +114,13 @@ const AuthSignInVerification = ({
 }
 
 const AuthSignIn = (): JSX.Element => {
+  const t = useTranslations('auth')
   const [emailValue, setEmailValue] = useState<string>()
   const { pathname, query, push } = useRouter()
   const { callbackUrl, error } = query
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center p-4">
+    <AuthLayout title={t('signin-title')}>
       {!emailValue ? (
         <AuthSignInForm
           callbackUrl={callbackUrl}
@@ -120,7 +133,7 @@ const AuthSignIn = (): JSX.Element => {
       ) : (
         <AuthSignInVerification email={emailValue} />
       )}
-    </div>
+    </AuthLayout>
   )
 }
 
