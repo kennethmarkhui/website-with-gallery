@@ -25,6 +25,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
     props: {
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
+        'auth',
       ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
