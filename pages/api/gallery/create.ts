@@ -111,7 +111,7 @@ export default async function handler(
         ...(category && {
           category: {
             connect: {
-              name: category,
+              id: category,
             },
           },
         }),

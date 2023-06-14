@@ -52,7 +52,7 @@ export async function fetchItems({
     AND: [
       { id: { contains: search, mode: 'insensitive' } },
       {
-        category: category ? { name: { in: category.split(',') } } : undefined,
+        category: category ? { id: { in: category.split(',') } } : undefined,
       },
     ],
   } satisfies Prisma.ItemWhereInput
@@ -73,7 +73,7 @@ export async function fetchItems({
         id: true,
         name: true,
         storage: true,
-        category: { select: { name: true } },
+        category: { select: { id: true } },
         image: {
           select: {
             url: true,
@@ -93,7 +93,7 @@ export async function fetchItems({
   return {
     items: items.map((item) => ({
       ...item,
-      category: item.category?.name ?? null,
+      category: item.category?.id ?? null,
     })),
     totalCount: totalItems,
     ...(page

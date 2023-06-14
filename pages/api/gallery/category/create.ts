@@ -2,10 +2,38 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
-import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
+import type {
+  GalleryCategoryFormFields,
+  GalleryErrorResponse,
+  GalleryMutateResponse,
+} from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
+
+const getLanguageId = async (code: string) => {
+  try {
+    const { id } = await prisma.language.findFirstOrThrow({
+      where: {
+        code,
+      },
+      select: {
+        id: true,
+      },
+    })
+    return id
+  } catch (error) {
+    throw error
+  }
+}
+
+export const categoryLanguageCodeToId = (data: GalleryCategoryFormFields) => {
+  const promises = data.category.map(async ({ code, name }) => ({
+    languageId: await getLanguageId(code),
+    name,
+  }))
+  return Promise.all(promises)
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,20 +67,19 @@ export default async function handler(
     })
   }
 
-  const { category } = parsedBody.data
+  const category = await categoryLanguageCodeToId(parsedBody.data)
 
   try {
-    const createdCategory = await prisma.category.create({
+    await prisma.category.create({
       data: {
-        name: category,
-      },
-      select: {
-        name: true,
+        translations: {
+          createMany: {
+            data: category,
+          },
+        },
       },
     })
-    return res
-      .status(201)
-      .json({ message: `${createdCategory.name} has been created.` })
+    return res.status(201).json({ message: 'Category has been created.' })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
@@ -60,8 +87,8 @@ export default async function handler(
         if (target.includes('name')) {
           return res.status(422).json({
             error: {
+              message: 'Values already exist.',
               target: 'category',
-              message: `"${category}" already exist.`,
             },
           })
         }

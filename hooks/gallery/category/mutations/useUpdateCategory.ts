@@ -1,31 +1,54 @@
 import { useMutation } from '@tanstack/react-query'
-import { Category } from 'prisma/prisma-client'
 
-import type { GalleryErrorResponse } from 'types/gallery'
+import type {
+  GalleryCategoryFormFields,
+  GalleryCategoryResponse,
+  GalleryErrorResponse,
+} from 'types/gallery'
 import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
 const useUpdateCategory = () => {
   return useMutation({
-    mutationFn: (data: { id: string; name: string; oldName?: string }) =>
-      fetcher(`/api/gallery/category/update?id=${data.id}`, {
+    mutationFn: ({
+      id,
+      category,
+    }: {
+      id: string
+      category: Pick<GalleryCategoryFormFields, 'category'>['category']
+    }) =>
+      fetcher(`/api/gallery/category/update?id=${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: data.name, oldName: data.oldName }),
+        body: JSON.stringify({ category }),
       }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries(['categories'])
-      const snapshot = queryClient.getQueryData<
-        Pick<Category, 'id' | 'name'>[]
-      >(['categories'])
-      queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
+      const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
+        'categories',
+      ])
+      queryClient.setQueryData<GalleryCategoryResponse>(
         ['categories'],
-        (prev) =>
-          prev?.map((current) =>
-            current.id === variables.id
-              ? { id: variables.id, name: variables.name }
-              : current
-          )
+        (prev) => {
+          if (!prev) {
+            return
+          }
+          return prev.map(({ id, translations }) => {
+            if (id === variables.id) {
+              return {
+                id,
+                translations: variables.category.map(({ name, code }) => ({
+                  name,
+                  language: { code },
+                })),
+              }
+            }
+            return {
+              id,
+              translations,
+            }
+          })
+        }
       )
       return { snapshot }
     },

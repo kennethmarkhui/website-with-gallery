@@ -9,19 +9,19 @@ export const GalleryAuthSigninFormFieldsSchema = z.object({
 })
 
 export const GalleryCategoryFormFieldsSchema = z.object({
-  category: z
-    .string()
-    .trim()
-    .min(1)
-    .max(20)
-    .regex(/^[a-zA-Z\d]+$/, 'Alphanumerics only.'),
+  category: z.array(
+    z.object({
+      code: z.string(),
+      name: z.string().trim().min(1, 'Required').max(20),
+    })
+  ),
 })
 
 export const GalleryFormFieldsSchema = z.object({
   id: z
     .string()
     .trim()
-    .min(1)
+    .min(1, 'Required')
     .regex(/^[a-zA-Z\d]+$/, 'Alphanumerics only.'),
   name: z.string(),
   storage: z.string(),

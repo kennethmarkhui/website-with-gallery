@@ -98,11 +98,11 @@ const Checkboxes = ({
   const { field } = useController({ control, name })
   const checked = new Set(field.value as string)
 
-  const handleOnChange = (name: string) => {
-    if (checked.has(name)) {
-      checked.delete(name)
+  const handleOnChange = (id: string) => {
+    if (checked.has(id)) {
+      checked.delete(id)
     } else {
-      checked.add(name)
+      checked.add(id)
     }
     field.onChange(Array.from(checked))
   }
@@ -124,10 +124,10 @@ const Checkboxes = ({
             <input
               id={id}
               type="checkbox"
-              checked={checked.has(name)}
+              checked={checked.has(id)}
               className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
-              onChange={() => handleOnChange(name)}
-              value={name}
+              onChange={() => handleOnChange(id)}
+              value={id}
             />
             <label
               htmlFor={id}
@@ -146,7 +146,7 @@ const TableFilterForm = ({
   defaultValues,
   onSubmitCallback,
 }: TableFilterFormProps) => {
-  const { data } = useCategory()
+  const { localizedData } = useCategory()
 
   const { register, formState, handleSubmit, reset, control } =
     useForm<TableFilterFormValues>({
@@ -177,7 +177,11 @@ const TableFilterForm = ({
       className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
     >
       <FloatingLabelInput id="search" {...register('search')} />
-      <Checkboxes control={control} name="category" options={data ?? []} />
+      <Checkboxes
+        control={control}
+        name="category"
+        options={localizedData ?? []}
+      />
       <Button disabled={!formState.isDirty} type="submit">
         <HiOutlineSearch />
       </Button>
@@ -191,7 +195,7 @@ const Admin = (): JSX.Element => {
   const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
   const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
-  const { data: categories } = useCategory()
+  const { localizedData } = useCategory()
 
   const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
     () =>
@@ -258,11 +262,16 @@ const Admin = (): JSX.Element => {
     {
       accessorKey: 'category',
       header: 'Category',
-      cell: ({ row }) => (
-        <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
-          {row.original.category}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const category = localizedData?.find(
+          (data) => data.id === row.original.category
+        )
+        return (
+          <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
+            {category?.name}
+          </span>
+        )
+      },
     },
     {
       id: 'actions',
@@ -355,7 +364,7 @@ const Admin = (): JSX.Element => {
             }, {})
             setUrlGalleryFilters({ query })
           },
-          filters: [{ id: 'category', data: categories ?? [] }],
+          filters: [{ id: 'category', data: localizedData ?? [] }],
         }}
         manualSorting={{
           state: [

@@ -77,11 +77,28 @@ CREATE TABLE "Image" (
 -- CreateTable
 CREATE TABLE "Category" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
     "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Language" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+
+    CONSTRAINT "Language_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CategoryTranslations" (
+    "languageId" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+
+    CONSTRAINT "CategoryTranslations_pkey" PRIMARY KEY ("languageId","categoryId")
 );
 
 -- CreateIndex
@@ -103,7 +120,10 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 CREATE UNIQUE INDEX "Image_itemId_key" ON "Image"("itemId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
+CREATE UNIQUE INDEX "Language_code_key" ON "Language"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CategoryTranslations_languageId_name_key" ON "CategoryTranslations"("languageId", "name");
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -116,3 +136,9 @@ ALTER TABLE "Item" ADD CONSTRAINT "Item_categoryId_fkey" FOREIGN KEY ("categoryI
 
 -- AddForeignKey
 ALTER TABLE "Image" ADD CONSTRAINT "Image_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CategoryTranslations" ADD CONSTRAINT "CategoryTranslations_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES "Language"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CategoryTranslations" ADD CONSTRAINT "CategoryTranslations_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;

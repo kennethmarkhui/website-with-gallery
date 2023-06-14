@@ -4,11 +4,24 @@ import cloudinary from '../lib/cloudinary'
 
 const prisma = new PrismaClient()
 
-const getSeedImages = async (): Promise<string[]> => {
+const languages = [
+  { name: 'English', code: 'en' },
+  { name: 'Chinese', code: 'zh' },
+]
+
+const getSeedImages = async () => {
   try {
-    // https://shibe.online/
-    const response = await fetch('https://shibe.online/api/cats?count=50')
-    return await response.json()
+    // https://picsum.photos/
+    const response = await fetch('https://picsum.photos/v2/list?limit=50')
+    const data = (await response.json()) as {
+      id: string
+      author: string
+      width: string
+      height: string
+      url: string
+      download_url: string
+    }[]
+    return data.map(({ download_url }) => download_url)
   } catch (error) {
     throw new Error('getting seed images failed.')
   }
@@ -19,6 +32,9 @@ const seed = async () => {
   const images = await getSeedImages()
 
   try {
+    await prisma.language.deleteMany()
+    console.log('Languages deleted.')
+
     await prisma.category.deleteMany()
     console.log('Categories deleted.')
 
@@ -31,10 +47,31 @@ const seed = async () => {
     )
     console.log('Images deleted.')
 
-    await prisma.category.createMany({
-      data: categories.map((category) => ({ name: category })),
-      skipDuplicates: true,
-    })
+    const languageIds = await prisma.$transaction(
+      languages.map((lang) =>
+        prisma.language.create({ data: lang, select: { id: true, code: true } })
+      )
+    )
+
+    const categoryIds = await prisma
+      .$transaction(
+        categories.map((index) =>
+          prisma.category.create({
+            data: {
+              translations: {
+                createMany: {
+                  data: languageIds.map(({ id, code }) => ({
+                    languageId: id,
+                    name: `${code}-${index}`,
+                  })),
+                },
+              },
+            },
+            select: { id: true },
+          })
+        )
+      )
+      .then((ids) => ids.map(({ id }) => id))
     console.log('Categories added.')
 
     let promises = []
@@ -58,7 +95,7 @@ const seed = async () => {
               name: filename,
               category: {
                 connect: {
-                  name: categories[
+                  id: categoryIds[
                     Math.floor(Math.random() * categories.length)
                   ],
                 },

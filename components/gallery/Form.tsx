@@ -64,7 +64,7 @@ function GalleryForm({
     },
   })
 
-  const { data: categories, status: categoryStatus } = useCategory()
+  const { localizedData, status: categoryStatus } = useCategory()
 
   useEffect(() => {
     if (mode !== 'update' || !defaultFormValues || categoryStatus !== 'success')
@@ -133,7 +133,7 @@ function GalleryForm({
           id="category"
           {...register('category')}
           defaultSelected={defaultFormValues?.category}
-          options={categories}
+          options={localizedData}
           loading={categoryStatus === 'loading'}
         />
         <ImagePreviewInput
@@ -145,7 +145,7 @@ function GalleryForm({
           setFormValue={setValue}
           removeFormValue={() => resetField('image')}
         />
-        <div className="mt-4 flex gap-4 ">
+        <div className="flex gap-4">
           <Button type="submit" disabled={!isDirty}>
             {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">

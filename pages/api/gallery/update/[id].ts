@@ -129,7 +129,7 @@ export default async function handler(
           ? {
               category: {
                 connect: {
-                  name: category,
+                  id: category,
                 },
               },
             }
