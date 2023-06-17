@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { DefaultGalleryFormFields, GalleryItem } from 'types/gallery'
+import type { DefaultGalleryFormFields } from 'types/gallery'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -79,18 +79,22 @@ const Update = (): JSX.Element => {
 
   const fetchedData = {
     id: data.id,
-    name: data.translations
-      .map(({ language: { code }, name }) => ({
-        code,
-        value: name ?? '',
-      }))
-      .filter(({ value }) => value),
-    storage: data.translations
-      .map(({ language: { code }, storage }) => ({
-        code,
-        value: storage ?? '',
-      }))
-      .filter(({ value }) => value),
+    name: data.translations.some(({ name }) => name)
+      ? data.translations
+          .map(({ language: { code }, name }) => ({
+            code,
+            value: name ?? '',
+          }))
+          .filter(({ value }) => value)
+      : [{ code: router.locale!, value: '' }],
+    storage: data.translations.some(({ storage }) => storage)
+      ? data.translations
+          .map(({ language: { code }, storage }) => ({
+            code,
+            value: storage ?? '',
+          }))
+          .filter(({ value }) => value)
+      : [{ code: router.locale!, value: '' }],
     category: data.category ?? '',
     image: data.image ?? undefined,
   } satisfies DefaultGalleryFormFields
