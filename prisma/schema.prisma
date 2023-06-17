@@ -60,13 +60,12 @@ enum Role {
 
 model Item {
   id                String      @id 
-  name              String?
-  storage           String?
   categoryId        String?
   category          Category?   @relation(fields: [categoryId],references: [id],onDelete: SetNull )
   image             Image?
   dateAdded         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+  translations      ItemTranslations[]
 }
 
 
@@ -84,7 +83,6 @@ model Image {
 
 model Category {
   id            String      @id @default(cuid())
-  // name          String      @unique
   dateAdded     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   items         Item[]
@@ -96,6 +94,21 @@ model Language {
   name      String  
   code      String  @unique
   category  CategoryTranslations[]
+  item      ItemTranslations[]
+}
+
+model ItemTranslations{
+  languageId        String      
+  language          Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  itemId            String
+  item              Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name              String?
+  storage           String?
+  dateAdded         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+
+  @@id([languageId, itemId])
 }
 
 model CategoryTranslations{
@@ -104,7 +117,9 @@ model CategoryTranslations{
   categoryId        String      
   category          Category    @relation(fields: [categoryId],references: [id], onDelete: Cascade)
   name              String      
+  dateAdded         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  @@id([languageId,categoryId])
+  @@id([languageId, categoryId])
   @@unique([languageId, name])
 }

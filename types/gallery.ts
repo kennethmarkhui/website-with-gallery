@@ -1,6 +1,7 @@
 import { Prisma, Item, Image, Category } from 'prisma/prisma-client'
 import { z } from 'zod'
 
+import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import {
   GalleryCategoryFormFieldsSchema,
@@ -13,15 +14,12 @@ import {
 
 export type GalleryItemKeys = keyof Item
 
-type GalleryItemInfo = Pick<Item, 'id' | 'name' | 'storage'> & {
-  category: Category['id'] | null
-}
+export type GalleryImage = Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
 
-type GalleryImage = Pick<Image, 'url' | 'width' | 'height' | 'publicId'>
-
-export type GalleryItem = GalleryItemInfo & {
-  image: GalleryImage | null
-}
+export type GalleryItem = Pick<
+  Awaited<ReturnType<typeof fetchItems>>,
+  'items'
+>['items'][number]
 
 export type GalleryItems = {
   items: GalleryItem[]
@@ -58,15 +56,10 @@ export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 
 export type GalleryOrderByDirection = Prisma.SortOrder
 
-export type GalleryCursorResponse = GalleryItems & {
+export type GalleryResponse = GalleryItems & {
+  page?: string
   nextCursor?: NextCursor
 }
-
-export type GalleryOffsetResponse = GalleryItems & {
-  page: number
-}
-
-export type GalleryResponse = GalleryCursorResponse | GalleryOffsetResponse
 
 export type GalleryCategoryResponse = Awaited<
   ReturnType<typeof fetchCategories>

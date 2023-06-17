@@ -88,11 +88,10 @@ const seed = async () => {
 
     await prisma.$transaction(
       cloudinaryResponse.map(
-        ({ public_id, secure_url, width, height, filename }, index) =>
+        ({ public_id, secure_url, width, height, original_filename }, index) =>
           prisma.item.create({
             data: {
               id: `${index + 1}`,
-              name: filename,
               category: {
                 connect: {
                   id: categoryIds[
@@ -106,6 +105,15 @@ const seed = async () => {
                   width,
                   height,
                   publicId: public_id,
+                },
+              },
+              translations: {
+                createMany: {
+                  data: languageIds.map(({ id, code }) => ({
+                    languageId: id,
+                    name: `${code}-${original_filename}`,
+                    storage: `${code}-storage`,
+                  })),
                 },
               },
             },

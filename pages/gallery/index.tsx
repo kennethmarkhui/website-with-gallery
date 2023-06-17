@@ -62,7 +62,7 @@ const Gallery = (): JSX.Element => {
   const { filters } = useUrlGalleryFilters()
 
   const {
-    data,
+    localizedData,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
@@ -71,7 +71,7 @@ const Gallery = (): JSX.Element => {
 
   const photos: ExtendedPhoto[] = useMemo(
     () =>
-      data?.pages.flatMap(({ items }) =>
+      localizedData.pages?.flatMap(({ items }) =>
         items.map((item) => ({
           key: item.id,
           title: item.id,
@@ -84,7 +84,7 @@ const Gallery = (): JSX.Element => {
           publicId: item.image?.publicId ?? '',
         }))
       ) || [],
-    [data]
+    [localizedData]
   )
 
   // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261

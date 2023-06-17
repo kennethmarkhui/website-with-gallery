@@ -10,6 +10,7 @@ import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
 import { fetchImage } from '../[id]'
+import { languageCodeToId } from '../create'
 
 export const config = {
   api: {
@@ -79,10 +80,12 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
+  const jsonData = formData.fields?.data
+
   const parsedFormData = GalleryFormFieldsSchema.omit({
     id: true,
     image: true,
-  }).safeParse(formData.fields)
+  }).safeParse(typeof jsonData === 'string' && JSON.parse(jsonData))
 
   if (!parsedFormData.success) {
     return res.status(422).json({
@@ -120,11 +123,53 @@ export default async function handler(
       }
     }
 
+    const translationFields = { name, storage }
+    const languages = Array.from(
+      new Set(
+        Object.values(translationFields).flatMap((arr) =>
+          arr.map(({ code }) => code)
+        )
+      )
+    )
+
+    const translationsArray = languages.map((code) => {
+      const translatedItem: { code: string; name?: string; storage?: string } =
+        {
+          code,
+        }
+      ;(
+        Object.keys(translationFields) as (keyof typeof translationFields)[]
+      ).forEach((key) => {
+        const item = translationFields[key].find((i) => i.code === code)
+        if (item) {
+          translatedItem[key] = item.value
+        }
+      })
+      return translatedItem
+    })
+
+    const translations = await languageCodeToId(translationsArray)
+    console.log(translations)
+
     const item = await prisma.item.update({
       where: { id },
       data: {
-        name: name !== '' ? name : null,
-        storage: storage !== '' ? storage : null,
+        translations: {
+          deleteMany: {
+            itemId: id,
+            NOT: translations.map(({ languageId }) => ({ languageId })),
+          },
+          upsert: translations.map((translation) => ({
+            where: {
+              languageId_itemId: {
+                itemId: id,
+                languageId: translation.languageId,
+              },
+            },
+            create: translation,
+            update: translation,
+          })),
+        },
         ...(category
           ? {
               category: {

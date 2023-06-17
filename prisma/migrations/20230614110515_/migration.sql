@@ -51,8 +51,6 @@ CREATE TABLE "VerificationToken" (
 -- CreateTable
 CREATE TABLE "Item" (
     "id" TEXT NOT NULL,
-    "name" TEXT,
-    "storage" TEXT,
     "categoryId" TEXT,
     "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -93,10 +91,24 @@ CREATE TABLE "Language" (
 );
 
 -- CreateTable
+CREATE TABLE "ItemTranslations" (
+    "languageId" TEXT NOT NULL,
+    "itemId" TEXT NOT NULL,
+    "name" TEXT,
+    "storage" TEXT,
+    "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ItemTranslations_pkey" PRIMARY KEY ("languageId","itemId")
+);
+
+-- CreateTable
 CREATE TABLE "CategoryTranslations" (
     "languageId" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "dateAdded" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "CategoryTranslations_pkey" PRIMARY KEY ("languageId","categoryId")
 );
@@ -136,6 +148,12 @@ ALTER TABLE "Item" ADD CONSTRAINT "Item_categoryId_fkey" FOREIGN KEY ("categoryI
 
 -- AddForeignKey
 ALTER TABLE "Image" ADD CONSTRAINT "Image_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ItemTranslations" ADD CONSTRAINT "ItemTranslations_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES "Language"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ItemTranslations" ADD CONSTRAINT "ItemTranslations_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "Item"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CategoryTranslations" ADD CONSTRAINT "CategoryTranslations_languageId_fkey" FOREIGN KEY ("languageId") REFERENCES "Language"("id") ON DELETE CASCADE ON UPDATE CASCADE;

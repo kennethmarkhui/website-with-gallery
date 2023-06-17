@@ -13,11 +13,27 @@ import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
+import { getLanguageId } from './category/create'
 
 export const config = {
   api: {
     bodyParser: false,
   },
+}
+
+export const languageCodeToId = (
+  data: {
+    code: string
+    name?: string
+    storage?: string
+  }[]
+) => {
+  const promises = data.map(async ({ code, name, storage }) => ({
+    languageId: await getLanguageId(code),
+    name: name ?? null,
+    storage: storage ?? null,
+  }))
+  return Promise.all(promises)
 }
 
 export default async function handler(
@@ -68,9 +84,11 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
+  const jsonData = formData.fields?.data
+
   const parsedFormData = GalleryFormFieldsSchema.omit({
     image: true,
-  }).safeParse(formData.fields)
+  }).safeParse(typeof jsonData === 'string' && JSON.parse(jsonData))
 
   if (!parsedFormData.success) {
     return res.status(422).json({
@@ -103,11 +121,37 @@ export default async function handler(
       }
     }
 
+    const translationFields = { name, storage }
+    const languages = Array.from(
+      new Set(
+        Object.values(translationFields).flatMap((arr) =>
+          arr.map(({ code }) => code)
+        )
+      )
+    )
+
+    const translationsArray = languages.map((code) => {
+      const translatedItem: { code: string; name?: string; storage?: string } =
+        {
+          code,
+        }
+      ;(
+        Object.keys(translationFields) as (keyof typeof translationFields)[]
+      ).forEach((key) => {
+        const item = translationFields[key].find((i) => i.code === code)
+        if (item) {
+          translatedItem[key] = item.value
+        }
+      })
+      return translatedItem
+    })
+
+    const translations = await languageCodeToId(translationsArray)
+
     const item = await prisma.item.create({
       data: {
         id,
-        name: name !== '' ? name : null,
-        storage: storage !== '' ? storage : null,
+        translations: { createMany: { data: translations } },
         ...(category && {
           category: {
             connect: {

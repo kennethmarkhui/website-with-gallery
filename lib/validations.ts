@@ -23,8 +23,12 @@ export const GalleryFormFieldsSchema = z.object({
     .trim()
     .min(1, 'Required')
     .regex(/^[a-zA-Z\d]+$/, 'Alphanumerics only.'),
-  name: z.string(),
-  storage: z.string(),
+  name: z
+    .array(z.object({ code: z.string(), value: z.string() }))
+    .transform((arr) => (arr.length === 1 && !arr[0].value ? [] : arr)),
+  storage: z
+    .array(z.object({ code: z.string(), value: z.string() }))
+    .transform((arr) => (arr.length === 1 && !arr[0].value ? [] : arr)),
   category: z.string(),
   image: z
     .custom<FileList>((v) => v instanceof FileList)

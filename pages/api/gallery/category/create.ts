@@ -11,7 +11,7 @@ import { prisma } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
-const getLanguageId = async (code: string) => {
+export const getLanguageId = async (code: string) => {
   try {
     const { id } = await prisma.language.findFirstOrThrow({
       where: {

@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import type { Category } from 'prisma/prisma-client'
 
 import type {
   GalleryCategoryResponse,

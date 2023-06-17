@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
-import type { DefaultGalleryFormFields } from 'types/gallery'
+import type { DefaultGalleryFormFields, GalleryItem } from 'types/gallery'
 import { fetchItem } from 'pages/api/gallery/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -34,14 +34,17 @@ export const getServerSideProps: GetServerSideProps<
 
   const { id } = params
 
-  if (query.data && typeof query.data === 'string') {
-    await queryClient.setQueryData(['item', id], {
+  // TODO: parse query.data with zod?
+  const queryData = typeof query.data === 'string' && JSON.parse(query.data)
+
+  if (queryData) {
+    queryClient.setQueryData(['item', id], {
       id,
-      ...JSON.parse(query.data),
+      ...queryData,
     })
   }
 
-  if (!query.data) {
+  if (!queryData) {
     // fetch item if no query data provided
     try {
       await queryClient.fetchQuery(['item', id], () => fetchItem(id))
@@ -76,8 +79,18 @@ const Update = (): JSX.Element => {
 
   const fetchedData = {
     id: data.id,
-    name: data.name ?? '',
-    storage: data.storage ?? '',
+    name: data.translations
+      .map(({ language: { code }, name }) => ({
+        code,
+        value: name ?? '',
+      }))
+      .filter(({ value }) => value),
+    storage: data.translations
+      .map(({ language: { code }, storage }) => ({
+        code,
+        value: storage ?? '',
+      }))
+      .filter(({ value }) => value),
     category: data.category ?? '',
     image: data.image ?? undefined,
   } satisfies DefaultGalleryFormFields
