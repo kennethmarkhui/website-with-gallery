@@ -3,14 +3,13 @@ import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
 import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
 import { fetchImage } from '../[id]'
-import { languageCodeToId } from '../create'
 
 export const config = {
   api: {
@@ -124,32 +123,7 @@ export default async function handler(
     }
 
     const translationFields = { name, storage }
-    const languages = Array.from(
-      new Set(
-        Object.values(translationFields).flatMap((arr) =>
-          arr.map(({ code }) => code)
-        )
-      )
-    )
-
-    const translationsArray = languages.map((code) => {
-      const translatedItem: { code: string; name?: string; storage?: string } =
-        {
-          code,
-        }
-      ;(
-        Object.keys(translationFields) as (keyof typeof translationFields)[]
-      ).forEach((key) => {
-        const item = translationFields[key].find((i) => i.code === code)
-        if (item) {
-          translatedItem[key] = item.value
-        }
-      })
-      return translatedItem
-    })
-
-    const translations = await languageCodeToId(translationsArray)
-    console.log(translations)
+    const translations = await transformTranslationFields(translationFields)
 
     const item = await prisma.item.update({
       where: { id },

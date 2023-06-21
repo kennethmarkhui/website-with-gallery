@@ -12,15 +12,15 @@ const useUpdateCategory = () => {
   return useMutation({
     mutationFn: ({
       id,
-      category,
+      name,
     }: {
       id: string
-      category: Pick<GalleryCategoryFormFields, 'category'>['category']
+      name: GalleryCategoryFormFields['name']
     }) =>
       fetcher(`/api/gallery/category/update?id=${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category }),
+        body: JSON.stringify({ name }),
       }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries(['categories'])
@@ -37,9 +37,9 @@ const useUpdateCategory = () => {
             if (id === variables.id) {
               return {
                 id,
-                translations: variables.category.map(({ name, code }) => ({
-                  name,
+                translations: variables.name.map(({ value, code }) => ({
                   language: { code },
+                  name: value,
                 })),
               }
             }

@@ -9,10 +9,10 @@ export const GalleryAuthSigninFormFieldsSchema = z.object({
 })
 
 export const GalleryCategoryFormFieldsSchema = z.object({
-  category: z.array(
+  name: z.array(
     z.object({
       code: z.string(),
-      name: z.string().trim().min(1, 'Required').max(20),
+      value: z.string().trim().min(1, 'Required').max(20),
     })
   ),
 })

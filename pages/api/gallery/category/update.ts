@@ -3,11 +3,10 @@ import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
 import { z } from 'zod'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
-import { categoryLanguageCodeToId } from './create'
 
 const RequestQuerySchema = z.object({ id: z.string() })
 
@@ -45,10 +44,14 @@ export default async function handler(
   }
 
   const { id } = parseQuery.data
-  const { category } = parsedBody.data
 
   try {
-    const toUpdate = await categoryLanguageCodeToId({ category })
+    const translations = await transformTranslationFields({
+      name: parsedBody.data.name.map((translation) => ({
+        ...translation,
+        required: true,
+      })),
+    })
 
     await prisma.category.update({
       where: { id },
@@ -57,9 +60,9 @@ export default async function handler(
           deleteMany: {
             // https://github.com/prisma/prisma/issues/2255#issuecomment-683811551
             categoryId: id,
-            NOT: toUpdate.map(({ languageId }) => ({ languageId })),
+            NOT: translations.map(({ languageId }) => ({ languageId })),
           },
-          upsert: toUpdate.map(({ languageId, name }) => ({
+          upsert: translations.map(({ languageId, name }) => ({
             where: { languageId_categoryId: { categoryId: id, languageId } },
             create: { name, languageId },
             update: { name, languageId },

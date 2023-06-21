@@ -28,9 +28,9 @@ const useCreateCategory = () => {
           return [
             {
               id: Math.random().toString(),
-              translations: variables.category.map(({ code, name }) => ({
+              translations: variables.name.map(({ code, value }) => ({
                 language: { code },
-                name,
+                name: value,
               })),
             },
             // TODO: not sure if this will spread nested

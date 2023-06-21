@@ -8,32 +8,16 @@ import type {
   GalleryFormKeys,
 } from 'types/gallery'
 import cloudinary from 'lib/cloudinary'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
-import { getLanguageId } from './category/create'
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
-
-export const languageCodeToId = (
-  data: {
-    code: string
-    name?: string
-    storage?: string
-  }[]
-) => {
-  const promises = data.map(async ({ code, name, storage }) => ({
-    languageId: await getLanguageId(code),
-    name: name ?? null,
-    storage: storage ?? null,
-  }))
-  return Promise.all(promises)
 }
 
 export default async function handler(
@@ -122,31 +106,7 @@ export default async function handler(
     }
 
     const translationFields = { name, storage }
-    const languages = Array.from(
-      new Set(
-        Object.values(translationFields).flatMap((arr) =>
-          arr.map(({ code }) => code)
-        )
-      )
-    )
-
-    const translationsArray = languages.map((code) => {
-      const translatedItem: { code: string; name?: string; storage?: string } =
-        {
-          code,
-        }
-      ;(
-        Object.keys(translationFields) as (keyof typeof translationFields)[]
-      ).forEach((key) => {
-        const item = translationFields[key].find((i) => i.code === code)
-        if (item) {
-          translatedItem[key] = item.value
-        }
-      })
-      return translatedItem
-    })
-
-    const translations = await languageCodeToId(translationsArray)
+    const translations = await transformTranslationFields(translationFields)
 
     const item = await prisma.item.create({
       data: {
@@ -180,8 +140,6 @@ export default async function handler(
     })
     return res.status(201).json({ message: `id ${item.id} has been created!` })
   } catch (error) {
-    console.log(error)
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
-import { HiX, HiTrash, HiPlus, HiPencil } from 'react-icons/hi'
+import { HiX, HiTrash, HiPencil } from 'react-icons/hi'
 import { ColumnDef } from '@tanstack/react-table'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -45,15 +45,15 @@ const CategoryForm = (): JSX.Element => {
     reset,
   } = useForm<GalleryCategoryFormFields>({
     resolver: zodResolver(GalleryCategoryFormFieldsSchema),
-    defaultValues: { category: [{ code: locale, name: '' }] },
+    defaultValues: { name: [{ code: locale, value: '' }] },
   })
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'category',
+    name: 'name',
   })
 
-  const hasDirtyFields = !!dirtyFields.category?.some((obj) =>
+  const hasDirtyFields = !!dirtyFields.name?.some((obj) =>
     Object.values(obj).some((value) => value)
   )
 
@@ -62,7 +62,7 @@ const CategoryForm = (): JSX.Element => {
   })
 
   useEffect(() => {
-    reset({ category: [{ code: locale, name: '' }] })
+    reset({ name: [{ code: locale, value: '' }] })
     setCategoryToUpdate(undefined)
   }, [locale, reset])
 
@@ -71,7 +71,7 @@ const CategoryForm = (): JSX.Element => {
       ? updateMutate(
           {
             id: categoryToUpdate.id,
-            category: data.category,
+            name: data.name,
           },
           {
             onError: ({ error }, variables, context) => {
@@ -80,7 +80,7 @@ const CategoryForm = (): JSX.Element => {
               }
             },
             onSuccess: (data, variables, context) => {
-              reset({ category: [{ code: locale, name: '' }] })
+              reset({ name: [{ code: locale, value: '' }] })
               setCategoryToUpdate(undefined)
             },
           }
@@ -92,7 +92,7 @@ const CategoryForm = (): JSX.Element => {
             }
           },
           onSuccess: (data, variables, context) => {
-            reset({ category: [{ code: locale, name: '' }] })
+            reset({ name: [{ code: locale, value: '' }] })
           },
         })
   }
@@ -108,7 +108,7 @@ const CategoryForm = (): JSX.Element => {
             {categoryToUpdate?.id === id ? (
               <button
                 onClick={() => {
-                  reset({ category: [{ code: locale, name: '' }] })
+                  reset({ name: [{ code: locale, value: '' }] })
                   setCategoryToUpdate(undefined)
                 }}
                 title="Cancel update"
@@ -118,17 +118,17 @@ const CategoryForm = (): JSX.Element => {
             ) : (
               <button
                 onClick={() => {
-                  const category = data
+                  const name = data
                     ?.find(({ id: dataId }) => dataId === id)
                     ?.translations.map(({ name, language }) => ({
-                      name,
                       code: language.code,
+                      value: name,
                     }))
-                  if (!category) {
+                  if (!name) {
                     return
                   }
-                  setValue('category', category)
-                  reset({ category })
+                  setValue('name', name)
+                  reset({ name })
                   setCategoryToUpdate({ id })
                   // setFocus('category', { shouldSelect: true })
                 }}
@@ -161,8 +161,8 @@ const CategoryForm = (): JSX.Element => {
             <div key={field.id} className="flex">
               <FloatingLabelInput
                 id={`${field.code} category`}
-                {...register(`category.${index}.name`)}
-                errorMessage={errors.category?.[index]?.name?.message}
+                {...register(`name.${index}.value`)}
+                errorMessage={errors.name?.[index]?.value?.message}
                 // icon={<HiPlus />}
                 disabled={isLoading}
               />
@@ -181,7 +181,7 @@ const CategoryForm = (): JSX.Element => {
                     <button
                       type="button"
                       key={locale}
-                      onClick={() => append({ code: locale, name: '' })}
+                      onClick={() => append({ code: locale, value: '' })}
                       className="text-xs text-gray-500 hover:underline"
                     >
                       add {locale} translation
@@ -198,7 +198,7 @@ const CategoryForm = (): JSX.Element => {
               <Button
                 type="button"
                 onClick={() => {
-                  reset({ category: [{ code: locale, name: '' }] })
+                  reset({ name: [{ code: locale, value: '' }] })
                   setCategoryToUpdate(undefined)
                 }}
               >
