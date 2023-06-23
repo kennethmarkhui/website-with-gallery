@@ -40,11 +40,8 @@ export default async function handler(
   }
 
   try {
-    const translations = await transformTranslationFields({
-      name: parsedBody.data.name.map((translation) => ({
-        ...translation,
-        required: true,
-      })),
+    const translations = await transformTranslationFields(parsedBody.data, {
+      name: true,
     })
 
     await prisma.category.create({

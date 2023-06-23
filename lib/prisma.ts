@@ -33,51 +33,52 @@ export const getLanguageId = async (code: string) => {
 }
 
 export const transformTranslationFields = <
-  O extends {
-    [key: string]: { code: string; value: string; required?: boolean }[]
-  }
+  Fields extends {
+    [key: string]: { code: string; value: string }[]
+  },
+  RequiredFieldKeys extends { [K in keyof Fields]?: boolean }
 >(
-  fields: O
-): Promise<
-  Array<
-    {
-      [K in keyof O]: O[K] extends {
-        required: true
-      }[]
-        ? string
-        : string | null
-    } & { languageId: string }
-  >
-> => {
+  fields: Fields,
+  requiredKeys?: RequiredFieldKeys
+) => {
   const languages = Array.from(
     new Set(Object.values(fields).flatMap((arr) => arr.map(({ code }) => code)))
   )
 
+  const fieldKeysToRequire: (keyof RequiredFieldKeys)[] = []
+  for (const key in requiredKeys) {
+    if (requiredKeys[key]) {
+      fieldKeysToRequire.push(key)
+    }
+  }
+
   const translationsArray = languages.map(async (code) => {
     const newObj = {} as {
-      [K in keyof O]: O[K] extends {
-        required: true
-      }[]
+      [K in keyof Fields]: K extends {
+        [Key in keyof RequiredFieldKeys]: RequiredFieldKeys[Key] extends true
+          ? Key
+          : never
+      }[keyof RequiredFieldKeys]
         ? string
         : string | null
     }
 
     for (const key in fields) {
       const item = fields[key].find((i) => i.code === code)
-      if (item?.required) {
+      if (fieldKeysToRequire.includes(key) && item) {
         newObj[key] = item.value
       } else {
         // TODO: don't use as any
         newObj[key] = (item?.value || null) as any
       }
     }
-    const newObjWithLanguageId = Object.assign(
+
+    return Object.assign(
       {
         languageId: await getLanguageId(code),
       },
       newObj
     )
-    return newObjWithLanguageId
   })
 
   return Promise.all(translationsArray)

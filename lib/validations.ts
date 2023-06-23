@@ -25,10 +25,10 @@ export const GalleryFormFieldsSchema = z.object({
     .regex(/^[a-zA-Z\d]+$/, 'Alphanumerics only.'),
   name: z
     .array(z.object({ code: z.string(), value: z.string() }))
-    .transform((arr) => (arr.length === 1 && !arr[0].value ? [] : arr)),
+    .transform((arr) => arr.filter(({ value }) => value)),
   storage: z
     .array(z.object({ code: z.string(), value: z.string() }))
-    .transform((arr) => (arr.length === 1 && !arr[0].value ? [] : arr)),
+    .transform((arr) => arr.filter(({ value }) => value)),
   category: z.string(),
   image: z
     .custom<FileList>((v) => v instanceof FileList)
