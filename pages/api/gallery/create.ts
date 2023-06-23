@@ -8,7 +8,7 @@ import type {
   GalleryFormKeys,
 } from 'types/gallery'
 import cloudinary from 'lib/cloudinary'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
@@ -68,9 +68,11 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
+  const jsonData = formData.fields?.data
+
   const parsedFormData = GalleryFormFieldsSchema.omit({
     image: true,
-  }).safeParse(formData.fields)
+  }).safeParse(typeof jsonData === 'string' && JSON.parse(jsonData))
 
   if (!parsedFormData.success) {
     return res.status(422).json({
@@ -103,15 +105,17 @@ export default async function handler(
       }
     }
 
+    const translationFields = { name, storage }
+    const translations = await transformTranslationFields(translationFields)
+
     const item = await prisma.item.create({
       data: {
         id,
-        name: name !== '' ? name : null,
-        storage: storage !== '' ? storage : null,
+        translations: { createMany: { data: translations } },
         ...(category && {
           category: {
             connect: {
-              name: category,
+              id: category,
             },
           },
         }),
@@ -136,8 +140,6 @@ export default async function handler(
     })
     return res.status(201).json({ message: `id ${item.id} has been created!` })
   } catch (error) {
-    console.log(error)
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {

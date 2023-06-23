@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
 import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
 import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
@@ -79,10 +79,12 @@ export default async function handler(
   if (!formData)
     return res.status(400).json({ error: { message: 'Something went wrong.' } })
 
+  const jsonData = formData.fields?.data
+
   const parsedFormData = GalleryFormFieldsSchema.omit({
     id: true,
     image: true,
-  }).safeParse(formData.fields)
+  }).safeParse(typeof jsonData === 'string' && JSON.parse(jsonData))
 
   if (!parsedFormData.success) {
     return res.status(422).json({
@@ -120,16 +122,33 @@ export default async function handler(
       }
     }
 
+    const translationFields = { name, storage }
+    const translations = await transformTranslationFields(translationFields)
+
     const item = await prisma.item.update({
       where: { id },
       data: {
-        name: name !== '' ? name : null,
-        storage: storage !== '' ? storage : null,
+        translations: {
+          deleteMany: {
+            itemId: id,
+            NOT: translations.map(({ languageId }) => ({ languageId })),
+          },
+          upsert: translations.map((translation) => ({
+            where: {
+              languageId_itemId: {
+                itemId: id,
+                languageId: translation.languageId,
+              },
+            },
+            create: translation,
+            update: translation,
+          })),
+        },
         ...(category
           ? {
               category: {
                 connect: {
-                  name: category,
+                  id: category,
                 },
               },
             }

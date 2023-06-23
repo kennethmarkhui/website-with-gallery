@@ -98,11 +98,11 @@ const Checkboxes = ({
   const { field } = useController({ control, name })
   const checked = new Set(field.value as string)
 
-  const handleOnChange = (name: string) => {
-    if (checked.has(name)) {
-      checked.delete(name)
+  const handleOnChange = (id: string) => {
+    if (checked.has(id)) {
+      checked.delete(id)
     } else {
-      checked.add(name)
+      checked.add(id)
     }
     field.onChange(Array.from(checked))
   }
@@ -124,10 +124,10 @@ const Checkboxes = ({
             <input
               id={id}
               type="checkbox"
-              checked={checked.has(name)}
+              checked={checked.has(id)}
               className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
-              onChange={() => handleOnChange(name)}
-              value={name}
+              onChange={() => handleOnChange(id)}
+              value={id}
             />
             <label
               htmlFor={id}
@@ -146,7 +146,7 @@ const TableFilterForm = ({
   defaultValues,
   onSubmitCallback,
 }: TableFilterFormProps) => {
-  const { data } = useCategory()
+  const { localizedData } = useCategory()
 
   const { register, formState, handleSubmit, reset, control } =
     useForm<TableFilterFormValues>({
@@ -177,7 +177,11 @@ const TableFilterForm = ({
       className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
     >
       <FloatingLabelInput id="search" {...register('search')} />
-      <Checkboxes control={control} name="category" options={data ?? []} />
+      <Checkboxes
+        control={control}
+        name="category"
+        options={localizedData ?? []}
+      />
       <Button disabled={!formState.isDirty} type="submit">
         <HiOutlineSearch />
       </Button>
@@ -190,12 +194,15 @@ const Admin = (): JSX.Element => {
   // TODO: use ImageViewerModal to view the image
   const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
-  const { data, status, error, isPreviousData } = useOffsetGallery({ filters })
-  const { data: categories } = useCategory()
+  const { data, localizedData, status, error, isPreviousData } =
+    useOffsetGallery({
+      filters,
+    })
+  const { localizedData: localizedCategoryData } = useCategory()
 
-  const items = useMemo<NonNullableRecursive<GalleryItem[]>>(
+  const items = useMemo(
     () =>
-      data?.items.map(({ id, name, storage, category, image }) => ({
+      localizedData.items?.map(({ id, name, storage, category, image }) => ({
         id,
         name: name ?? '',
         storage: storage ?? '',
@@ -207,100 +214,8 @@ const Admin = (): JSX.Element => {
           publicId: image?.publicId ?? '',
         },
       })) || [],
-    [data?.items]
+    [localizedData?.items]
   )
-
-  const columns: ColumnDef<NonNullableRecursive<GalleryItem>>[] = [
-    {
-      accessorKey: 'id',
-      header: ({ column }) => {
-        const isDesc = column.getIsSorted() === 'desc'
-        return (
-          <button
-            className="flex items-center gap-2"
-            onClick={() => {
-              column.toggleSorting(!isDesc)
-            }}
-          >
-            ID
-            <HiArrowNarrowDown
-              className={cn('transition-transform', !isDesc && 'rotate-180')}
-            />
-          </button>
-        )
-      },
-    },
-    {
-      accessorKey: 'image',
-      header: 'Image',
-      cell: ({ row }) => {
-        // TODO: getValue type is not inferred and is unknown
-        // https://github.com/TanStack/table/pull/4109
-        const {
-          id,
-          image: { url, width, height },
-        } = row.original
-        return (
-          <div className="relative h-32 w-32">
-            <Image
-              src={url}
-              alt={id}
-              className="absolute inset-0 h-full w-full object-contain"
-              width={width}
-              height={height}
-            />
-          </div>
-        )
-      },
-    },
-    { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'storage', header: 'Storage' },
-    {
-      accessorKey: 'category',
-      header: 'Category',
-      cell: ({ row }) => (
-        <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
-          {row.original.category}
-        </span>
-      ),
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const {
-          id,
-          name,
-          storage,
-          category,
-          image: { url, publicId, width, height },
-        } = row.original
-        return (
-          <Link
-            href={{
-              pathname: `/gallery/admin/update/${id}`,
-              query: {
-                data: JSON.stringify({
-                  name,
-                  storage,
-                  category,
-                  image: {
-                    url, // if no image this should be the placeholder image
-                    publicId,
-                    width,
-                    height,
-                  },
-                }),
-              },
-            }}
-            className="font-medium text-gray-500 hover:text-black hover:underline"
-            aria-label="edit image"
-          >
-            Edit
-          </Link>
-        )
-      },
-    },
-  ]
 
   const filterState = Object.entries(filters).map(([id, value]) => {
     if (id === 'search' && typeof value === 'string') {
@@ -321,8 +236,95 @@ const Admin = (): JSX.Element => {
   return (
     <GalleryAdminLayout title={t('title')}>
       <DataTable
-        columns={columns}
         data={items}
+        columns={[
+          {
+            accessorKey: 'id',
+            header: ({ column }) => {
+              const isDesc = column.getIsSorted() === 'desc'
+              return (
+                <button
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    column.toggleSorting(!isDesc)
+                  }}
+                >
+                  ID
+                  <HiArrowNarrowDown
+                    className={cn(
+                      'transition-transform',
+                      !isDesc && 'rotate-180'
+                    )}
+                  />
+                </button>
+              )
+            },
+          },
+          {
+            accessorKey: 'image',
+            header: 'Image',
+            cell: ({ row }) => {
+              // TODO: getValue type is not inferred and is unknown
+              // https://github.com/TanStack/table/pull/4109
+              const {
+                id,
+                image: { url, width, height },
+              } = row.original
+              return (
+                <div className="relative h-32 w-32">
+                  <Image
+                    src={url}
+                    alt={id}
+                    className="absolute inset-0 h-full w-full object-contain"
+                    width={width}
+                    height={height}
+                  />
+                </div>
+              )
+            },
+          },
+          { accessorKey: 'name', header: 'Name' },
+          { accessorKey: 'storage', header: 'Storage' },
+          {
+            accessorKey: 'category',
+            header: 'Category',
+            cell: ({ row }) => {
+              const category = localizedCategoryData?.find(
+                (data) => data.id === row.original.category
+              )
+              return (
+                <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
+                  {category?.name}
+                </span>
+              )
+            },
+          },
+          {
+            id: 'actions',
+            cell: ({ row }) => {
+              const { id } = row.original
+              const item = data?.items.find(({ id: dataId }) => dataId === id)
+              return (
+                <Link
+                  href={{
+                    pathname: `/gallery/admin/update/${id}`,
+                    query: {
+                      data: JSON.stringify({
+                        category: item?.category,
+                        image: item?.image,
+                        translations: item?.translations,
+                      }),
+                    },
+                  }}
+                  className="font-medium text-gray-500 hover:text-black hover:underline"
+                  aria-label="edit image"
+                >
+                  Edit
+                </Link>
+              )
+            },
+          },
+        ]}
         manualFiltering={{
           state: filterState,
           render: (table) => (
@@ -355,7 +357,7 @@ const Admin = (): JSX.Element => {
             }, {})
             setUrlGalleryFilters({ query })
           },
-          filters: [{ id: 'category', data: categories ?? [] }],
+          filters: [{ id: 'category', data: localizedCategoryData ?? [] }],
         }}
         manualSorting={{
           state: [
@@ -377,10 +379,10 @@ const Admin = (): JSX.Element => {
         }}
         manualPagination={{
           state: {
-            pageIndex: data?.page ? data.page - 1 : 0,
+            pageIndex: localizedData?.page ? +localizedData.page - 1 : 0,
             pageSize: GALLERY_LIMIT,
           },
-          dataCount: data?.totalCount ?? 0,
+          dataCount: localizedData?.totalCount ?? 0,
           onPaginationChange: ({ pageIndex }) => {
             setUrlGalleryFilters((prev) => ({
               query: { ...prev, page: pageIndex + 1 + '' },

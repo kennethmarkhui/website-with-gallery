@@ -1,7 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
-import { Category } from 'prisma/prisma-client'
 
-import type { GalleryErrorResponse } from 'types/gallery'
+import type {
+  GalleryCategoryResponse,
+  GalleryErrorResponse,
+} from 'types/gallery'
 import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
@@ -11,10 +13,10 @@ const useDeleteCategory = () => {
       fetcher(`/api/gallery/category/delete?id=${id}`, { method: 'DELETE' }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries(['categories'])
-      const snapshot = queryClient.getQueryData<
-        Pick<Category, 'id' | 'name'>[]
-      >(['categories'])
-      queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
+      const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
+        'categories',
+      ])
+      queryClient.setQueryData<GalleryCategoryResponse>(
         ['categories'],
         (prev) => prev?.filter((current) => current.id !== variables)
       )

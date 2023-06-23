@@ -3,36 +3,20 @@ import { Prisma } from 'prisma/prisma-client'
 
 import type {
   GalleryErrorResponse,
-  GalleryCursorQuery,
-  GalleryCursorResponse,
-  GalleryOffsetQuery,
   GalleryQuery,
   GalleryResponse,
-  GalleryOffsetResponse,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import { GalleryQuerySchema } from 'lib/validations'
 import { GALLERY_LIMIT, GALLERY_ORDER_BY_DIRECTION } from 'constants/gallery'
 
 export async function fetchItems({
-  page,
-  search,
-  category,
-  orderBy,
-}: GalleryOffsetQuery): Promise<GalleryOffsetResponse>
-export async function fetchItems({
-  nextCursor,
-  search,
-  category,
-  orderBy,
-}: GalleryCursorQuery): Promise<GalleryCursorResponse>
-export async function fetchItems({
   nextCursor,
   page,
   search,
   category,
   orderBy: orderByFilter,
-}: GalleryQuery): Promise<GalleryResponse> {
+}: GalleryQuery) {
   // https://github.com/prisma/prisma/discussions/4888#discussioncomment-403826
   const orderBy = (
     orderByFilter
@@ -52,7 +36,7 @@ export async function fetchItems({
     AND: [
       { id: { contains: search, mode: 'insensitive' } },
       {
-        category: category ? { name: { in: category.split(',') } } : undefined,
+        category: category ? { id: { in: category.split(',') } } : undefined,
       },
     ],
   } satisfies Prisma.ItemWhereInput
@@ -71,15 +55,20 @@ export async function fetchItems({
           }),
       select: {
         id: true,
-        name: true,
-        storage: true,
-        category: { select: { name: true } },
+        category: { select: { id: true } },
         image: {
           select: {
             url: true,
             publicId: true,
             width: true,
             height: true,
+          },
+        },
+        translations: {
+          select: {
+            name: true,
+            storage: true,
+            language: { select: { code: true } },
           },
         },
       },
@@ -93,19 +82,12 @@ export async function fetchItems({
   return {
     items: items.map((item) => ({
       ...item,
-      category: item.category?.name ?? null,
+      category: item.category?.id ?? null,
     })),
     totalCount: totalItems,
-    ...(page
-      ? {
-          page,
-        }
-      : {
-          nextCursor:
-            items.length === GALLERY_LIMIT
-              ? items[GALLERY_LIMIT - 1].id
-              : undefined,
-        }),
+    page,
+    nextCursor:
+      items.length === GALLERY_LIMIT ? items[GALLERY_LIMIT - 1].id : undefined,
   }
 }
 

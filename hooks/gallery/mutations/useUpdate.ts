@@ -8,36 +8,19 @@ const useUpdate = () => {
   return useMutation({
     mutationFn: (data: GalleryFormFields) => {
       const formData = new FormData()
-      for (const [key, value] of Object.entries(data)) {
-        if (value instanceof FileList) {
-          formData.append(key, value[0])
-          break
-        }
-        formData.append(key, value)
+      const { image, ...rest } = data
+      if (image) {
+        formData.append('image', image[0])
       }
+      formData.append('data', JSON.stringify(rest))
 
       return fetcher(`/api/gallery/update/${data.id}`, {
         method: 'PUT',
         body: formData,
       })
     },
-    onMutate: async (item) => {
-      // await queryClient.cancelQueries(['gallery'])
-      // const snapshot = queryClient.getQueryData<GalleryFormFields[]>([
-      //   'gallery',
-      // ])
-      // queryClient.setQueryData<GalleryFormFields[]>(
-      //   ['gallery'],
-      //   (prevItems) =>
-      //     prevItems?.map((current) =>
-      //       current.id === item.id ? item : current
-      //     )
-      // )
-      // return { snapshot }
-    },
-    onError: (error: GalleryErrorResponse, item, context) => {
-      // queryClient.setQueryData(['gallery'], context?.snapshot)
-    },
+    onMutate: async (item) => {},
+    onError: (error: GalleryErrorResponse, item, context) => {},
     onSuccess: (data, item, context) => {
       queryClient.invalidateQueries(['gallery'])
     },

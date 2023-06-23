@@ -34,14 +34,17 @@ export const getServerSideProps: GetServerSideProps<
 
   const { id } = params
 
-  if (query.data && typeof query.data === 'string') {
-    await queryClient.setQueryData(['item', id], {
+  // TODO: parse query.data with zod?
+  const queryData = typeof query.data === 'string' && JSON.parse(query.data)
+
+  if (queryData) {
+    queryClient.setQueryData(['item', id], {
       id,
-      ...JSON.parse(query.data),
+      ...queryData,
     })
   }
 
-  if (!query.data) {
+  if (!queryData) {
     // fetch item if no query data provided
     try {
       await queryClient.fetchQuery(['item', id], () => fetchItem(id))
@@ -76,8 +79,22 @@ const Update = (): JSX.Element => {
 
   const fetchedData = {
     id: data.id,
-    name: data.name ?? '',
-    storage: data.storage ?? '',
+    name: data.translations.some(({ name }) => name)
+      ? data.translations
+          .map(({ language: { code }, name }) => ({
+            code,
+            value: name ?? '',
+          }))
+          .filter(({ value }) => value)
+      : [{ code: router.locale!, value: '' }],
+    storage: data.translations.some(({ storage }) => storage)
+      ? data.translations
+          .map(({ language: { code }, storage }) => ({
+            code,
+            value: storage ?? '',
+          }))
+          .filter(({ value }) => value)
+      : [{ code: router.locale!, value: '' }],
     category: data.category ?? '',
     image: data.image ?? undefined,
   } satisfies DefaultGalleryFormFields

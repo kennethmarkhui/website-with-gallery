@@ -1,29 +1,42 @@
 import { useMutation } from '@tanstack/react-query'
-import { Category } from 'prisma/prisma-client'
 
-import type { GalleryErrorResponse } from 'types/gallery'
+import type {
+  GalleryCategoryFormFields,
+  GalleryCategoryResponse,
+  GalleryErrorResponse,
+} from 'types/gallery'
 import { queryClient } from 'lib/query'
 import fetcher from 'lib/fetcher'
 
 const useCreateCategory = () => {
   return useMutation({
-    mutationFn: (data: { category: string }) =>
-      fetcher('/api/gallery/category/create', {
+    mutationFn: (data: GalleryCategoryFormFields) => {
+      return fetcher('/api/gallery/category/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
-      }),
+      })
+    },
     onMutate: async (variables) => {
       await queryClient.cancelQueries(['categories'])
-      const snapshot = queryClient.getQueryData<
-        Pick<Category, 'id' | 'name'>[]
-      >(['categories'])
-      queryClient.setQueryData<Pick<Category, 'id' | 'name'>[]>(
+      const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
+        'categories',
+      ])
+      queryClient.setQueryData<GalleryCategoryResponse>(
         ['categories'],
-        (prev) => [
-          { id: Math.random().toString(), name: variables.category },
-          ...(prev as []),
-        ]
+        (prev) => {
+          return [
+            {
+              id: Math.random().toString(),
+              translations: variables.name.map(({ code, value }) => ({
+                language: { code },
+                name: value,
+              })),
+            },
+            // TODO: not sure if this will spread nested
+            ...(prev ? prev : []),
+          ]
+        }
       )
       return { snapshot }
     },

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FaSpinner } from 'react-icons/fa'
 
@@ -46,6 +46,7 @@ function GalleryForm({
 
   const {
     register,
+    control,
     formState: { errors, isDirty },
     watch,
     handleSubmit,
@@ -57,14 +58,34 @@ function GalleryForm({
     resolver: zodResolver(GalleryFormFieldsSchema),
     defaultValues: {
       id: '',
-      name: '',
-      storage: '',
+      name: [{ code: router.locale, value: '' }],
+      storage: [{ code: router.locale, value: '' }],
       category: '',
       image: undefined,
     },
   })
 
-  const { data: categories, status: categoryStatus } = useCategory()
+  const {
+    fields: nameFields,
+    append: nameFieldAppend,
+    remove: nameFieldRemove,
+  } = useFieldArray({ control, name: 'name' })
+
+  const {
+    fields: storageFields,
+    append: storageFieldAppend,
+    remove: storageFieldRemove,
+  } = useFieldArray({ control, name: 'storage' })
+
+  const { localizedData, status: categoryStatus } = useCategory()
+
+  const nameFieldsWithNoTranslation = router.locales?.filter((loc) => {
+    return !nameFields.map(({ code }) => code).includes(loc)
+  })
+
+  const storageFieldWithNoTranslation = router.locales?.filter((loc) => {
+    return !storageFields.map(({ code }) => code).includes(loc)
+  })
 
   useEffect(() => {
     if (mode !== 'update' || !defaultFormValues || categoryStatus !== 'success')
@@ -127,13 +148,73 @@ function GalleryForm({
           {...register('id')}
           errorMessage={errors.id?.message}
         />
-        <FloatingLabelInput id="name" {...register('name')} />
-        <FloatingLabelInput id="storage" {...register('storage')} />
+        {nameFields.map((field, index, arr) => (
+          <div key={field.id} className="flex">
+            <FloatingLabelInput
+              id={`${field.code} name`}
+              {...register(`name.${index}.value`)}
+            />
+            {arr.length > 1 && (
+              <button type="button" onClick={() => nameFieldRemove(index)}>
+                x
+              </button>
+            )}
+          </div>
+        ))}
+        {Array.isArray(nameFieldsWithNoTranslation) &&
+          nameFieldsWithNoTranslation.length > 0 && (
+            <div className="flex gap-2">
+              {nameFieldsWithNoTranslation.map((locale) => {
+                return (
+                  <button
+                    type="button"
+                    key={locale}
+                    onClick={() => nameFieldAppend({ code: locale, value: '' })}
+                    className="text-xs text-gray-500 hover:underline"
+                  >
+                    add {locale} translation
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        {storageFields.map((field, index, arr) => (
+          <div key={field.id} className="flex">
+            <FloatingLabelInput
+              id={`${field.code} storage`}
+              {...register(`storage.${index}.value`)}
+            />
+            {arr.length > 1 && (
+              <button type="button" onClick={() => storageFieldRemove(index)}>
+                x
+              </button>
+            )}
+          </div>
+        ))}
+        {Array.isArray(storageFieldWithNoTranslation) &&
+          storageFieldWithNoTranslation.length > 0 && (
+            <div className="flex gap-2">
+              {storageFieldWithNoTranslation.map((locale) => {
+                return (
+                  <button
+                    type="button"
+                    key={locale}
+                    onClick={() =>
+                      storageFieldAppend({ code: locale, value: '' })
+                    }
+                    className="text-xs text-gray-500 hover:underline"
+                  >
+                    add {locale} translation
+                  </button>
+                )
+              })}
+            </div>
+          )}
         <FloatingLabelSelect
           id="category"
           {...register('category')}
           defaultSelected={defaultFormValues?.category}
-          options={categories}
+          options={localizedData}
           loading={categoryStatus === 'loading'}
         />
         <ImagePreviewInput
@@ -145,7 +226,7 @@ function GalleryForm({
           setFormValue={setValue}
           removeFormValue={() => resetField('image')}
         />
-        <div className="mt-4 flex gap-4 ">
+        <div className="flex gap-4">
           <Button type="submit" disabled={!isDirty}>
             {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">

@@ -20,7 +20,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="group relative z-0 mb-6 w-full">
         {loading && (
-          <FaSpinner className="absolute top-3 right-12 animate-spin text-gray-500" />
+          <FaSpinner className="absolute right-12 top-3 animate-spin text-gray-500" />
         )}
         <select
           ref={ref}
@@ -35,7 +35,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
               event.currentTarget.value
             )
           }}
-          className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent py-2.5 px-0 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
+          className="peer block w-full border-0 border-b-2 border-gray-300 bg-transparent px-0 py-2.5 text-sm text-black focus:border-black focus:outline-none focus:ring-0"
         >
           {loading && (!options || options.length === 0) && (
             <option value=""></option>
@@ -45,7 +45,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
               <option value=""></option>
               {options.map(({ id, name }) => {
                 return (
-                  <option key={id} value={name}>
+                  <option key={id} value={id}>
                     {name}
                   </option>
                 )

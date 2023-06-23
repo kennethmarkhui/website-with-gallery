@@ -43,17 +43,12 @@ export default async function handler(
   const { id } = parsedQuery.data
 
   try {
-    const deleteResponse = await prisma.category.delete({
+    await prisma.category.delete({
       where: {
         id,
       },
-      select: {
-        name: true,
-      },
     })
-    return res
-      .status(200)
-      .json({ message: `${deleteResponse.name} has been deleted.` })
+    return res.status(200).json({ message: 'Category has been deleted.' })
   } catch (error) {
     return res
       .status(400)

@@ -8,16 +8,12 @@ import type {
 import { prisma } from 'lib/prisma'
 import { GalleryFormFieldsSchema } from 'lib/validations'
 
-export async function fetchItem(
-  id: GalleryFormFields['id']
-): Promise<GalleryItem | null> {
+export async function fetchItem(id: GalleryFormFields['id']) {
   const data = await prisma.item.findUnique({
     where: { id },
     select: {
       id: true,
-      name: true,
-      storage: true,
-      category: { select: { name: true } },
+      category: { select: { id: true } },
       image: {
         select: {
           url: true,
@@ -26,10 +22,17 @@ export async function fetchItem(
           height: true,
         },
       },
+      translations: {
+        select: {
+          name: true,
+          storage: true,
+          language: { select: { code: true } },
+        },
+      },
     },
   })
 
-  return data ? { ...data, category: data.category?.name ?? null } : null
+  return data ? { ...data, category: data.category?.id ?? null } : null
 }
 
 export async function fetchImage(id: GalleryFormFields['id']) {

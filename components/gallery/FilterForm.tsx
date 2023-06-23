@@ -183,7 +183,7 @@ const FilterForm = ({
     defaultValues,
   })
 
-  const { data, status, error } = useCategory()
+  const { localizedData, status, error } = useCategory()
 
   useEffect(() => {
     reset(defaultValues)
@@ -206,7 +206,11 @@ const FilterForm = ({
           {
             title: 'Category',
             content: (
-              <Checkboxes options={data!} control={control} name="category" />
+              <Checkboxes
+                options={localizedData!}
+                control={control}
+                name="category"
+              />
             ),
           },
           {

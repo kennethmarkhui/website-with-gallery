@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
-import { prisma } from 'lib/prisma'
+import { prisma, transformTranslationFields } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
@@ -39,20 +39,21 @@ export default async function handler(
     })
   }
 
-  const { category } = parsedBody.data
-
   try {
-    const createdCategory = await prisma.category.create({
+    const translations = await transformTranslationFields(parsedBody.data, {
+      name: true,
+    })
+
+    await prisma.category.create({
       data: {
-        name: category,
-      },
-      select: {
-        name: true,
+        translations: {
+          createMany: {
+            data: translations,
+          },
+        },
       },
     })
-    return res
-      .status(201)
-      .json({ message: `${createdCategory.name} has been created.` })
+    return res.status(201).json({ message: 'Category has been created.' })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
@@ -60,8 +61,8 @@ export default async function handler(
         if (target.includes('name')) {
           return res.status(422).json({
             error: {
+              message: 'Values already exist.',
               target: 'category',
-              message: `"${category}" already exist.`,
             },
           })
         }
