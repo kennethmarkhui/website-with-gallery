@@ -17,19 +17,15 @@ export const prisma =
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma
 
 export const getLanguageId = async (code: string) => {
-  try {
-    const { id } = await prisma.language.findFirstOrThrow({
-      where: {
-        code,
-      },
-      select: {
-        id: true,
-      },
-    })
-    return id
-  } catch (error) {
-    throw error
-  }
+  const { id } = await prisma.language.findFirstOrThrow({
+    where: {
+      code,
+    },
+    select: {
+      id: true,
+    },
+  })
+  return id
 }
 
 export const transformTranslationFields = <
