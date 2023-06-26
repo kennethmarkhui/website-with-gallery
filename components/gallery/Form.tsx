@@ -230,11 +230,13 @@ function GalleryForm({
           <Button type="submit" disabled={!isDirty}>
             {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">
-                Submitting
+                {createStatus === 'loading' ? 'Creating' : 'Updating'}
                 <FaSpinner className="animate-spin" />
               </span>
+            ) : mode === 'create' ? (
+              'Create'
             ) : (
-              'Submit'
+              'Update'
             )}
           </Button>
           {mode === 'update' && defaultFormValues && (
