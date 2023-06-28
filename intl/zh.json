@@ -29,11 +29,35 @@
     "create-title": "zh create",
     "update-title": "zh update",
     "home": "zh home",
-    "create": "zh create"
+    "create": "zh create",
+    "edit": "zh Edit"
   },
   "auth": {
     "signin-title": "zh sign in",
     "error-title": "zh auth error",
     "logout": "zh logout"
+  },
+  "form": {
+    "image": "zh Image",
+    "name": "zh Name",
+    "storage": "zh Storage",
+    "category": "zh Category",
+    "search": "zh Search",
+    "order-by": "zh Sort By",
+    "item": "zh Item",
+    "create": "zh Create",
+    "creating": "zh Creating",
+    "update": "zh Update",
+    "updating": "zh Updating",
+    "delete": "zh Delete",
+    "cancel": "zh Cancel",
+    "translated-name": "{language, select, en {zh English} zh {zh Chinese} other {zh Missing Language}} zh Name",
+    "translated-storage": "{language, select, en {zh English} zh {zh Chinese} other {zh Missing Language}} zh Storage",
+    "translated-category": "{language, select, en {zh English} zh {zh Chinese} other {zh Missing Language}} zh Category",
+    "add-translation": "zh add {language, select, en {English} zh {Chinese} other {Missing Language}} translation",
+    "upload-title": "zh Click to upload",
+    "upload-description": "zh Image only. (MAX. {maxFilesize})",
+    "no-results": "zh No results",
+    "total-items": "zh Total Items"
   }
 }

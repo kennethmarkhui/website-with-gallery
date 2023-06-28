@@ -5,10 +5,10 @@ import { HiPhotograph, HiX } from 'react-icons/hi'
 
 import useFilePreview from 'hooks/gallery/useFilePreview'
 import type { GalleryFormFields } from 'types/gallery'
-import { formatBytes } from 'lib/utils'
-import { MAX_FILE_SIZE } from 'constants/gallery'
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+  title: string
+  description: string
   defaultPreview?: string
   fileList?: FileList
   errorMessage?: string
@@ -19,6 +19,8 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
   function ImagePreviewInput(
     {
+      title,
+      description,
       defaultPreview,
       fileList,
       errorMessage,
@@ -71,11 +73,9 @@ const ImagePreviewInput = forwardRef<HTMLInputElement, InputProps>(
             <div className="flex flex-col items-center justify-center pb-6 pt-5">
               <HiPhotograph className="mb-3 h-10 w-10 text-gray-400" />
               <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span>
+                <span className="font-semibold">{title}</span>
               </p>
-              <p className="text-xs text-gray-500">
-                {`Image only. (MAX. ${formatBytes(MAX_FILE_SIZE)})`}
-              </p>
+              <p className="text-xs text-gray-500">{description}</p>
             </div>
           )}
         </label>

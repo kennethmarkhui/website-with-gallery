@@ -4,7 +4,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
 import {
   useForm,
   useController,
@@ -19,11 +18,7 @@ import {
   HiOutlineSearch,
 } from 'react-icons/hi'
 
-import type {
-  GalleryFormFilters,
-  GalleryItem,
-  NonNullableRecursive,
-} from 'types/gallery'
+import type { GalleryFormFilters } from 'types/gallery'
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -43,6 +38,7 @@ import { GALLERY_LIMIT } from 'constants/gallery'
 type TableFilterFormValues = Omit<GalleryFormFilters, 'orderBy'>
 
 interface DataTableCheckBoxesProps extends UseControllerProps {
+  title: string
   options: { id: string; name: string }[]
 }
 
@@ -84,6 +80,7 @@ export const getServerSideProps: GetServerSideProps = async ({
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',
+        'form',
       ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
@@ -91,6 +88,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 }
 
 const Checkboxes = ({
+  title,
   options,
   control,
   name,
@@ -110,7 +108,7 @@ const Checkboxes = ({
   return (
     <Popover className="relative inline-block">
       <Popover.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
-        <span className="block truncate capitalize">{name}</span>
+        <span className="block truncate capitalize">{title}</span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </span>
@@ -146,6 +144,8 @@ const TableFilterForm = ({
   defaultValues,
   onSubmitCallback,
 }: TableFilterFormProps) => {
+  const t = useTranslations('form')
+
   const { localizedData } = useCategory()
 
   const { register, formState, handleSubmit, reset, control } =
@@ -176,8 +176,9 @@ const TableFilterForm = ({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
     >
-      <FloatingLabelInput id="search" {...register('search')} />
+      <FloatingLabelInput id={t('search')} {...register('search')} />
       <Checkboxes
+        title={t('category')}
         control={control}
         name="category"
         options={localizedData ?? []}
@@ -191,6 +192,7 @@ const TableFilterForm = ({
 
 const Admin = (): JSX.Element => {
   const t = useTranslations('gallery-admin')
+  const tForm = useTranslations('form')
   // TODO: use ImageViewerModal to view the image
   const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
@@ -262,7 +264,7 @@ const Admin = (): JSX.Element => {
           },
           {
             accessorKey: 'image',
-            header: 'Image',
+            header: tForm('image'),
             cell: ({ row }) => {
               // TODO: getValue type is not inferred and is unknown
               // https://github.com/TanStack/table/pull/4109
@@ -283,11 +285,11 @@ const Admin = (): JSX.Element => {
               )
             },
           },
-          { accessorKey: 'name', header: 'Name' },
-          { accessorKey: 'storage', header: 'Storage' },
+          { accessorKey: 'name', header: tForm('name') },
+          { accessorKey: 'storage', header: tForm('storage') },
           {
             accessorKey: 'category',
-            header: 'Category',
+            header: tForm('category'),
             cell: ({ row }) => {
               const category = localizedCategoryData?.find(
                 (data) => data.id === row.original.category
@@ -319,7 +321,7 @@ const Admin = (): JSX.Element => {
                   className="font-medium text-gray-500 hover:text-black hover:underline"
                   aria-label="edit image"
                 >
-                  Edit
+                  {t('edit')}
                 </Link>
               )
             },

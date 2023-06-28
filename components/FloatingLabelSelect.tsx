@@ -57,7 +57,7 @@ const FloatingLabelSelect = forwardRef<HTMLSelectElement, SelectProps>(
           htmlFor={rest.id}
           className="absolute top-3 -z-10 origin-[0] text-sm capitalize text-gray-500 duration-300 peer-focus:left-0 peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:font-medium peer-focus:text-black [:merge(.peer):not([data-value=''])_~_&]:-translate-y-6 [:merge(.peer):not([data-value=''])_~_&]:scale-75"
         >
-          {rest.name}
+          {rest.id}
         </label>
       </div>
     )

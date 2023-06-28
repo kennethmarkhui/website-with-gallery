@@ -61,6 +61,7 @@ export const getServerSideProps: GetServerSideProps<
       messages: pick(await import(`../../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',
+        'form',
       ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },

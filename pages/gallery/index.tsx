@@ -49,7 +49,10 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   return {
     props: {
-      messages: pick(await import(`../../intl/${locale}.json`), ['gallery']),
+      messages: pick(await import(`../../intl/${locale}.json`), [
+        'gallery',
+        'form',
+      ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
   }

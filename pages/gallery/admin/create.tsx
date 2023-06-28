@@ -26,6 +26,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',
+        'form',
       ]),
       dehydratedState: JSON.parse(JSON.stringify(dehydrate(queryClient))),
     },
@@ -34,10 +35,12 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
 
 const Create = (): JSX.Element => {
   const t = useTranslations('gallery-admin')
-  const [tabs] = useState<{ name: string; node: ReactNode }[]>([
-    { name: 'Item', node: <GalleryForm /> },
-    { name: 'Category', node: <CategoryForm /> },
-  ])
+  const tForm = useTranslations('form')
+
+  const tabs = [
+    { name: tForm('item'), node: <GalleryForm /> },
+    { name: tForm('category'), node: <CategoryForm /> },
+  ]
 
   return (
     <GalleryAdminLayout title={t('create-title')}>
@@ -49,7 +52,7 @@ const Create = (): JSX.Element => {
               className={({ selected }) =>
                 cn(
                   'w-full border-b-2 text-xl focus:outline-none',
-                  selected && 'border-black font-bold'
+                  selected && 'pointer-events-none border-black font-bold'
                 )
               }
             >

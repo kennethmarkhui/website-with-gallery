@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import { useTranslations } from 'next-intl'
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FaSpinner } from 'react-icons/fa'
@@ -18,6 +19,8 @@ import useCategory from 'hooks/gallery/category/useCategory'
 import useCreate from 'hooks/gallery/mutations/useCreate'
 import useUpdate from 'hooks/gallery/mutations/useUpdate'
 import useDelete from 'hooks/gallery/mutations/useDelete'
+import { MAX_FILE_SIZE } from 'constants/gallery'
+import { formatBytes } from 'lib/utils'
 
 interface GalleryFormProps {
   mode?: GalleryFormMode
@@ -43,6 +46,7 @@ function GalleryForm({
   defaultFormValues,
 }: GalleryFormProps): JSX.Element {
   const router = useRouter()
+  const t = useTranslations('form')
 
   const {
     register,
@@ -151,7 +155,7 @@ function GalleryForm({
         {nameFields.map((field, index, arr) => (
           <div key={field.id} className="flex">
             <FloatingLabelInput
-              id={`${field.code} name`}
+              id={t('translated-name', { language: field.code })}
               {...register(`name.${index}.value`)}
             />
             {arr.length > 1 && (
@@ -172,7 +176,7 @@ function GalleryForm({
                     onClick={() => nameFieldAppend({ code: locale, value: '' })}
                     className="text-xs text-gray-500 hover:underline"
                   >
-                    add {locale} translation
+                    {t('add-translation', { language: locale })}
                   </button>
                 )
               })}
@@ -181,7 +185,7 @@ function GalleryForm({
         {storageFields.map((field, index, arr) => (
           <div key={field.id} className="flex">
             <FloatingLabelInput
-              id={`${field.code} storage`}
+              id={t('translated-storage', { language: field.code })}
               {...register(`storage.${index}.value`)}
             />
             {arr.length > 1 && (
@@ -204,14 +208,14 @@ function GalleryForm({
                     }
                     className="text-xs text-gray-500 hover:underline"
                   >
-                    add {locale} translation
+                    {t('add-translation', { language: locale })}
                   </button>
                 )
               })}
             </div>
           )}
         <FloatingLabelSelect
-          id="category"
+          id={t('category')}
           {...register('category')}
           defaultSelected={defaultFormValues?.category}
           options={localizedData}
@@ -220,6 +224,10 @@ function GalleryForm({
         <ImagePreviewInput
           id="image"
           {...register('image')}
+          title={t('upload-title')}
+          description={t('upload-description', {
+            maxFilesize: formatBytes(MAX_FILE_SIZE),
+          })}
           defaultPreview={defaultFormValues?.image?.url}
           fileList={imageFileList}
           errorMessage={errors.image?.message}
@@ -230,13 +238,13 @@ function GalleryForm({
           <Button type="submit" disabled={!isDirty}>
             {createStatus === 'loading' || updateStatus === 'loading' ? (
               <span className="flex items-center justify-center gap-1">
-                {createStatus === 'loading' ? 'Creating' : 'Updating'}
+                {createStatus === 'loading' ? t('creating') : t('updating')}
                 <FaSpinner className="animate-spin" />
               </span>
             ) : mode === 'create' ? (
-              'Create'
+              t('create')
             ) : (
-              'Update'
+              t('update')
             )}
           </Button>
           {mode === 'update' && defaultFormValues && (
@@ -267,7 +275,7 @@ function GalleryForm({
                   <FaSpinner className="animate-spin" />
                 </span>
               ) : (
-                'Delete'
+                t('delete')
               )}
             </Button>
           )}

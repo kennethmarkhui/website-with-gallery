@@ -8,7 +8,7 @@ const LocaleSwitcher = (): JSX.Element => {
   const router = useRouter()
 
   const changeLocale = (locale: string) =>
-    router.push(router.pathname, router.asPath, { locale })
+    router.push(router.asPath, undefined, { locale })
 
   return (
     <Listbox onChange={(locale) => changeLocale(locale)} value={router.locale}>

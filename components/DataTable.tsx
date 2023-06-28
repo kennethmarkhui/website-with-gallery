@@ -11,6 +11,7 @@ import {
   SortingState,
   PaginationState,
 } from '@tanstack/react-table'
+import { useTranslations } from 'next-intl'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 
 import { cn } from 'lib/utils'
@@ -69,6 +70,7 @@ const Pagination = ({
   hasPreviousPage,
   hasNextPage,
 }: PaginationProps): JSX.Element => {
+  const t = useTranslations('form')
   const pageRangeDisplayed = 2
   const marginPagesDisplayed = 1
 
@@ -143,7 +145,7 @@ const Pagination = ({
   return (
     <nav className="flex flex-col items-center justify-center space-y-3 p-4 md:flex-row md:justify-between md:space-y-0">
       <p className="text-sm">
-        Total Items: <span className="font-semibold">{totalCount}</span>
+        {t('total-items')}: <span className="font-semibold">{totalCount}</span>
       </p>
       <ul className="inline-flex -space-x-px">
         <li>
@@ -204,6 +206,7 @@ const DataTable = <TData, TValue>({
   manualPagination,
   isLoading,
 }: DataTableProps<TData, TValue>): JSX.Element => {
+  const t = useTranslations('form')
   const table = useReactTable({
     data,
     columns,
@@ -302,7 +305,7 @@ const DataTable = <TData, TValue>({
             ) : (
               <tr>
                 <td className="h-24 p-4 text-center" colSpan={columns.length}>
-                  No results.
+                  {t('no-results')}
                 </td>
               </tr>
             )}

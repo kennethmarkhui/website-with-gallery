@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useTranslations } from 'next-intl'
 import { SubmitHandler, useFieldArray, useForm } from 'react-hook-form'
 import { Category } from 'prisma/prisma-client'
 import { HiX, HiTrash, HiPencil } from 'react-icons/hi'
@@ -20,6 +21,7 @@ import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 const CategoryForm = (): JSX.Element => {
   const { data, localizedData, status, error } = useCategory()
   const { locale, locales } = useRouter()
+  const t = useTranslations('form')
 
   const { mutate: createMutate, status: createStatus } = useCreateCategory()
   const { mutate: updateMutate, status: updateStatus } = useUpdateCategory()
@@ -111,7 +113,7 @@ const CategoryForm = (): JSX.Element => {
                   reset({ name: [{ code: locale, value: '' }] })
                   setCategoryToUpdate(undefined)
                 }}
-                title="Cancel update"
+                title={t('cancel')}
               >
                 <HiX className="h-5 w-5" />
               </button>
@@ -132,7 +134,7 @@ const CategoryForm = (): JSX.Element => {
                   setCategoryToUpdate({ id })
                   // setFocus('category', { shouldSelect: true })
                 }}
-                title={`Update '${name}'`}
+                title={`${t('update')} '${name}'`}
               >
                 <HiPencil className="h-5 w-5" />
               </button>
@@ -140,7 +142,7 @@ const CategoryForm = (): JSX.Element => {
             <button
               disabled={!!categoryToUpdate}
               onClick={() => deleteMutate(id)}
-              title="Delete"
+              title={t('delete')}
             >
               <HiTrash className="h-5 w-5 text-red-500" />
             </button>
@@ -160,7 +162,7 @@ const CategoryForm = (): JSX.Element => {
           {fields.map((field, index, arr) => (
             <div key={field.id} className="flex">
               <FloatingLabelInput
-                id={`${field.code} category`}
+                id={t('translated-category', { language: field.code })}
                 {...register(`name.${index}.value`)}
                 errorMessage={errors.name?.[index]?.value?.message}
                 // icon={<HiPlus />}
@@ -184,7 +186,7 @@ const CategoryForm = (): JSX.Element => {
                       onClick={() => append({ code: locale, value: '' })}
                       className="text-xs text-gray-500 hover:underline"
                     >
-                      add {locale} translation
+                      {t('add-translation', { language: locale })}
                     </button>
                   )
                 })}
@@ -192,7 +194,7 @@ const CategoryForm = (): JSX.Element => {
             )}
           <div className="flex gap-4">
             <Button type="submit" disabled={!hasDirtyFields}>
-              {categoryToUpdate ? 'Update' : 'Create'}
+              {categoryToUpdate ? t('update') : t('create')}
             </Button>
             {categoryToUpdate && (
               <Button
@@ -202,7 +204,7 @@ const CategoryForm = (): JSX.Element => {
                   setCategoryToUpdate(undefined)
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
             )}
           </div>

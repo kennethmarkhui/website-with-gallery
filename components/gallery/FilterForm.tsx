@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, ReactNode, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   SubmitHandler,
   useController,
@@ -172,6 +173,8 @@ const FilterForm = ({
   onSubmitCallback,
   className,
 }: FilterFormProps): JSX.Element => {
+  const t = useTranslations('form')
+
   const {
     register,
     formState: { isDirty },
@@ -199,12 +202,12 @@ const FilterForm = ({
       className={cn('flex h-full min-h-0 w-full flex-col gap-4', className)}
     >
       <fieldset disabled={disabled}>
-        <FloatingLabelInput id="search" {...register('search')} />
+        <FloatingLabelInput id={t('search')} {...register('search')} />
       </fieldset>
       <Accordion
         panels={[
           {
-            title: 'Category',
+            title: t('category'),
             content: (
               <Checkboxes
                 options={localizedData!}
@@ -214,7 +217,7 @@ const FilterForm = ({
             ),
           },
           {
-            title: 'Sort By',
+            title: t('order-by'),
             content: (
               <SortBy
                 options={['updatedAt', 'dateAdded', 'id']}

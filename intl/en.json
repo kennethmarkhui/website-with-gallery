@@ -7,8 +7,8 @@
     "title": "home",
     "description": "english home description",
     "name": "english",
-    "gallery": "en gallery",
-    "github": "en github"
+    "gallery": "gallery",
+    "github": "github"
   },
   "about": {
     "title": "about",
@@ -29,11 +29,35 @@
     "create-title": "create",
     "update-title": "update",
     "home": "home",
-    "create": "create"
+    "create": "create",
+    "edit": "Edit"
   },
   "auth": {
     "signin-title": "sign in",
     "error-title": "auth error",
     "logout": "logout"
+  },
+  "form": {
+    "image": "Image",
+    "name": "Name",
+    "storage": "Storage",
+    "category": "Category",
+    "search": "Search",
+    "order-by": "Sort By",
+    "item": "Item",
+    "create": "Create",
+    "creating": "Creating",
+    "update": "Update",
+    "updating": "Updating",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "translated-name": "{language, select, en {English} zh {Chinese} other {Missing Language}} Name",
+    "translated-storage": "{language, select, en {English} zh {Chinese} other {Missing Language}} Storage",
+    "translated-category": "{language, select, en {English} zh {Chinese} other {Missing Language}} Category",
+    "add-translation": "add {language, select, en {English} zh {Chinese} other {Missing Language}} translation",
+    "upload-title": "Click to upload",
+    "upload-description": "Image only. (MAX. {maxFilesize})",
+    "no-results": "No results",
+    "total-items": "Total Items"
   }
 }
