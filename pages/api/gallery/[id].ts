@@ -29,6 +29,8 @@ export async function fetchItem(id: GalleryFormFields['id']) {
           language: { select: { code: true } },
         },
       },
+      dateAdded: true,
+      updatedAt: true,
     },
   })
 
@@ -47,7 +49,7 @@ export async function fetchImage(id: GalleryFormFields['id']) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GalleryItem | null | GalleryErrorResponse>
+  res: NextApiResponse<GalleryItem | GalleryErrorResponse>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({
