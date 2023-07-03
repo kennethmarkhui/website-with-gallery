@@ -50,11 +50,11 @@ const Checkboxes = ({
   const { field } = useController({ control, name })
   const checkedboxes = new Set<string>(field.value)
 
-  const handleOnChange = (name: string) => {
-    if (checkedboxes.has(name)) {
-      checkedboxes.delete(name)
+  const handleOnChange = (id: string) => {
+    if (checkedboxes.has(id)) {
+      checkedboxes.delete(id)
     } else {
-      checkedboxes.add(name)
+      checkedboxes.add(id)
     }
     field.onChange(Array.from(checkedboxes))
   }
@@ -66,10 +66,10 @@ const Checkboxes = ({
           <input
             id={id}
             type="checkbox"
-            checked={checkedboxes.has(name)}
+            checked={checkedboxes.has(id)}
             className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
-            onChange={() => handleOnChange(name)}
-            value={name}
+            onChange={() => handleOnChange(id)}
+            value={id}
           />
           <label
             htmlFor={id}
