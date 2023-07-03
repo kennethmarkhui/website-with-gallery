@@ -43,6 +43,8 @@
     "storage": "zh Storage",
     "category": "zh Category",
     "search": "zh Search",
+    "dateAdded": "zh dateAdded",
+    "updatedAt": "zh updatedAt",
     "order-by": "zh Sort By",
     "item": "zh Item",
     "create": "zh Create",

@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useFormatter } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import {
   useForm,
@@ -193,6 +193,8 @@ const TableFilterForm = ({
 const Admin = (): JSX.Element => {
   const t = useTranslations('gallery-admin')
   const tForm = useTranslations('form')
+  const format = useFormatter()
+  const now = new Date()
   // TODO: use ImageViewerModal to view the image
   const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
 
@@ -204,18 +206,22 @@ const Admin = (): JSX.Element => {
 
   const items = useMemo(
     () =>
-      localizedData.items?.map(({ id, name, storage, category, image }) => ({
-        id,
-        name: name ?? '',
-        storage: storage ?? '',
-        category: category ?? '',
-        image: {
-          url: image?.url ?? '/placeholder.png',
-          width: image?.width ?? 1665,
-          height: image?.height ?? 2048,
-          publicId: image?.publicId ?? '',
-        },
-      })) || [],
+      localizedData.items?.map(
+        ({ id, name, storage, category, image, dateAdded, updatedAt }) => ({
+          id,
+          name: name ?? '',
+          storage: storage ?? '',
+          category: category ?? '',
+          image: {
+            url: image?.url ?? '/placeholder.png',
+            width: image?.width ?? 1665,
+            height: image?.height ?? 2048,
+            publicId: image?.publicId ?? '',
+          },
+          dateAdded,
+          updatedAt,
+        })
+      ) || [],
     [localizedData?.items]
   )
 
@@ -243,6 +249,7 @@ const Admin = (): JSX.Element => {
           {
             accessorKey: 'id',
             header: ({ column }) => {
+              const isSorted = column.getIsSorted()
               const isDesc = column.getIsSorted() === 'desc'
               return (
                 <button
@@ -255,7 +262,8 @@ const Admin = (): JSX.Element => {
                   <HiArrowNarrowDown
                     className={cn(
                       'transition-transform',
-                      !isDesc && 'rotate-180'
+                      !isDesc && 'rotate-180',
+                      !isSorted && 'invisible'
                     )}
                   />
                 </button>
@@ -299,6 +307,60 @@ const Admin = (): JSX.Element => {
                   {category?.name}
                 </span>
               )
+            },
+          },
+          {
+            accessorKey: 'dateAdded',
+            header: ({ column }) => {
+              const isSorted = column.getIsSorted()
+              const isDesc = column.getIsSorted() === 'desc'
+              return (
+                <button
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    column.toggleSorting(!isDesc)
+                  }}
+                >
+                  {tForm('dateAdded')}
+                  <HiArrowNarrowDown
+                    className={cn(
+                      'transition-transform',
+                      !isDesc && 'rotate-180',
+                      !isSorted && 'invisible'
+                    )}
+                  />
+                </button>
+              )
+            },
+            cell: ({ row }) => {
+              return format.relativeTime(row.original.dateAdded, now)
+            },
+          },
+          {
+            accessorKey: 'updatedAt',
+            header: ({ column }) => {
+              const isSorted = column.getIsSorted()
+              const isDesc = column.getIsSorted() === 'desc'
+              return (
+                <button
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    column.toggleSorting(!isDesc)
+                  }}
+                >
+                  {tForm('updatedAt')}
+                  <HiArrowNarrowDown
+                    className={cn(
+                      'transition-transform',
+                      !isDesc && 'rotate-180',
+                      !isSorted && 'invisible'
+                    )}
+                  />
+                </button>
+              )
+            },
+            cell: ({ row }) => {
+              return format.relativeTime(row.original.updatedAt, now)
             },
           },
           {

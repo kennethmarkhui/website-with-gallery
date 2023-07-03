@@ -71,6 +71,8 @@ export async function fetchItems({
             language: { select: { code: true } },
           },
         },
+        dateAdded: true,
+        updatedAt: true,
       },
       orderBy,
     }),

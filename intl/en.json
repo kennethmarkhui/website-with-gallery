@@ -43,6 +43,8 @@
     "storage": "Storage",
     "category": "Category",
     "search": "Search",
+    "dateAdded": "dateAdded",
+    "updatedAt": "updatedAt",
     "order-by": "Sort By",
     "item": "Item",
     "create": "Create",

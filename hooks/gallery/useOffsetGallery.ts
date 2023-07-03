@@ -26,18 +26,22 @@ const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {
 
   const localizedData = {
     ...data,
-    items: data?.items.map(({ id, category, image, translations }) => {
-      const localizedItem = translations.find(
-        ({ language }) => language.code === locale
-      )
-      return {
-        id,
-        category,
-        image,
-        name: localizedItem?.name ?? null,
-        storage: localizedItem?.storage ?? null,
+    items: data?.items.map(
+      ({ id, category, image, translations, dateAdded, updatedAt }) => {
+        const localizedItem = translations.find(
+          ({ language }) => language.code === locale
+        )
+        return {
+          id,
+          category,
+          image,
+          name: localizedItem?.name ?? null,
+          storage: localizedItem?.storage ?? null,
+          dateAdded,
+          updatedAt,
+        }
       }
-    }),
+    ),
   }
 
   return {

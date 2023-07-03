@@ -35,7 +35,7 @@ interface CheckboxesProps extends UseControllerProps {
 }
 
 interface SortByProps extends UseControllerProps {
-  options: GalleryItemKeys[]
+  options: { name: string; value: GalleryItemKeys }[]
 }
 
 interface AccordionProps {
@@ -99,18 +99,18 @@ const SortBy = ({ options, control, name }: SortByProps): JSX.Element => {
 
   return (
     <ul className="h-full space-y-2">
-      {options.map((name, idx) => (
+      {options.map(({ name, value }, idx) => (
         <li className="pl-2 pr-6" key={idx}>
           <button
             type="button"
             className={cn(
               'flex w-full items-center justify-between text-xs font-medium',
-              selected === name ? 'text-black' : 'text-gray-500'
+              selected === value ? 'text-black' : 'text-gray-500'
             )}
-            onClick={() => handleOnClick(name)}
+            onClick={() => handleOnClick(value)}
           >
             <span>{name}</span>
-            {selected === name && (
+            {selected === value && (
               <HiArrowNarrowDown
                 className={cn('transition-transform', !isDesc && 'rotate-180')}
               />
@@ -210,7 +210,7 @@ const FilterForm = ({
             title: t('category'),
             content: (
               <Checkboxes
-                options={localizedData!}
+                options={localizedData ?? []}
                 control={control}
                 name="category"
               />
@@ -220,7 +220,11 @@ const FilterForm = ({
             title: t('order-by'),
             content: (
               <SortBy
-                options={['updatedAt', 'dateAdded', 'id']}
+                options={[
+                  { name: 'ID', value: 'id' },
+                  { name: t('dateAdded'), value: 'dateAdded' },
+                  { name: t('updatedAt'), value: 'updatedAt' },
+                ]}
                 control={control}
                 name="orderBy"
               />
