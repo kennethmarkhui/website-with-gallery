@@ -91,9 +91,7 @@ export default async function handler(
   let cloudinaryResponse
   try {
     if (image) {
-      const filepath = Array.isArray(image)
-        ? image.map((f) => f.filepath)
-        : image.filepath
+      const filepath = Array.isArray(image) ? image[0].filepath : image.filepath
 
       if (typeof filepath === 'string') {
         cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
