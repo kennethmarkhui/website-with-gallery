@@ -1,7 +1,7 @@
 import type { NextApiRequest } from 'next'
-import formidable, { Fields, Files, Options } from 'formidable'
+import { Fields, Files, Options, formidable, errors } from 'formidable'
 
-export const FormidableError = formidable.errors.FormidableError
+export const FormidableError = errors.FormidableError
 
 export const formidableOptions: Options = {
   maxFiles: 1,

@@ -72,7 +72,7 @@ export default async function handler(
 
   const parsedFormData = GalleryFormFieldsSchema.omit({
     image: true,
-  }).safeParse(typeof jsonData === 'string' && JSON.parse(jsonData))
+  }).safeParse(Array.isArray(jsonData) && JSON.parse(jsonData[0]))
 
   if (!parsedFormData.success) {
     return res.status(422).json({
