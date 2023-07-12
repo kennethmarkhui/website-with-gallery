@@ -150,7 +150,7 @@ export default async function handler(
           return res.status(422).json({
             error: {
               target: 'id',
-              message: `"${id}" already exist.`,
+              message: 'server_error_exist',
             },
           })
         }

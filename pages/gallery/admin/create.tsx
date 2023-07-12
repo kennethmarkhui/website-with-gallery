@@ -38,7 +38,7 @@ const Create = (): JSX.Element => {
   const tForm = useTranslations('form')
 
   const tabs = [
-    { name: tForm('item'), node: <GalleryForm /> },
+    { name: tForm('item'), node: <GalleryForm mode="create" /> },
     { name: tForm('category'), node: <CategoryForm /> },
   ]
 

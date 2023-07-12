@@ -10,3 +10,6 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/png',
   'image/webp',
 ]
+
+export const ALPHANUMERIC_REGEX = /^[a-zA-Z\d]+$/
+export const NUMERIC_REGEX = /^\d+$/

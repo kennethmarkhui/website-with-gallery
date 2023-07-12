@@ -52,6 +52,7 @@
     "update": "Update",
     "updating": "Updating",
     "delete": "Delete",
+    "deleting": "Deleting",
     "cancel": "Cancel",
     "translated-name": "{language, select, en {English} zh {Chinese} other {Missing Language}} Name",
     "translated-storage": "{language, select, en {English} zh {Chinese} other {Missing Language}} Storage",
@@ -60,6 +61,15 @@
     "upload-title": "Click to upload",
     "upload-description": "Image only. (MAX. {maxFilesize})",
     "no-results": "No results",
-    "total-items": "Total Items"
+    "total-items": "Total Items",
+    "validations": {
+      "required": "Required",
+      "alphanumeric": "Alphanumerics only",
+      "string_max_length_exceeded": "must not exceed {length} characters",
+      "max_filesize_exceeded": "Max image size is {maxFilesize}",
+      "single_file": "Only 1 file is allowed",
+      "unsupported_filetype": "Only {supportedFileTypes} formats are supported",
+      "server_error_exist": "already exist"
+    }
   }
 }

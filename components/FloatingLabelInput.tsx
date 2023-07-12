@@ -31,7 +31,7 @@ const FloatingLabelInput = forwardRef<HTMLInputElement, InputProps>(
           </button>
         )}
         {errorMessage && (
-          <p className="absolute text-sm text-red-500">{errorMessage}</p>
+          <p className="absolute text-xs text-red-500">{errorMessage}</p>
         )}
       </div>
     )

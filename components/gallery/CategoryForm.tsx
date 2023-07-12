@@ -16,7 +16,12 @@ import useUpdateCategory from 'hooks/gallery/category/mutations/useUpdateCategor
 import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategory'
 import FloatingLabelInput from '../FloatingLabelInput'
 import { cn } from 'lib/utils'
-import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
+import {
+  type I18nGalleryFormErrorCode,
+  i18nGalleryFormErrorCode,
+  i18nErrorMap,
+  GalleryCategoryFormFieldsSchema,
+} from 'lib/validations'
 
 const CategoryForm = (): JSX.Element => {
   const { data, localizedData, status, error } = useCategory()
@@ -46,7 +51,9 @@ const CategoryForm = (): JSX.Element => {
     setFocus,
     reset,
   } = useForm<GalleryCategoryFormFields>({
-    resolver: zodResolver(GalleryCategoryFormFieldsSchema),
+    resolver: zodResolver(GalleryCategoryFormFieldsSchema, {
+      errorMap: i18nErrorMap,
+    }),
     defaultValues: { name: [{ code: locale, value: '' }] },
   })
 
@@ -62,11 +69,6 @@ const CategoryForm = (): JSX.Element => {
   const localesWithNoTranslation = locales?.filter((loc) => {
     return !fields.map(({ code }) => code).includes(loc)
   })
-
-  useEffect(() => {
-    reset({ name: [{ code: locale, value: '' }] })
-    setCategoryToUpdate(undefined)
-  }, [locale, reset])
 
   const onSubmit: SubmitHandler<GalleryCategoryFormFields> = (data) => {
     categoryToUpdate
@@ -159,22 +161,38 @@ const CategoryForm = (): JSX.Element => {
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
         <fieldset className="space-y-6" disabled={isLoading}>
-          {fields.map((field, index, arr) => (
-            <div key={field.id} className="flex">
-              <FloatingLabelInput
-                id={t('translated-category', { language: field.code })}
-                {...register(`name.${index}.value`)}
-                errorMessage={errors.name?.[index]?.value?.message}
-                // icon={<HiPlus />}
-                disabled={isLoading}
-              />
-              {arr.length > 1 && (
-                <button type="button" onClick={() => remove(index)}>
-                  x
-                </button>
-              )}
-            </div>
-          ))}
+          {fields.map((field, index, arr) => {
+            let errorMessage = errors.name?.[index]?.value?.message
+            if (
+              typeof errorMessage === 'string' &&
+              errorMessage in i18nGalleryFormErrorCode
+            ) {
+              errorMessage = t(
+                `validations.${errorMessage as I18nGalleryFormErrorCode}`,
+                {
+                  length:
+                    GalleryCategoryFormFieldsSchema.shape.name.element.shape
+                      .value.maxLength,
+                }
+              )
+            }
+            return (
+              <div key={field.id} className="flex">
+                <FloatingLabelInput
+                  id={t('translated-category', { language: field.code })}
+                  {...register(`name.${index}.value`)}
+                  errorMessage={errorMessage}
+                  // icon={<HiPlus />}
+                  disabled={isLoading}
+                />
+                {arr.length > 1 && (
+                  <button type="button" onClick={() => remove(index)}>
+                    x
+                  </button>
+                )}
+              </div>
+            )
+          })}
           {Array.isArray(localesWithNoTranslation) &&
             localesWithNoTranslation.length > 0 && (
               <div className="flex gap-2">

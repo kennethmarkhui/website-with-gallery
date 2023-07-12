@@ -52,6 +52,7 @@
     "update": "zh Update",
     "updating": "zh Updating",
     "delete": "zh Delete",
+    "deleting": "zh Deleting",
     "cancel": "zh Cancel",
     "translated-name": "{language, select, en {zh English} zh {zh Chinese} other {zh Missing Language}} zh Name",
     "translated-storage": "{language, select, en {zh English} zh {zh Chinese} other {zh Missing Language}} zh Storage",
@@ -60,6 +61,15 @@
     "upload-title": "zh Click to upload",
     "upload-description": "zh Image only. (MAX. {maxFilesize})",
     "no-results": "zh No results",
-    "total-items": "zh Total Items"
+    "total-items": "zh Total Items",
+    "validations": {
+      "required": "zh Required",
+      "alphanumeric": "zh Alphanumerics only",
+      "string_max_length_exceeded": "zh must not exceed {length} characters",
+      "max_filesize_exceeded": "zh Max image size is {maxFilesize}",
+      "single_file": "zh Only 1 file is allowed",
+      "unsupported_filetype": "zh Only {supportedFileTypes} formats are supported",
+      "server_error_exist": "zh already exist"
+    }
   }
 }

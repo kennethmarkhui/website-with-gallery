@@ -38,8 +38,6 @@ export type DefaultGalleryFormFields = Omit<GalleryFormFields, 'image'> & {
 
 export type GalleryFormKeys = keyof GalleryFormFields
 
-export type GalleryFormMode = 'create' | 'update'
-
 export type NextCursor = string
 
 export type GalleryFormFilters = z.infer<typeof GalleryFormFiltersSchema>

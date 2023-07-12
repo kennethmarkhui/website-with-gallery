@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FaSpinner } from 'react-icons/fa'
@@ -9,26 +9,25 @@ import FloatingLabelInput from '../FloatingLabelInput'
 import FloatingLabelSelect from '../FloatingLabelSelect'
 import Button from '../Button'
 import ImagePreviewInput from '../ImagePreviewInput'
-import type {
-  GalleryFormMode,
-  GalleryFormFields,
-  DefaultGalleryFormFields,
-} from 'types/gallery'
-import { GalleryFormFieldsSchema } from 'lib/validations'
+import type { GalleryFormFields, DefaultGalleryFormFields } from 'types/gallery'
+import {
+  type I18nGalleryFormErrorCode,
+  i18nGalleryFormErrorCode,
+  i18nErrorMap,
+  GalleryFormFieldsSchema,
+} from 'lib/validations'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useCreate from 'hooks/gallery/mutations/useCreate'
 import useUpdate from 'hooks/gallery/mutations/useUpdate'
 import useDelete from 'hooks/gallery/mutations/useDelete'
-import { MAX_FILE_SIZE } from 'constants/gallery'
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from 'constants/gallery'
 import { formatBytes } from 'lib/utils'
 
-interface GalleryFormProps {
-  mode?: GalleryFormMode
-  defaultFormValues?: DefaultGalleryFormFields
-}
+type GalleryFormProps = GalleryFormCreateProps | GalleryFormUpdateProps
 
 interface GalleryFormCreateProps {
-  mode?: 'create'
+  mode: 'create'
+  defaultFormValues?: never
 }
 
 interface GalleryFormUpdateProps {
@@ -36,17 +35,13 @@ interface GalleryFormUpdateProps {
   defaultFormValues: DefaultGalleryFormFields
 }
 
-function GalleryForm({ mode }: GalleryFormCreateProps): JSX.Element
 function GalleryForm({
   mode,
-  defaultFormValues,
-}: GalleryFormUpdateProps): JSX.Element
-function GalleryForm({
-  mode = 'create',
   defaultFormValues,
 }: GalleryFormProps): JSX.Element {
   const router = useRouter()
   const t = useTranslations('form')
+  const format = useFormatter()
 
   const {
     register,
@@ -59,7 +54,9 @@ function GalleryForm({
     setError,
     setValue,
   } = useForm<GalleryFormFields>({
-    resolver: zodResolver(GalleryFormFieldsSchema),
+    resolver: zodResolver(GalleryFormFieldsSchema, {
+      errorMap: i18nErrorMap,
+    }),
     defaultValues: {
       id: '',
       name: [{ code: router.locale, value: '' }],
@@ -113,7 +110,6 @@ function GalleryForm({
     return mode === 'update'
       ? updateMutate(data, {
           onSuccess: () => {
-            reset()
             router.push('/gallery/admin')
           },
           onError: ({ error }) => {
@@ -128,7 +124,6 @@ function GalleryForm({
         })
       : createMutate(data, {
           onSuccess: () => {
-            reset()
             router.push('/gallery/admin')
           },
           onError: ({ error }) => {
@@ -150,21 +145,48 @@ function GalleryForm({
           id="id"
           readOnly={mode === 'update'}
           {...register('id')}
-          errorMessage={errors.id?.message}
+          errorMessage={
+            typeof errors.id?.message === 'string'
+              ? errors.id.message in i18nGalleryFormErrorCode
+                ? t(
+                    `validations.${
+                      errors.id.message as I18nGalleryFormErrorCode
+                    }`
+                  )
+                : errors.id.message
+              : undefined
+          }
         />
-        {nameFields.map((field, index, arr) => (
-          <div key={field.id} className="flex">
-            <FloatingLabelInput
-              id={t('translated-name', { language: field.code })}
-              {...register(`name.${index}.value`)}
-            />
-            {arr.length > 1 && (
-              <button type="button" onClick={() => nameFieldRemove(index)}>
-                x
-              </button>
-            )}
-          </div>
-        ))}
+        {nameFields.map((field, index, arr) => {
+          let errorMessage = errors.name?.[index]?.value?.message
+          if (
+            typeof errorMessage === 'string' &&
+            errorMessage in i18nGalleryFormErrorCode
+          ) {
+            errorMessage = t(
+              `validations.${errorMessage as I18nGalleryFormErrorCode}`,
+              {
+                length:
+                  GalleryFormFieldsSchema.shape.name._def.schema._def.type.shape
+                    .value.maxLength,
+              }
+            )
+          }
+          return (
+            <div key={field.id} className="flex">
+              <FloatingLabelInput
+                id={t('translated-name', { language: field.code })}
+                {...register(`name.${index}.value`)}
+                errorMessage={errorMessage}
+              />
+              {arr.length > 1 && (
+                <button type="button" onClick={() => nameFieldRemove(index)}>
+                  x
+                </button>
+              )}
+            </div>
+          )
+        })}
         {Array.isArray(nameFieldsWithNoTranslation) &&
           nameFieldsWithNoTranslation.length > 0 && (
             <div className="flex gap-2">
@@ -182,19 +204,36 @@ function GalleryForm({
               })}
             </div>
           )}
-        {storageFields.map((field, index, arr) => (
-          <div key={field.id} className="flex">
-            <FloatingLabelInput
-              id={t('translated-storage', { language: field.code })}
-              {...register(`storage.${index}.value`)}
-            />
-            {arr.length > 1 && (
-              <button type="button" onClick={() => storageFieldRemove(index)}>
-                x
-              </button>
-            )}
-          </div>
-        ))}
+        {storageFields.map((field, index, arr) => {
+          let errorMessage = errors.storage?.[index]?.value?.message
+          if (
+            typeof errorMessage === 'string' &&
+            errorMessage in i18nGalleryFormErrorCode
+          ) {
+            errorMessage = t(
+              `validations.${errorMessage as I18nGalleryFormErrorCode}`,
+              {
+                length:
+                  GalleryFormFieldsSchema.shape.storage._def.schema._def.type
+                    .shape.value.maxLength,
+              }
+            )
+          }
+          return (
+            <div key={field.id} className="flex">
+              <FloatingLabelInput
+                id={t('translated-storage', { language: field.code })}
+                {...register(`storage.${index}.value`)}
+                errorMessage={errorMessage}
+              />
+              {arr.length > 1 && (
+                <button type="button" onClick={() => storageFieldRemove(index)}>
+                  x
+                </button>
+              )}
+            </div>
+          )
+        })}
         {Array.isArray(storageFieldWithNoTranslation) &&
           storageFieldWithNoTranslation.length > 0 && (
             <div className="flex gap-2">
@@ -230,7 +269,23 @@ function GalleryForm({
           })}
           defaultPreview={defaultFormValues?.image?.url}
           fileList={imageFileList}
-          errorMessage={errors.image?.message}
+          errorMessage={
+            typeof errors.image?.message === 'string'
+              ? errors.image.message in i18nGalleryFormErrorCode
+                ? t(
+                    `validations.${
+                      errors.image.message as I18nGalleryFormErrorCode
+                    }`,
+                    {
+                      maxFilesize: formatBytes(MAX_FILE_SIZE),
+                      supportedFileTypes: format.list(ACCEPTED_IMAGE_TYPES, {
+                        type: 'disjunction',
+                      }),
+                    }
+                  )
+                : errors.image.message
+              : undefined
+          }
           setFormValue={setValue}
           removeFormValue={() => resetField('image')}
         />
@@ -247,7 +302,7 @@ function GalleryForm({
               t('update')
             )}
           </Button>
-          {mode === 'update' && defaultFormValues && (
+          {mode === 'update' && (
             <Button
               type="button"
               variant="danger"
@@ -271,7 +326,7 @@ function GalleryForm({
             >
               {deleteStatus === 'loading' ? (
                 <span className="flex items-center justify-center gap-1">
-                  Deleting
+                  {t('deleting')}
                   <FaSpinner className="animate-spin" />
                 </span>
               ) : (
