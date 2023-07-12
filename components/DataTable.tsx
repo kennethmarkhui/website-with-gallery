@@ -211,12 +211,9 @@ const DataTable = <TData, TValue>({
     data,
     columns,
     state: {
-      sorting: manualSorting?.state,
-      pagination: manualPagination?.state ?? {
-        pageIndex: 0,
-        pageSize: GALLERY_LIMIT,
-      },
-      columnFilters: manualFiltering?.state,
+      ...(manualFiltering ? { columnFilters: manualFiltering?.state } : {}),
+      ...(manualSorting ? { sorting: manualSorting?.state } : {}),
+      ...(manualPagination ? { pagination: manualPagination.state } : {}),
     },
     ...(manualFiltering
       ? {
