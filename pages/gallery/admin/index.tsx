@@ -225,20 +225,17 @@ const Admin = (): JSX.Element => {
     [localizedData?.items]
   )
 
-  const filterState = Object.entries(filters).map(([id, value]) => {
-    if (id === 'search' && typeof value === 'string') {
+  const filterState = Object.entries(filters).flatMap(([id, value]) => {
+    if (id === 'search') {
       return { id: 'id', value }
     }
-    if (id === 'category' && typeof value === 'string') {
+    if (id === 'category') {
       return {
         id,
-        value:
-          typeof value === 'string' && value.includes(',')
-            ? value.split(',')
-            : [value],
+        value: value.includes(',') ? value.split(',') : [value],
       }
     }
-    return {} as { id: string; value: string | string[] }
+    return []
   })
 
   return (
