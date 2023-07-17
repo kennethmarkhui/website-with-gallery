@@ -1,13 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 
-import cloudinary from '../lib/cloudinary'
+import { LANGUAGES } from 'constants/i18n'
+import cloudinary from 'lib/cloudinary'
 
 const prisma = new PrismaClient()
-
-const languages = [
-  { name: 'English', code: 'en' },
-  { name: 'Chinese', code: 'zh' },
-]
 
 const getSeedImages = async () => {
   try {
@@ -48,7 +44,7 @@ const seed = async () => {
     console.log('Images deleted.')
 
     const languageIds = await prisma.$transaction(
-      languages.map((lang) =>
+      LANGUAGES.map((lang) =>
         prisma.language.create({ data: lang, select: { id: true, code: true } })
       )
     )
