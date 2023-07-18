@@ -93,6 +93,7 @@ export const GalleryQuerySchema = GalleryCursorQuerySchema.merge(
 export const i18nGalleryFormErrorCode = {
   required: 'required',
   alphanumeric: 'alphanumeric',
+  email: 'email',
   string_max_length_exceeded: 'string_max_length_exceeded',
   max_filesize_exceeded: 'max_filesize_exceeded',
   single_file: 'single_file',
@@ -101,6 +102,12 @@ export const i18nGalleryFormErrorCode = {
 } as const
 
 export type I18nGalleryFormErrorCode = keyof typeof i18nGalleryFormErrorCode
+
+export const isI18nGalleryFormErrorCode = (
+  errorCode: string
+): errorCode is I18nGalleryFormErrorCode => {
+  return Object.keys(i18nGalleryFormErrorCode).includes(errorCode)
+}
 
 // TODO: better way to do i18n form error messages
 // replace zod default error message with a i18n translation key
@@ -119,6 +126,8 @@ export const i18nErrorMap: z.ZodErrorMap = (issue, ctx) => {
         !ctx.data.match(ALPHANUMERIC_REGEX)
       ) {
         message = 'alphanumeric'
+      } else if (issue.validation === 'email') {
+        message = 'email'
       } else {
         message = ctx.defaultError
       }

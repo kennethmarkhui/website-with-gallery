@@ -35,7 +35,36 @@
   "auth": {
     "signin-title": "zh sign in",
     "error-title": "zh auth error",
-    "logout": "zh logout"
+    "logout": "zh logout",
+    "email-input-label": "zh email",
+    "gallery-link-button": "zh Gallery",
+    "signin-button": "zh Sign In",
+    "check-inbox": "zh Check your inbox",
+    "check-inbox-description": "zh We've sent you a verification link to the email address ",
+    "signin-error": {
+      "EmailCreateAccount": "zh Could not create user in the database",
+      "EmailSignin": "zh Sending the e-mail verification failed",
+      "SessionRequired": "zh You need to be signed in",
+      "Default": "zh Something went wrong"
+    },
+    "error": {
+      "Configuration": {
+        "title": "zh Configuration Error",
+        "reason": "zh There is a problem with the server configuration."
+      },
+      "AccessDenied": {
+        "title": "zh Access Denied",
+        "reason": "zh You must be an admin to access the page."
+      },
+      "Verification": {
+        "title": "zh Verification Error",
+        "reason": "zh The token has expired or has already been used."
+      },
+      "Default": {
+        "title": "zh Authentication Error",
+        "reason": "zh Something went wrong."
+      }
+    }
   },
   "form": {
     "image": "zh Image",
@@ -65,6 +94,7 @@
     "validations": {
       "required": "zh Required",
       "alphanumeric": "zh Alphanumerics only",
+      "email": "zh Please use a valid email address",
       "string_max_length_exceeded": "zh must not exceed {length} characters",
       "max_filesize_exceeded": "zh Max image size is {maxFilesize}",
       "single_file": "zh Only 1 file is allowed",

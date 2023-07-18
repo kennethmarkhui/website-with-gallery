@@ -9,16 +9,22 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import AuthLayout from '@/components/layout/AuthLayout'
 import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
-import { GalleryAuthSigninFormFieldsSchema } from 'lib/validations'
+import {
+  GalleryAuthSigninFormFieldsSchema,
+  i18nErrorMap,
+  isI18nGalleryFormErrorCode,
+} from 'lib/validations'
 import { pick } from 'lib/utils'
 
 // https://next-auth.js.org/configuration/pages#sign-in-page
-type SignInErrorCode =
-  | 'EmailCreateAccount'
-  | 'EmailSignin'
-  | 'SessionRequired'
-  | 'Default'
+const SignInErrorCode = [
+  'EmailCreateAccount',
+  'EmailSignin',
+  'SessionRequired',
+  'Default',
+] as const
 
+type SignInErrorCode = (typeof SignInErrorCode)[number]
 interface FormProps {
   email: string
 }
@@ -27,24 +33,24 @@ interface AuthSignInFormProps {
   callbackUrl?: string | string[]
   onSuccessSubmit: (email: string) => void
   onError: (error: unknown) => void
-  error: SignInErrorCode
+  error: string
 }
 
 interface AuthSignInVerificationProps {
   email: string
 }
 
-const errors = {
-  EmailCreateAccount: 'Could not create user in the database.',
-  EmailSignin: 'Sending the e-mail verification failed.',
-  SessionRequired: 'You need to be signed in.',
-  Default: 'Something went wrong.',
-} satisfies Record<SignInErrorCode, string>
+const isSignInErrorCode = (errorCode: string): errorCode is SignInErrorCode => {
+  return SignInErrorCode.includes(errorCode as SignInErrorCode)
+}
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
   return {
     props: {
-      messages: pick(await import(`../../intl/${locale}.json`), ['auth']),
+      messages: pick(await import(`../../intl/${locale}.json`), [
+        'auth',
+        'form',
+      ]),
     },
   }
 }
@@ -55,14 +61,19 @@ const AuthSignInForm = ({
   onError,
   error,
 }: AuthSignInFormProps): JSX.Element => {
+  const t = useTranslations('auth')
+  const tForm = useTranslations('form')
   const {
     register,
     formState: { errors: formErrors, isSubmitting },
     handleSubmit,
   } = useForm<FormProps>({
-    resolver: zodResolver(GalleryAuthSigninFormFieldsSchema),
+    resolver: zodResolver(GalleryAuthSigninFormFieldsSchema, {
+      errorMap: i18nErrorMap,
+    }),
     defaultValues: { email: '' },
   })
+  const formErrorsEmailMessage = formErrors.email?.message
 
   const onSubmit: SubmitHandler<FormProps> = async ({ email }) => {
     try {
@@ -83,16 +94,22 @@ const AuthSignInForm = ({
   return (
     <div className="w-full max-w-xs space-y-4">
       {typeof error === 'string' && (
-        <p className="text-center text-sm text-red-500">{errors[error]}</p>
+        <p className="text-center text-sm text-red-500">{error}</p>
       )}
       <form onSubmit={handleSubmit(onSubmit)}>
         <fieldset disabled={isSubmitting} className="flex flex-col gap-6">
           <FloatingLabelInput
-            id="email"
+            id={t('email-input-label')}
             {...register('email')}
-            errorMessage={formErrors.email?.message}
+            errorMessage={
+              typeof formErrorsEmailMessage === 'string'
+                ? isI18nGalleryFormErrorCode(formErrorsEmailMessage)
+                  ? tForm(`validations.${formErrorsEmailMessage}`)
+                  : formErrorsEmailMessage
+                : undefined
+            }
           />
-          <Button>Sign In</Button>
+          <Button>{t('signin-button')}</Button>
         </fieldset>
       </form>
     </div>
@@ -102,11 +119,12 @@ const AuthSignInForm = ({
 const AuthSignInVerification = ({
   email,
 }: AuthSignInVerificationProps): JSX.Element => {
+  const t = useTranslations('auth')
   return (
     <div className="max-w-xl space-y-4 text-center">
-      <h2 className="text-2xl font-bold">Check your inbox</h2>
+      <h2 className="text-2xl font-bold">{t('check-inbox')}</h2>
       <p>
-        We&#39;ve sent you a verification link to the email address&nbsp;
+        {t('check-inbox-description')}
         <span className="underline">{email}</span>
       </p>
     </div>
@@ -128,7 +146,11 @@ const AuthSignIn = (): JSX.Element => {
           onError={(error) =>
             push({ pathname, query: { ...query, error: 'Default' } })
           }
-          error={error as SignInErrorCode}
+          error={
+            typeof error === 'string' && isSignInErrorCode(error)
+              ? t(`signin-error.${error}`)
+              : ''
+          }
         />
       ) : (
         <AuthSignInVerification email={emailValue} />
