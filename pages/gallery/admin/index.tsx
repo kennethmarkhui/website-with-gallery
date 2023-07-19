@@ -12,11 +12,8 @@ import {
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Popover } from '@headlessui/react'
-import {
-  HiArrowNarrowDown,
-  HiChevronDown,
-  HiOutlineSearch,
-} from 'react-icons/hi'
+import { HiChevronDown, HiOutlineSearch } from 'react-icons/hi'
+import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa'
 
 import type { GalleryFormFilters } from 'types/gallery'
 import { fetchItems } from 'pages/api/gallery'
@@ -28,7 +25,7 @@ import Button from '@/components/Button'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
-import { cn, pick } from 'lib/utils'
+import { pick } from 'lib/utils'
 import {
   GalleryFormFiltersSchema,
   GalleryOffsetQuerySchema,
@@ -246,23 +243,19 @@ const Admin = (): JSX.Element => {
           {
             accessorKey: 'id',
             header: ({ column }) => {
-              const isSorted = column.getIsSorted()
-              const isDesc = column.getIsSorted() === 'desc'
               return (
                 <button
                   className="flex items-center gap-2"
-                  onClick={() => {
-                    column.toggleSorting(!isDesc)
-                  }}
+                  onClick={column.getToggleSortingHandler()}
                 >
                   ID
-                  <HiArrowNarrowDown
-                    className={cn(
-                      'transition-transform',
-                      !isDesc && 'rotate-180',
-                      !isSorted && 'invisible'
-                    )}
-                  />
+                  {column.getIsSorted() === 'asc' ? (
+                    <FaSortUp />
+                  ) : column.getIsSorted() === 'desc' ? (
+                    <FaSortDown />
+                  ) : (
+                    <FaSort />
+                  )}
                 </button>
               )
             },
@@ -309,23 +302,19 @@ const Admin = (): JSX.Element => {
           {
             accessorKey: 'dateAdded',
             header: ({ column }) => {
-              const isSorted = column.getIsSorted()
-              const isDesc = column.getIsSorted() === 'desc'
               return (
                 <button
                   className="flex items-center gap-2"
-                  onClick={() => {
-                    column.toggleSorting(!isDesc)
-                  }}
+                  onClick={column.getToggleSortingHandler()}
                 >
                   {tForm('dateAdded')}
-                  <HiArrowNarrowDown
-                    className={cn(
-                      'transition-transform',
-                      !isDesc && 'rotate-180',
-                      !isSorted && 'invisible'
-                    )}
-                  />
+                  {column.getIsSorted() === 'asc' ? (
+                    <FaSortUp />
+                  ) : column.getIsSorted() === 'desc' ? (
+                    <FaSortDown />
+                  ) : (
+                    <FaSort />
+                  )}
                 </button>
               )
             },
@@ -336,23 +325,19 @@ const Admin = (): JSX.Element => {
           {
             accessorKey: 'updatedAt',
             header: ({ column }) => {
-              const isSorted = column.getIsSorted()
-              const isDesc = column.getIsSorted() === 'desc'
               return (
                 <button
                   className="flex items-center gap-2"
-                  onClick={() => {
-                    column.toggleSorting(!isDesc)
-                  }}
+                  onClick={column.getToggleSortingHandler()}
                 >
                   {tForm('updatedAt')}
-                  <HiArrowNarrowDown
-                    className={cn(
-                      'transition-transform',
-                      !isDesc && 'rotate-180',
-                      !isSorted && 'invisible'
-                    )}
-                  />
+                  {column.getIsSorted() === 'asc' ? (
+                    <FaSortUp />
+                  ) : column.getIsSorted() === 'desc' ? (
+                    <FaSortDown />
+                  ) : (
+                    <FaSort />
+                  )}
                 </button>
               )
             },
@@ -421,21 +406,20 @@ const Admin = (): JSX.Element => {
           filters: [{ id: 'category', data: localizedCategoryData ?? [] }],
         }}
         manualSorting={{
-          state: [
-            {
-              id:
-                typeof filters.orderBy === 'string'
-                  ? filters.orderBy.split(',')[0]
-                  : 'id',
-              desc:
-                typeof filters.orderBy === 'string'
-                  ? filters.orderBy.split(',')[1] === 'desc'
-                  : true,
-            },
-          ],
+          state:
+            typeof filters.orderBy === 'string'
+              ? [
+                  {
+                    id: filters.orderBy.split(',')[0],
+                    desc: filters.orderBy.split(',')[1] === 'desc',
+                  },
+                ]
+              : [],
           onSortingChange: (state) => {
-            const orderBy = `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
-            setUrlGalleryFilters({ query: { orderBy } })
+            const orderBy = state[0]
+              ? `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
+              : undefined
+            setUrlGalleryFilters({ query: { ...(orderBy ? { orderBy } : {}) } })
           },
         }}
         manualPagination={{
