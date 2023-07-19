@@ -17,9 +17,8 @@ import useDeleteCategory from 'hooks/gallery/category/mutations/useDeleteCategor
 import FloatingLabelInput from '../FloatingLabelInput'
 import { cn } from 'lib/utils'
 import {
-  type I18nGalleryFormErrorCode,
-  i18nGalleryFormErrorCode,
   i18nErrorMap,
+  isI18nGalleryFormErrorCode,
   GalleryCategoryFormFieldsSchema,
 } from 'lib/validations'
 
@@ -165,16 +164,13 @@ const CategoryForm = (): JSX.Element => {
             let errorMessage = errors.name?.[index]?.value?.message
             if (
               typeof errorMessage === 'string' &&
-              errorMessage in i18nGalleryFormErrorCode
+              isI18nGalleryFormErrorCode(errorMessage)
             ) {
-              errorMessage = t(
-                `validations.${errorMessage as I18nGalleryFormErrorCode}`,
-                {
-                  length:
-                    GalleryCategoryFormFieldsSchema.shape.name.element.shape
-                      .value.maxLength,
-                }
-              )
+              errorMessage = t(`validations.${errorMessage}`, {
+                length:
+                  GalleryCategoryFormFieldsSchema.shape.name.element.shape.value
+                    .maxLength,
+              })
             }
             return (
               <div key={field.id} className="flex">

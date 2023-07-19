@@ -11,9 +11,8 @@ import Button from '../Button'
 import ImagePreviewInput from '../ImagePreviewInput'
 import type { GalleryFormFields, DefaultGalleryFormFields } from 'types/gallery'
 import {
-  type I18nGalleryFormErrorCode,
-  i18nGalleryFormErrorCode,
   i18nErrorMap,
+  isI18nGalleryFormErrorCode,
   GalleryFormFieldsSchema,
 } from 'lib/validations'
 import useCategory from 'hooks/gallery/category/useCategory'
@@ -147,12 +146,8 @@ function GalleryForm({
           {...register('id')}
           errorMessage={
             typeof errors.id?.message === 'string'
-              ? errors.id.message in i18nGalleryFormErrorCode
-                ? t(
-                    `validations.${
-                      errors.id.message as I18nGalleryFormErrorCode
-                    }`
-                  )
+              ? isI18nGalleryFormErrorCode(errors.id.message)
+                ? t(`validations.${errors.id.message}`)
                 : errors.id.message
               : undefined
           }
@@ -161,16 +156,13 @@ function GalleryForm({
           let errorMessage = errors.name?.[index]?.value?.message
           if (
             typeof errorMessage === 'string' &&
-            errorMessage in i18nGalleryFormErrorCode
+            isI18nGalleryFormErrorCode(errorMessage)
           ) {
-            errorMessage = t(
-              `validations.${errorMessage as I18nGalleryFormErrorCode}`,
-              {
-                length:
-                  GalleryFormFieldsSchema.shape.name._def.schema._def.type.shape
-                    .value.maxLength,
-              }
-            )
+            errorMessage = t(`validations.${errorMessage}`, {
+              length:
+                GalleryFormFieldsSchema.shape.name._def.schema._def.type.shape
+                  .value.maxLength,
+            })
           }
           return (
             <div key={field.id} className="flex">
@@ -208,16 +200,13 @@ function GalleryForm({
           let errorMessage = errors.storage?.[index]?.value?.message
           if (
             typeof errorMessage === 'string' &&
-            errorMessage in i18nGalleryFormErrorCode
+            isI18nGalleryFormErrorCode(errorMessage)
           ) {
-            errorMessage = t(
-              `validations.${errorMessage as I18nGalleryFormErrorCode}`,
-              {
-                length:
-                  GalleryFormFieldsSchema.shape.storage._def.schema._def.type
-                    .shape.value.maxLength,
-              }
-            )
+            errorMessage = t(`validations.${errorMessage}`, {
+              length:
+                GalleryFormFieldsSchema.shape.storage._def.schema._def.type
+                  .shape.value.maxLength,
+            })
           }
           return (
             <div key={field.id} className="flex">
@@ -271,18 +260,13 @@ function GalleryForm({
           fileList={imageFileList}
           errorMessage={
             typeof errors.image?.message === 'string'
-              ? errors.image.message in i18nGalleryFormErrorCode
-                ? t(
-                    `validations.${
-                      errors.image.message as I18nGalleryFormErrorCode
-                    }`,
-                    {
-                      maxFilesize: formatBytes(MAX_FILE_SIZE),
-                      supportedFileTypes: format.list(ACCEPTED_IMAGE_TYPES, {
-                        type: 'disjunction',
-                      }),
-                    }
-                  )
+              ? isI18nGalleryFormErrorCode(errors.image.message)
+                ? t(`validations.${errors.image.message}`, {
+                    maxFilesize: formatBytes(MAX_FILE_SIZE),
+                    supportedFileTypes: format.list(ACCEPTED_IMAGE_TYPES, {
+                      type: 'disjunction',
+                    }),
+                  })
                 : errors.image.message
               : undefined
           }
