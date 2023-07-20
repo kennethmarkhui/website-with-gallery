@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
 import Image from 'next/image'
-import { useSession } from 'next-auth/react'
 import { useSpring, animated } from '@react-spring/web'
 import { useGesture } from '@use-gesture/react'
 import { HiX } from 'react-icons/hi'
@@ -20,8 +19,6 @@ export interface ImageViewerProps {
 }
 
 const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
-  const { data: session } = useSession()
-
   // Track whether the close animation is running. This is used to disable any interactions.
   const [isClosing, setClosing] = useState(false)
 
@@ -415,18 +412,18 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
 
       {/* HEADER */}
       <animated.header
-        className="fixed top-0 left-0 z-50"
+        className="fixed left-0 top-0 z-50"
         style={headerStyles}
         aria-hidden="true"
       >
-        <animated.p className="fixed top-4 left-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
+        <animated.p className="fixed left-4 top-4 flex items-center justify-center rounded border-none bg-black/30 p-2 text-white">
           {data.title}
         </animated.p>
 
         <animated.button
           ref={dialogInitialFocusRef}
           aria-label="close image viewer"
-          className="fixed top-4 right-4 flex h-10 w-10 items-center justify-center rounded border-none bg-black/30 p-0 text-white"
+          className="fixed right-4 top-4 flex h-10 w-10 items-center justify-center rounded border-none bg-black/30 p-0 text-white"
           onClick={handleClose}
         >
           <HiX />
