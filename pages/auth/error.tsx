@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
 
-import AuthLayout from '@/components/layout/AuthLayout'
+import CommonLayout from '@/components/layout/CommonLayout'
 import Button from '@/components/Button'
 import { pick } from 'lib/utils'
 
@@ -35,7 +35,7 @@ const AuthError = (): JSX.Element => {
   const { error } = query
 
   return (
-    <AuthLayout title={t('error-title')}>
+    <CommonLayout title={t('error-title')}>
       <p className="text-2xl">
         {typeof error === 'string' && isAuthErrorCode(error)
           ? t(`error.${error}.title`)
@@ -56,7 +56,7 @@ const AuthError = (): JSX.Element => {
           </Link>
         )}
       </div>
-    </AuthLayout>
+    </CommonLayout>
   )
 }
 

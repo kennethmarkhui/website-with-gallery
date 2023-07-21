@@ -25,10 +25,7 @@ export const getServerSideProps: GetServerSideProps<
 
   if (!params) {
     return {
-      redirect: {
-        destination: '/gallery',
-        permanent: false,
-      },
+      notFound: true,
     }
   }
 
@@ -46,14 +43,8 @@ export const getServerSideProps: GetServerSideProps<
 
   if (!queryData) {
     // fetch item if no query data provided
-    try {
-      await queryClient.fetchQuery(['item', id], () => fetchItem(id))
-      await queryClient.fetchQuery(['categories'], () => fetchCategories())
-    } catch (error) {
-      return {
-        redirect: { destination: '/500', permanent: false },
-      }
-    }
+    await queryClient.fetchQuery(['item', id], () => fetchItem(id))
+    await queryClient.fetchQuery(['categories'], () => fetchCategories())
   }
 
   return {

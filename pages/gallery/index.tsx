@@ -27,25 +27,18 @@ export const getServerSideProps: GetServerSideProps = async ({
     query
   )
   if (!parsedQuery.success) {
-    return { redirect: { destination: '/gallery', permanent: false } }
+    return { notFound: true }
   }
 
-  try {
-    await queryClient.fetchInfiniteQuery({
-      queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
-      queryFn: ({ queryKey }) =>
-        fetchItems({ nextCursor: '0', ...queryKey[2] }),
-      getNextPageParam: ({ nextCursor }) => nextCursor,
-    })
-    await queryClient.fetchQuery({
-      queryKey: ['categories'] as const,
-      queryFn: () => fetchCategories(),
-    })
-  } catch (error) {
-    return {
-      redirect: { destination: '/500', permanent: false },
-    }
-  }
+  await queryClient.fetchInfiniteQuery({
+    queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
+    queryFn: ({ queryKey }) => fetchItems({ nextCursor: '0', ...queryKey[2] }),
+    getNextPageParam: ({ nextCursor }) => nextCursor,
+  })
+  await queryClient.fetchQuery({
+    queryKey: ['categories'] as const,
+    queryFn: () => fetchCategories(),
+  })
 
   return {
     props: {

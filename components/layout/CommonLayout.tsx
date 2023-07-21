@@ -1,11 +1,11 @@
 import Head from 'next/head'
 
-interface AuthLayoutProps {
-  title?: string
+interface CommonLayoutProps {
+  title: string
   children: React.ReactNode
 }
 
-const AuthLayout = ({ title, children }: AuthLayoutProps) => {
+const CommonLayout = ({ title, children }: CommonLayoutProps) => {
   return (
     <>
       <Head>
@@ -18,4 +18,4 @@ const AuthLayout = ({ title, children }: AuthLayoutProps) => {
   )
 }
 
-export default AuthLayout
+export default CommonLayout

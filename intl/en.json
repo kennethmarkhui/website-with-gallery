@@ -32,6 +32,15 @@
     "create": "create",
     "edit": "Edit"
   },
+  "404": {
+    "title": "404 | This page could not be found.",
+    "message": "This page could not be found."
+  },
+  "500": {
+    "title": "500 | Server Error",
+    "message": "Server Error",
+    "to-homepage-button": "Go back to Homepage"
+  },
   "auth": {
     "signin-title": "sign in",
     "error-title": "auth error",

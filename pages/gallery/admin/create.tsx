@@ -1,4 +1,3 @@
-import { ReactNode, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
@@ -13,13 +12,7 @@ import { cn, pick } from 'lib/utils'
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   const queryClient = new QueryClient()
 
-  try {
-    await queryClient.fetchQuery(['categories'], () => fetchCategories())
-  } catch (error) {
-    return {
-      redirect: { destination: '/500', permanent: false },
-    }
-  }
+  await queryClient.fetchQuery(['categories'], () => fetchCategories())
 
   return {
     props: {

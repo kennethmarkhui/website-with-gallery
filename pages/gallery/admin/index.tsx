@@ -53,24 +53,18 @@ export const getServerSideProps: GetServerSideProps = async ({
   const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
 
   if (!parsedQuery.success) {
-    return { redirect: { destination: '/500', permanent: false } }
+    return { notFound: true }
   }
 
-  try {
-    await queryClient.fetchQuery({
-      queryKey: ['gallery', 'offset', parsedQuery.data] as const,
-      queryFn: ({ queryKey }) =>
-        fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
-    })
-    await queryClient.fetchQuery({
-      queryKey: ['categories'] as const,
-      queryFn: () => fetchCategories(),
-    })
-  } catch (error) {
-    return {
-      redirect: { destination: '/500', permanent: false },
-    }
-  }
+  await queryClient.fetchQuery({
+    queryKey: ['gallery', 'offset', parsedQuery.data] as const,
+    queryFn: ({ queryKey }) =>
+      fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
+  })
+  await queryClient.fetchQuery({
+    queryKey: ['categories'] as const,
+    queryFn: () => fetchCategories(),
+  })
 
   return {
     props: {

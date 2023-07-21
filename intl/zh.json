@@ -32,6 +32,15 @@
     "create": "zh create",
     "edit": "zh Edit"
   },
+  "404": {
+    "title": "404 | zh This page could not be found.",
+    "message": "zh This page could not be found."
+  },
+  "500": {
+    "title": "500 | zh Server Error",
+    "message": "zh Server Error",
+    "to-homepage-button": "zh Go back to Homepage"
+  },
   "auth": {
     "signin-title": "zh sign in",
     "error-title": "zh auth error",

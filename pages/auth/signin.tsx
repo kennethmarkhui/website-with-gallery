@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-import AuthLayout from '@/components/layout/AuthLayout'
+import CommonLayout from '@/components/layout/CommonLayout'
 import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
 import {
@@ -138,7 +138,7 @@ const AuthSignIn = (): JSX.Element => {
   const { callbackUrl, error } = query
 
   return (
-    <AuthLayout title={t('signin-title')}>
+    <CommonLayout title={t('signin-title')}>
       {!emailValue ? (
         <AuthSignInForm
           callbackUrl={callbackUrl}
@@ -155,7 +155,7 @@ const AuthSignIn = (): JSX.Element => {
       ) : (
         <AuthSignInVerification email={emailValue} />
       )}
-    </AuthLayout>
+    </CommonLayout>
   )
 }
 
