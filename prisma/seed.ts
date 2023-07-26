@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
-import { LANGUAGES } from 'constants/i18n'
-import cloudinary from 'lib/cloudinary'
+import { LANGUAGES } from '../constants/i18n'
+import cloudinary from '../lib/cloudinary'
 
 const prisma = new PrismaClient()
 
@@ -25,9 +25,10 @@ const getSeedImages = async () => {
 
 const seed = async () => {
   const categories = Array.from({ length: 40 }, (_, index) => `${index + 1}`)
-  const images = await getSeedImages()
 
   try {
+    const images = await getSeedImages()
+
     await prisma.language.deleteMany()
     console.log('Languages deleted.')
 
