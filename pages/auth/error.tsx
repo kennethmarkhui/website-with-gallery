@@ -1,4 +1,4 @@
-import { GetStaticProps } from 'next'
+import { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
@@ -21,7 +21,7 @@ const isAuthErrorCode = (errorCode: string): errorCode is AuthErrorCode => {
   return AuthErrorCode.includes(errorCode as AuthErrorCode)
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), ['auth']),

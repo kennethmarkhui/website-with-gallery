@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GetStaticProps } from 'next'
+import { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { signIn } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
@@ -44,7 +44,7 @@ const isSignInErrorCode = (errorCode: string): errorCode is SignInErrorCode => {
   return SignInErrorCode.includes(errorCode as SignInErrorCode)
 }
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
   return {
     props: {
       messages: pick(await import(`../../intl/${locale}.json`), [
