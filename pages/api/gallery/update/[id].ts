@@ -102,7 +102,7 @@ export default async function handler(
 
   let cloudinaryResponse
   try {
-    if (image[0]) {
+    if (image && image[0]) {
       const filepath = image[0].filepath
 
       cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
