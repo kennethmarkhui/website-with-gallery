@@ -102,17 +102,15 @@ export default async function handler(
 
   let cloudinaryResponse
   try {
-    if (image) {
-      const filepath = Array.isArray(image) ? image[0].filepath : image.filepath
+    if (image[0]) {
+      const filepath = image[0].filepath
 
-      if (typeof filepath === 'string') {
-        cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
-          folder:
-            process.env.NODE_ENV === 'development'
-              ? process.env.CLOUDINARY_DEV_FOLDER
-              : process.env.CLOUDINARY_FOLDER,
-        })
-      }
+      cloudinaryResponse = await cloudinary.uploader.upload(filepath, {
+        folder:
+          process.env.NODE_ENV === 'development'
+            ? process.env.CLOUDINARY_DEV_FOLDER
+            : process.env.CLOUDINARY_FOLDER,
+      })
 
       const existingImage = await fetchImage(id) // return null if no image
       if (!!existingImage) {
