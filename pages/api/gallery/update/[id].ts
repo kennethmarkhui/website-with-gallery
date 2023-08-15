@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
+import { ZodError } from 'zod'
 
 import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
 import { prisma, transformTranslationFields } from 'lib/prisma'
 import cloudinary from 'lib/cloudinary'
-import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
+import { formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
@@ -21,16 +22,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryMutateResponse | GalleryErrorResponse>
 ) {
-  const session = await getServerSession(req, res, authOptions)
-
-  if (!session || session.user.role !== 'ADMIN') {
-    return res.status(401).json({
-      error: {
-        message: 'You must be an admin to view the protected content.',
-      },
-    })
-  }
-
   if (req.method !== 'PUT') {
     return res.status(405).json({
       error: {
@@ -39,69 +30,39 @@ export default async function handler(
     })
   }
 
-  const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).safeParse(
-    req.query
-  )
-
-  if (!parsedQuery.success) {
-    return res.status(422).json({
-      error: {
-        message: 'Invalid Input.',
-      },
-    })
-  }
-
-  const { id } = parsedQuery.data
-
-  let formData
+  let cloudinaryResponse
   try {
-    formData = await parseForm(req)
-  } catch (error) {
-    if (error instanceof FormidableError) {
-      if (error.httpCode === 413) {
-        return res.status(413).json({
-          error: {
-            target: 'image',
-            message: `Must not exceed ${formatBytes(
-              formidableOptions.maxFileSize!
-            )}.`,
-          },
-        })
-      }
-      return res.status(400).json({
+    const session = await getServerSession(req, res, authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return res.status(401).json({
         error: {
-          message: 'Something went wrong with parsing formdata.',
+          message: 'You must be an admin to view the protected content.',
         },
       })
     }
-  }
 
-  if (!formData)
-    return res.status(400).json({ error: { message: 'Something went wrong.' } })
+    const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).parse(
+      req.query
+    )
 
-  const jsonData = formData.fields?.data
+    const { id } = parsedQuery
 
-  const parsedFormData = GalleryFormFieldsSchema.omit({
-    id: true,
-    image: true,
-  }).safeParse(Array.isArray(jsonData) && JSON.parse(jsonData[0]))
+    const formData = await parseForm(req)
 
-  if (!parsedFormData.success) {
-    return res.status(422).json({
-      error: {
-        message: 'Invalid Fields.',
-      },
-    })
-  }
+    const jsonData = formData.fields?.data
 
-  const { name, storage, category } = parsedFormData.data
+    const parsedFormData = GalleryFormFieldsSchema.omit({
+      id: true,
+      image: true,
+    }).parse(JSON.parse(jsonData[0]))
 
-  const {
-    files: { image },
-  } = formData
+    const { name, storage, category } = parsedFormData
 
-  let cloudinaryResponse
-  try {
+    const {
+      files: { image },
+    } = formData
+
     if (image && image[0]) {
       const filepath = image[0].filepath
 
@@ -111,17 +72,14 @@ export default async function handler(
             ? process.env.CLOUDINARY_DEV_FOLDER
             : process.env.CLOUDINARY_FOLDER,
       })
-
-      const existingImage = await fetchImage(id) // return null if no image
-      if (!!existingImage) {
-        await cloudinary.uploader.destroy(existingImage.publicId)
-      }
     }
 
     const translationFields = { name, storage }
     const translations = await transformTranslationFields(translationFields)
 
-    const item = await prisma.item.update({
+    const previousImage = await fetchImage(id)
+
+    await prisma.item.update({
       where: { id },
       data: {
         translations: {
@@ -180,16 +138,55 @@ export default async function handler(
       },
       select: { id: true },
     })
-    return res.status(200).json({ message: `id ${item.id} has been updated!` })
+
+    if (previousImage) {
+      // TODO: rollback the updated item if this failed
+      await cloudinary.uploader.destroy(previousImage.publicId)
+    }
+
+    return res.status(200).json({ message: `id ${id} has been updated!` })
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (
+      // TODO: use instanceof FormidableError when the type is fixed @typed/formidable
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      'httpCode' in error
+    ) {
+      if (error.code === 413) {
+        return res.status(413).json({
+          error: {
+            target: 'image',
+            message: `Must not exceed ${formatBytes(
+              formidableOptions.maxFileSize!
+            )}.`,
+          },
+        })
+      }
       return res.status(400).json({
         error: {
-          message: 'Something went wrong with prisma.',
+          message: 'Something went wrong while parsing the data.',
         },
       })
     }
-    return res.status(422).json({
+    if (error instanceof ZodError) {
+      return res.status(422).json({
+        error: {
+          message: 'Invalid Fields.',
+        },
+      })
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (cloudinaryResponse) {
+        await cloudinary.uploader.destroy(cloudinaryResponse.public_id)
+      }
+      return res.status(400).json({
+        error: {
+          message: 'Something went wrong saving to database.',
+        },
+      })
+    }
+    return res.status(400).json({
       error: {
         message: `Something went wrong. id ${req.query.id} was not updated.`,
       },

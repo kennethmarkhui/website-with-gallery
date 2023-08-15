@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
+import { ZodError, z } from 'zod'
 
 import type { GalleryErrorResponse, GalleryMutateResponse } from 'types/gallery'
 import { prisma, transformTranslationFields } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
-import { z } from 'zod'
 import { GalleryCategoryFormFieldsSchema } from 'lib/validations'
 
 const RequestQuerySchema = z.object({ id: z.string() })
@@ -14,16 +14,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryMutateResponse | GalleryErrorResponse>
 ) {
-  const session = await getServerSession(req, res, authOptions)
-
-  if (!session || session.user.role !== 'ADMIN') {
-    return res.status(401).json({
-      error: {
-        message: 'You must be an admin to view the protected content.',
-      },
-    })
-  }
-
   if (req.method !== 'PUT') {
     return res.status(405).json({
       error: {
@@ -32,21 +22,23 @@ export default async function handler(
     })
   }
 
-  const parseQuery = RequestQuerySchema.safeParse(req.query)
-  const parsedBody = GalleryCategoryFormFieldsSchema.safeParse(req.body)
-
-  if (!parseQuery.success || !parsedBody.success) {
-    return res.status(422).json({
-      error: {
-        message: 'Invalid Input.',
-      },
-    })
-  }
-
-  const { id } = parseQuery.data
-
   try {
-    const translations = await transformTranslationFields(parsedBody.data, {
+    const session = await getServerSession(req, res, authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return res.status(401).json({
+        error: {
+          message: 'You must be an admin to view the protected content.',
+        },
+      })
+    }
+
+    const parseQuery = RequestQuerySchema.parse(req.query)
+    const parsedBody = GalleryCategoryFormFieldsSchema.parse(req.body)
+
+    const { id } = parseQuery
+
+    const translations = await transformTranslationFields(parsedBody, {
       name: true,
     })
 
@@ -70,6 +62,13 @@ export default async function handler(
 
     return res.status(200).json({ message: 'Category was updated.' })
   } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(422).json({
+        error: {
+          message: 'Invalid Input.',
+        },
+      })
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {
@@ -82,7 +81,7 @@ export default async function handler(
       }
       return res.status(422).json({
         error: {
-          message: 'Something went wrong with prisma.',
+          message: 'Something went wrong saving to database.',
         },
       })
     }

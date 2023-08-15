@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getServerSession } from 'next-auth'
+import { ZodError } from 'zod'
 
 import type {
   GalleryErrorResponse,
@@ -6,6 +8,7 @@ import type {
   GalleryItem,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
+import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
 
 export async function fetchItem(id: GalleryFormFields['id']) {
@@ -59,21 +62,22 @@ export default async function handler(
     })
   }
 
-  const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).safeParse(
-    req.query
-  )
-
-  if (!parsedQuery.success) {
-    return res.status(400).json({
-      error: {
-        message: 'Invalid Input.',
-      },
-    })
-  }
-
-  const { id } = parsedQuery.data
-
   try {
+    const session = await getServerSession(req, res, authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return res.status(401).json({
+        error: {
+          message: 'You must be an admin to view the protected content.',
+        },
+      })
+    }
+    const parsedQuery = GalleryFormFieldsSchema.pick({ id: true }).parse(
+      req.query
+    )
+
+    const { id } = parsedQuery
+
     const item = await fetchItem(id)
     if (item) {
       return res.status(200).json(item)
@@ -82,6 +86,13 @@ export default async function handler(
       .status(404)
       .json({ error: { message: 'Can not find data record in database.' } })
   } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        error: {
+          message: 'Invalid Input.',
+        },
+      })
+    }
     return res.status(500).json({
       error: { message: 'Failed to fetch data from the database.' },
     })

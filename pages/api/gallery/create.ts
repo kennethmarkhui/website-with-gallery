@@ -1,15 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { Prisma } from '@prisma/client'
+import { ZodError } from 'zod'
 
-import type {
-  GalleryMutateResponse,
-  GalleryErrorResponse,
-  GalleryFormKeys,
-} from 'types/gallery'
+import type { GalleryMutateResponse, GalleryErrorResponse } from 'types/gallery'
 import cloudinary from 'lib/cloudinary'
 import { prisma, transformTranslationFields } from 'lib/prisma'
-import { FormidableError, formidableOptions, parseForm } from 'lib/formidable'
+import { formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
@@ -24,16 +21,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GalleryMutateResponse | GalleryErrorResponse>
 ) {
-  const session = await getServerSession(req, res, authOptions)
-
-  if (!session || session.user.role !== 'ADMIN') {
-    return res.status(401).json({
-      error: {
-        message: 'You must be an admin to view the protected content.',
-      },
-    })
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({
       error: {
@@ -42,54 +29,32 @@ export default async function handler(
     })
   }
 
-  let formData
+  let cloudinaryResponse
   try {
-    formData = await parseForm(req)
-  } catch (error) {
-    if (error instanceof FormidableError) {
-      if (error.httpCode === 413) {
-        return res.status(413).json({
-          error: {
-            target: 'image',
-            message: `Must not exceed ${formatBytes(
-              formidableOptions.maxFileSize!
-            )}.`,
-          },
-        })
-      }
-      return res.status(400).json({
+    const session = await getServerSession(req, res, authOptions)
+
+    if (!session || session.user.role !== 'ADMIN') {
+      return res.status(401).json({
         error: {
-          message: 'Something went wrong with parsing formdata.',
+          message: 'You must be an admin to view the protected content.',
         },
       })
     }
-  }
 
-  if (!formData)
-    return res.status(400).json({ error: { message: 'Something went wrong.' } })
+    const formData = await parseForm(req)
 
-  const jsonData = formData.fields?.data
+    const jsonData = formData.fields?.data
 
-  const parsedFormData = GalleryFormFieldsSchema.omit({
-    image: true,
-  }).safeParse(Array.isArray(jsonData) && JSON.parse(jsonData[0]))
+    const parsedFormData = GalleryFormFieldsSchema.omit({
+      image: true,
+    }).parse(JSON.parse(jsonData[0]))
 
-  if (!parsedFormData.success) {
-    return res.status(422).json({
-      error: {
-        message: 'Invalid Fields.',
-      },
-    })
-  }
+    const { id, name, storage, category } = parsedFormData
 
-  const { id, name, storage, category } = parsedFormData.data
+    const {
+      files: { image },
+    } = formData
 
-  const {
-    files: { image },
-  } = formData
-
-  let cloudinaryResponse
-  try {
     if (image && image[0]) {
       const filepath = image[0].filepath
 
@@ -104,7 +69,8 @@ export default async function handler(
     const translationFields = { name, storage }
     const translations = await transformTranslationFields(translationFields)
 
-    const item = await prisma.item.create({
+    // TODO: https://github.com/prisma/prisma/issues/4246 remove unnecessary select
+    await prisma.item.create({
       data: {
         id,
         translations: { createMany: { data: translations } },
@@ -119,7 +85,7 @@ export default async function handler(
           image: {
             create: {
               url: cloudinary.url(cloudinaryResponse.public_id, {
-                // https://cloudinary.com/documentation/image_transformations#delivering_optimized_and_responsive_mediahttps://cloudinary.com/documentation/image_transformations#delivering_optimized_and_responsive_media
+                // https://cloudinary.com/documentation/image_transformations#delivering_optimized_and_responsive_media
                 fetch_format: 'auto',
                 quality: 'auto',
               }),
@@ -134,19 +100,47 @@ export default async function handler(
         id: true,
       },
     })
-    return res.status(201).json({ message: `id ${item.id} has been created!` })
-  } catch (error) {
-    console.log(error)
 
+    return res.status(201).json({ message: `id ${id} has been created!` })
+  } catch (error) {
+    if (
+      // TODO: use instanceof FormidableError when the type is fixed @typed/formidable
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      'httpCode' in error
+    ) {
+      if (error.httpCode === 413) {
+        return res.status(413).json({
+          error: {
+            target: 'image',
+            message: `Must not exceed ${formatBytes(
+              formidableOptions.maxFileSize!
+            )}.`,
+          },
+        })
+      }
+      return res.status(400).json({
+        error: {
+          message: 'Something went wrong while parsing the data.',
+        },
+      })
+    }
+    if (error instanceof ZodError) {
+      return res.status(422).json({
+        error: {
+          message: 'Invalid Fields.',
+        },
+      })
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (cloudinaryResponse) {
+        await cloudinary.uploader.destroy(cloudinaryResponse.public_id)
+      }
       // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
       if (error.code === 'P2002') {
-        const target = error.meta?.target as GalleryFormKeys[]
-        if (target.includes('id')) {
-          // DESTROY CLOUDINARY IMAGE UPLOADED IF PRISMA FAILS
-          if (cloudinaryResponse) {
-            await cloudinary.uploader.destroy(cloudinaryResponse.public_id)
-          }
+        const target = error.meta?.target
+        if (Array.isArray(target) && target.includes('id')) {
           return res.status(422).json({
             error: {
               target: 'id',
@@ -155,9 +149,9 @@ export default async function handler(
           })
         }
       }
-      return res.status(422).json({
+      return res.status(400).json({
         error: {
-          message: 'Something went wrong with prisma.',
+          message: 'Something went wrong saving to database.',
         },
       })
     }

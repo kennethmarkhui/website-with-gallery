@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Prisma } from 'prisma/prisma-client'
+import { ZodError } from 'zod'
 
 import type {
   GalleryErrorResponse,
@@ -105,15 +106,16 @@ export default async function handler(
     })
   }
 
-  const parsedGalleryQuery = GalleryQuerySchema.safeParse(req.query)
-  if (!parsedGalleryQuery.success) {
-    return res.status(422).json({ error: { message: 'Invalid Input.' } })
-  }
-
   try {
-    const items = await fetchItems(parsedGalleryQuery.data)
+    const parsedGalleryQuery = GalleryQuerySchema.parse(req.query)
+
+    const items = await fetchItems(parsedGalleryQuery)
+
     return res.status(200).json(items)
   } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(422).json({ error: { message: 'Invalid Input.' } })
+    }
     return res
       .status(500)
       .json({ error: { message: 'Failed to fetch data from the database.' } })

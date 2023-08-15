@@ -1,7 +1,8 @@
 import type { NextApiRequest } from 'next'
-import { Fields, Files, Options, formidable, errors } from 'formidable'
+import { Fields, Files, Options, formidable } from 'formidable'
 
-export const FormidableError = errors.FormidableError
+// TODO: @types/formidable provides wrong FormidableError type
+// export const FormidableError = errors.FormidableError
 
 export const formidableOptions: Options = {
   maxFiles: 1,
