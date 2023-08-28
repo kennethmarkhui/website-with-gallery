@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, MouseEvent, useCallback } from 'react'
 import Image from 'next/image'
 import { useSpring, animated } from '@react-spring/web'
-import { useGesture } from '@use-gesture/react'
+import { useDrag, usePinch } from '@use-gesture/react'
 import { HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 import { Dialog } from '@headlessui/react'
@@ -19,19 +19,14 @@ export interface ImageViewerProps {
 }
 
 const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
-  // Track whether the close animation is running. This is used to disable any interactions.
   const [isClosing, setClosing] = useState(false)
 
-  // The current modality the image viewer is in.
   const mode = useRef<null | 'dismiss' | 'pinch'>(null)
 
-  // Keep track of previous position changes when lifting fingers in between pinching and panning
-  // an image.
   const offset = useRef<[number, number]>([0, 0])
 
   const dialogInitialFocusRef = useRef(null)
 
-  // Keep track of the window size (and changes to it).
   const [[windowWidth, windowHeight], setWindowSize] = useState([
     window.innerWidth,
     window.innerHeight,
@@ -45,14 +40,10 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // The animation for the black backdrop behind the image viewer. Used to fade the backdrop in and
-  // out.
   const [backdropStyles, backdropApi] = useSpring(() => ({
     backgroundColor: 'rgba(0, 0, 0, 0)',
   }))
 
-  // The animation for all control buttons (close, next, prev). Used to hide them on enter, exit and
-  // while in `pinch` mode.
   const [headerStyles, headerApi] = useSpring(() => ({
     display: 'none',
   }))
@@ -70,7 +61,6 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     display: 'flex',
   }))
 
-  // Kick off the enter animation once the viewer is first rendered.
   useEffect(() => {
     // show spinner
     loadingApi.start(() => ({
@@ -78,18 +68,15 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       delay: 500,
     }))
 
-    // Fade the backdrop to black.
     backdropApi.start({
       backgroundColor: `rgba(0, 0, 0, 1)`,
     })
 
-    // Show the control buttons.
     headerApi.start({
       display: 'block',
     })
   }, [loadingApi, backdropApi, headerApi])
 
-  // Close the image viewer (awaits the exit animation before actually closing the viewer).
   const handleClose = useCallback(() => {
     if (isClosing) {
       return
@@ -107,7 +94,6 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       close()
     }
 
-    // Speed up close animation
     const config = {
       mass: 0.5,
       friction: 10,
@@ -126,23 +112,19 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
       }
     })
 
-    // Fade backdrop out.
     backdropApi.start({
       backgroundColor: `rgba(0, 0, 0, 0)`,
       onRest,
       config,
     })
 
-    // Hide the control buttons.
     headerApi.start({
       display: 'none',
     })
 
-    // Hide spinner
     loadingApi.start({ display: 'none' })
   }, [imageApi, loadingApi, backdropApi, headerApi, isClosing, close])
 
-  //   Close the viewer if image have been removed
   useEffect(() => {
     if (!data && !isClosing) {
       handleClose()
@@ -151,16 +133,13 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
 
   function startPinch() {
     mode.current = 'pinch'
-    // Hide the buttons while pinching.
     headerApi.start({ display: 'none' })
   }
 
   function stopPinch() {
-    // When the image is reset back to the center and initial scale, also end the `pinch` mode.
     offset.current = [0, 0]
     mode.current = null
 
-    // Show the buttons again.
     headerApi.start({ display: 'block' })
   }
 
@@ -179,7 +158,6 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     }
 
     imageApi.start((i, ctrl) => {
-      // make typescript happy
       if (!img) {
         return
       }
@@ -188,14 +166,11 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
         stopPinch()
         return { scale: 1, x: 0, y: 0 }
       } else {
-        // Scale the image to its actual size.
         const newScale = img.naturalWidth / img.width
         if (newScale < 1.0) {
-          // No need to scale if the image is smaller than the screen size.
           return
         }
 
-        // Calculate the image movement to zoom at the location the user tapped clicked at.
         const originOffsetX = e.clientX - (windowWidth / 2 + offset.current[0])
         const originOffsetY = e.clientY - (windowHeight / 2 + offset.current[1])
 
@@ -220,175 +195,134 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
     })
   }
 
-  // Setup all gestures.
-  const bind = useGesture(
-    {
-      onDrag({ last, active, movement: [mx, my], cancel, pinching }) {
-        // When pinching, the `onPinch` handles moving the image around.
-        if (pinching) {
-          cancel()
-          return
-        }
+  const onDrag = useDrag(
+    ({ last, active, movement: [mx, my], cancel, pinching }) => {
+      if (pinching) {
+        cancel()
+        return
+      }
 
-        // Determine the current mode based on the drag amount and direction.
-        if (mode.current === null) {
-          mode.current = my > 0 && my > Math.abs(mx) ? 'dismiss' : null
-        }
+      if (mode.current === null) {
+        mode.current = my > 0 && my > Math.abs(mx) ? 'dismiss' : null
+      }
+
+      switch (mode.current) {
+        case 'dismiss':
+          if (last && my > 0 && my / windowHeight > 0.1) {
+            handleClose()
+            return
+          } else {
+            backdropApi.start({
+              backgroundColor: `rgba(0, 0, 0, ${Math.max(
+                0,
+                1 - (Math.abs(my) / windowHeight) * 2
+              )})`,
+            })
+          }
+
+          break
+      }
+
+      imageApi.start((i) => {
+        const h = active ? mx : 0
 
         switch (mode.current) {
           case 'dismiss':
-            // Close the image viewer is the image got released after dragging it at least 10% down.
-            if (last && my > 0 && my / windowHeight > 0.1) {
-              handleClose()
-              return
-            }
-            // Fade out the backdrop depending on the drag distance otherwise.
-            else {
-              backdropApi.start({
-                backgroundColor: `rgba(0, 0, 0, ${Math.max(
-                  0,
-                  1 - (Math.abs(my) / windowHeight) * 2
-                )})`,
-              })
-            }
+            const y = active ? my : 0
+            const scale = active
+              ? Math.max(1 - Math.abs(my) / windowHeight / 2, 0.8)
+              : 1
+            return { h, y, scale, display: 'flex', immediate: active }
 
-            break
-        }
-
-        // Update the animation state of all images.
-        imageApi.start((i) => {
-          // Calculate the new horizontal position.
-          const h = active ? mx : 0
-
-          switch (mode.current) {
-            // While dismissing (sliding down), animate both the position and scale (scale down)
-            // depending on how far the image is dragged away from the center.
-            case 'dismiss':
-              const y = active ? my : 0
-              const scale = active
-                ? Math.max(1 - Math.abs(my) / windowHeight / 2, 0.8)
-                : 1
-              return { h, y, scale, display: 'flex', immediate: active }
-
-            // When lifting a pinch and continuing to track the image with one touch point, animate
-            // the position of the image accordingly.
-            case 'pinch':
-              return {
-                x: offset.current[0] + mx,
-                y: offset.current[1] + my,
-                display: 'flex',
-                immediate: active,
-              }
-          }
-        })
-
-        if (last) {
-          if (mode.current === 'pinch') {
-            // Keep track of the current drag position. Don't reset the mode so that the user can
-            // continue dragging the image with another drag or pinch gesture.
-            offset.current = [offset.current[0] + mx, offset.current[1] + my]
-          } else {
-            // Reset the mode.
-            mode.current = null
-          }
-
-          // Reset the backdrop back to being fully black.
-          backdropApi.start({ backgroundColor: 'rgba(0, 0, 0, 1)' })
-        }
-      },
-
-      onPinch({
-        origin: [ox, oy],
-        first,
-        last,
-        offset: [scale],
-        memo,
-        cancel,
-      }) {
-        // The pinch mode can only be initiated from no active mode, while starting to slide, or by
-        // continuing and still active pinch.
-        if (mode.current !== null && mode.current !== 'pinch') {
-          cancel()
-          return
-        }
-
-        if (mode.current !== 'pinch') {
-          startPinch()
-        }
-
-        // Keep track of the offset when first starting to pinch.
-        if (first || !memo) {
-          // This is the offset between the image's origin (in its center) and the pinch origin.
-          const originOffsetX = ox - (windowWidth / 2 + offset.current[0])
-          const originOffsetY = oy - (windowHeight / 2 + offset.current[1])
-
-          memo = {
-            origin: {
-              x: ox,
-              y: oy,
-            },
-            offset: {
-              refX: originOffsetX / scale,
-              refY: originOffsetY / scale,
-              x: originOffsetX,
-              y: originOffsetY,
-            },
-          }
-        }
-
-        // Calculate the current drag x and y movements taking the pinch origin into account (when
-        // pinching outside of the center of the image, the image needs to be moved accordingly to
-        // scale below the pinch origin).
-        const transformOriginX = memo.offset.refX * scale - memo.offset.x
-        const transformOriginY = memo.offset.refY * scale - memo.offset.y
-        const mx = ox - memo.origin.x - transformOriginX
-        const my = oy - memo.origin.y - transformOriginY
-
-        // Update the animation state of all images.
-        imageApi.start(() => {
-          // If the user stopped the pinch gesture and the scale is below 110%, reset the image back
-          // to the center and to fit the screen.
-          if (last && scale <= 1.1) {
+          case 'pinch':
             return {
-              x: 0,
-              y: 0,
-              scale: 1,
-            }
-          }
-          // Otherwise, update the scale and position of the image accordingly.
-          else {
-            return {
-              h: 0,
-              scale,
               x: offset.current[0] + mx,
               y: offset.current[1] + my,
-              immediate: true,
+              display: 'flex',
+              immediate: active,
             }
-          }
-        })
+        }
+      })
 
-        if (last) {
-          if (scale <= 1.1) {
-            stopPinch()
-          } else {
-            // Keep track of the current drag position so that the user can continue manipulating
-            // the current position in a follow-up drag or pinch.
-            offset.current = [offset.current[0] + mx, offset.current[1] + my]
-          }
+      if (last) {
+        if (mode.current === 'pinch') {
+          offset.current = [offset.current[0] + mx, offset.current[1] + my]
+        } else {
+          mode.current = null
         }
 
-        return memo
-      },
+        backdropApi.start({ backgroundColor: 'rgba(0, 0, 0, 1)' })
+      }
+    },
+    { enabled: !isClosing }
+  )
+
+  const onPinch = usePinch(
+    ({ origin: [ox, oy], first, last, offset: [scale], memo, cancel }) => {
+      if (mode.current !== null && mode.current !== 'pinch') {
+        cancel()
+        return
+      }
+
+      if (mode.current !== 'pinch') {
+        startPinch()
+      }
+
+      if (first || !memo) {
+        const originOffsetX = ox - (windowWidth / 2 + offset.current[0])
+        const originOffsetY = oy - (windowHeight / 2 + offset.current[1])
+
+        memo = {
+          origin: {
+            x: ox,
+            y: oy,
+          },
+          offset: {
+            refX: originOffsetX / scale,
+            refY: originOffsetY / scale,
+            x: originOffsetX,
+            y: originOffsetY,
+          },
+        }
+      }
+
+      const transformOriginX = memo.offset.refX * scale - memo.offset.x
+      const transformOriginY = memo.offset.refY * scale - memo.offset.y
+      const mx = ox - memo.origin.x - transformOriginX
+      const my = oy - memo.origin.y - transformOriginY
+
+      imageApi.start(() => {
+        if (last && scale <= 1.1) {
+          return {
+            x: 0,
+            y: 0,
+            scale: 1,
+          }
+        } else {
+          return {
+            h: 0,
+            scale,
+            x: offset.current[0] + mx,
+            y: offset.current[1] + my,
+            immediate: true,
+          }
+        }
+      })
+
+      if (last) {
+        if (scale <= 1.1) {
+          stopPinch()
+        } else {
+          offset.current = [offset.current[0] + mx, offset.current[1] + my]
+        }
+      }
+
+      return memo
     },
     {
-      drag: {
-        enabled: !isClosing,
-      },
-      pinch: {
-        enabled: !isClosing,
-        scaleBounds: { min: 1.0, max: Infinity },
-        from: () => [imageApi.current[0].get().scale, 0],
-      },
+      enabled: !isClosing,
+      scaleBounds: { min: 1.0, max: Infinity },
+      from: () => [imageApi.current[0].get().scale, 0],
     }
   )
 
@@ -432,7 +366,8 @@ const ImageViewerModal = ({ data, close }: ImageViewerProps): JSX.Element => {
 
       {/* IMAGE */}
       <animated.main
-        {...bind()}
+        {...onDrag()}
+        {...onPinch()}
         className="absolute inset-0 shrink-0 touch-none items-center justify-center overflow-hidden"
         style={{
           display: imageStyles.display,
