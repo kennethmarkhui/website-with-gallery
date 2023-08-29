@@ -19,10 +19,10 @@ const GalleryHeader = ({
   return (
     <header
       className={cn(
-        'flex h-16 w-full shrink-0 items-center justify-between',
+        'flex h-16 w-full shrink-0 items-center justify-between z-20',
         'transform transition-transform duration-150 ease-in',
         !smallVersion && 'translate-y-0 lg:-translate-y-full',
-        !smallVersion && 'sticky top-0 z-20 bg-white px-8'
+        !smallVersion && 'sticky top-0 bg-white px-8'
       )}
     >
       <Link href={router.pathname === '/gallery' ? '/' : '/gallery'}>
