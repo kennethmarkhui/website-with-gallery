@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { GetServerSideProps } from 'next'
+import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
 import PhotoAlbum from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
@@ -53,7 +54,12 @@ export const getServerSideProps: GetServerSideProps = async ({
 
 const Gallery = (): JSX.Element => {
   const t = useTranslations('gallery')
-  const [modalData, setModalData] = useState<ExtendedPhoto>()
+  const modalDataRef = useRef<ExtendedPhoto>()
+  const router = useRouter()
+
+  useEffect(() => {
+    modalDataRef.current = undefined
+  }, [router.asPath])
 
   const { filters } = useUrlGalleryFilters()
 
@@ -65,20 +71,21 @@ const Gallery = (): JSX.Element => {
     isPreviousData,
   } = useCursorGallery({ filters })
 
-  const photos: ExtendedPhoto[] = useMemo(
+  const photos = useMemo(
     () =>
       localizedData.pages?.flatMap(({ items }) =>
-        items.map((item) => ({
-          key: item.id,
-          title: item.id,
-          src: item.image?.url ?? '/placeholder.png',
-          width: item.image?.width ?? 1665,
-          height: item.image?.height ?? 2048,
-          name: item.name ?? '',
-          storage: item.storage ?? '',
-          category: item.category ?? '',
-          publicId: item.image?.publicId ?? '',
-        }))
+        items.map(
+          (item) =>
+            ({
+              key: item.id,
+              title: item.id,
+              src: item.image?.url ?? '/placeholder.png',
+              width: item.image?.width ?? 1665,
+              height: item.image?.height ?? 2048,
+              name: item.name ?? '',
+              publicId: item.image?.publicId ?? '',
+            }) satisfies ExtendedPhoto
+        )
       ) || [],
     [localizedData]
   )
@@ -114,13 +121,33 @@ const Gallery = (): JSX.Element => {
             isPreviousData={isPreviousData}
           />
         )}
-        onClick={({ event, photo, index }) => setModalData(photo)}
+        onClick={({ event, photo, index }) => {
+          modalDataRef.current = photo
+          router.push(
+            { pathname: router.pathname, query: filters },
+            { pathname: `${router.pathname}/${photo.title}` },
+            { locale: router.locale, shallow: true }
+          )
+        }}
       />
 
-      {modalData && (
+      {modalDataRef.current && (
         <ImageViewerModal
-          data={modalData}
-          close={() => setModalData(undefined)}
+          data={modalDataRef.current}
+          close={() => {
+            modalDataRef.current = undefined
+            router.push(
+              {
+                pathname: router.pathname,
+                query: filters,
+              },
+              undefined,
+              {
+                locale: router.locale,
+                shallow: true,
+              }
+            )
+          }}
         />
       )}
     </GalleryLayout>
