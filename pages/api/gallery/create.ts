@@ -47,7 +47,7 @@ export default async function handler(
 
     const parsedFormData = GalleryFormFieldsSchema.omit({
       image: true,
-    }).parse(JSON.parse(jsonData[0]))
+    }).parse(jsonData && jsonData.length && JSON.parse(jsonData[0]))
 
     const { id, name, storage, category } = parsedFormData
 

@@ -6,8 +6,6 @@ import { cn } from 'lib/utils'
 
 export interface ExtendedPhoto extends Photo {
   name: string
-  storage: string
-  category: string
   publicId: string
 }
 
