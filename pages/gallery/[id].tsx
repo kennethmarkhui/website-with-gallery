@@ -28,13 +28,16 @@ export const getServerSideProps: GetServerSideProps<ImagePageProps> = async ({
 }: GetServerSidePropsContext) => {
   const data = await fetchItem(params?.id as string)
 
-  // TODO: throw if no data
+  if (!data?.image) {
+    return { notFound: true }
+  }
+
   return {
     props: {
-      id: data?.id ?? '',
-      src: data?.image?.url ?? '',
-      width: data?.image?.width ?? 0,
-      height: data?.image?.height ?? 0,
+      id: data.id,
+      src: data.image.url,
+      width: data.image.width,
+      height: data.image.height,
     },
   }
 }
