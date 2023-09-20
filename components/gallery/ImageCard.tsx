@@ -11,17 +11,19 @@ export interface ExtendedPhoto extends Photo {
 
 type ImageCardProps = RenderPhotoProps<ExtendedPhoto>
 
-// Taken from the legacy image, since currently the new Next13 Image does not support cloudinary loader out of the box(or maybe im wrong?).
-// https://github.com/vercel/next.js/blob/f3fc9126add85cda1d58dd21a1556ee878b4117c/packages/next/client/image.tsx#L92-L102
 const cloudinaryLoader = ({
   src,
   width,
   quality,
 }: ImageLoaderProps): string => {
+  const { origin, pathname } = new URL(src)
   // Demo: https://res.cloudinary.com/demo/image/upload/w_300,c_limit,q_auto/turtles.jpg
   const params = ['f_auto', 'c_limit', 'w_' + width, 'q_' + (quality || 'auto')]
-  const paramsString = params.join(',') + '/'
-  return `${process.env.NEXT_PUBLIC_CLOUDINARY_IMAGE_UPLOAD_PATH}${paramsString}${src}`
+  // https://res.cloudinary.com/<cloud_name>/<asset_type>/<delivery_type>/<transformations>/<version>/<public_id_full_path>.<extension>
+  let newPathname = pathname.split('/')
+  newPathname.splice(4, 0, params.join(','))
+
+  return origin + newPathname.join('/')
 }
 
 const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
@@ -31,33 +33,33 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
   const { src, alt, title, sizes, className, onClick } = imageProps
 
   return (
-    <div style={wrapperStyle}>
-      <div
+    <div
+      className={cn(
+        'group relative cursor-pointer overflow-hidden rounded bg-gray-200',
+        isLoading && 'animate-pulse'
+      )}
+      style={wrapperStyle}
+    >
+      <Image
+        loader={cloudinaryLoader}
+        src={src}
+        alt={alt}
+        title={title}
+        sizes={sizes}
+        width={width}
+        height={height}
+        quality={50}
         className={cn(
-          'group relative cursor-pointer overflow-hidden rounded bg-gray-200',
-          isLoading && 'animate-pulse'
+          'duration-700 ease-in-out',
+          isLoading
+            ? 'scale-110 blur-2xl grayscale'
+            : 'scale-100 blur-0 grayscale-0',
+          className
         )}
-      >
-        <Image
-          loader={cloudinaryLoader}
-          src={publicId || src}
-          alt={alt}
-          title={title}
-          sizes={sizes}
-          width={width}
-          height={height}
-          className={cn(
-            'duration-700 ease-in-out',
-            isLoading
-              ? 'scale-110 blur-2xl grayscale'
-              : 'scale-100 blur-0 grayscale-0',
-            className
-          )}
-          onLoadingComplete={() => setIsLoading(false)}
-          onClick={onClick}
-          unoptimized={publicId === ''}
-        />
-      </div>
+        onLoadingComplete={() => setIsLoading(false)}
+        onClick={onClick}
+        unoptimized={publicId === ''}
+      />
     </div>
   )
 }

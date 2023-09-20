@@ -106,6 +106,19 @@ const Gallery = (): JSX.Element => {
         photos={photos}
         renderPhoto={ImageCard}
         targetRowHeight={PHOTOALBUM_TARGET_ROW_HEIGHT}
+        sizes={{
+          /**
+           * 64px = container's padding
+           * 256px = sidebar
+           */
+          size: 'calc(100vw - 64px)',
+          sizes: [
+            {
+              viewport: '(min-width: 1024px)',
+              size: 'calc(100vw - 256px - 64px)',
+            },
+          ],
+        }}
         componentsProps={(containerWidth) =>
           containerWidth && maxWidth && maxWidth <= containerWidth
             ? { rowContainerProps: { style: { maxWidth } } }
