@@ -10,12 +10,21 @@ import { formidableOptions, parseForm } from 'lib/formidable'
 import { formatBytes } from 'lib/utils'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
-import { fetchImage } from '../[id]'
 
 export const config = {
   api: {
     bodyParser: false,
   },
+}
+
+async function fetchImage(id: string) {
+  return await prisma.image.findFirst({
+    where: { itemId: id },
+    select: {
+      url: true,
+      publicId: true,
+    },
+  })
 }
 
 export default async function handler(

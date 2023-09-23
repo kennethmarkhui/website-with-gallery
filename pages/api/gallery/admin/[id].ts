@@ -2,16 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { ZodError } from 'zod'
 
-import type {
-  GalleryErrorResponse,
-  GalleryFormFields,
-  GalleryItem,
-} from 'types/gallery'
+import type { GalleryErrorResponse, GalleryItem } from 'types/gallery'
 import { prisma } from 'lib/prisma'
 import { authOptions } from 'lib/auth'
 import { GalleryFormFieldsSchema } from 'lib/validations'
 
-export async function fetchItem(id: GalleryFormFields['id']) {
+export async function fetchAdminItem(id: string) {
   const data = await prisma.item.findUnique({
     where: { id },
     select: {
@@ -38,16 +34,6 @@ export async function fetchItem(id: GalleryFormFields['id']) {
   })
 
   return data ? { ...data, category: data.category?.id ?? null } : null
-}
-
-export async function fetchImage(id: GalleryFormFields['id']) {
-  return await prisma.image.findFirst({
-    where: { itemId: id },
-    select: {
-      url: true,
-      publicId: true,
-    },
-  })
 }
 
 export default async function handler(
@@ -78,7 +64,7 @@ export default async function handler(
 
     const { id } = parsedQuery
 
-    const item = await fetchItem(id)
+    const item = await fetchAdminItem(id)
     if (item) {
       return res.status(200).json(item)
     }

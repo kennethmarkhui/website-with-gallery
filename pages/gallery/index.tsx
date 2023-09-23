@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
-import PhotoAlbum from 'react-photo-album'
+import PhotoAlbum, { Photo } from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import { fetchItems } from 'pages/api/gallery'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryLayout from '@/components/layout/GalleryLayout'
-import ImageCard, { ExtendedPhoto } from '@/components/gallery/ImageCard'
+import ImageCard from '@/components/gallery/ImageCard'
 import ImageViewerModal from '@/components/gallery/ImageViewerModal'
 import GalleryContainer from '@/components/gallery/GalleryContainer'
 import useCursorGallery from 'hooks/gallery/useCursorGallery'
@@ -54,7 +54,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
 const Gallery = (): JSX.Element => {
   const t = useTranslations('gallery')
-  const modalDataRef = useRef<ExtendedPhoto>()
+  const modalDataRef = useRef<Photo>()
   const router = useRouter()
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Gallery = (): JSX.Element => {
   const { filters } = useUrlGalleryFilters()
 
   const {
-    localizedData,
+    data,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
@@ -73,21 +73,19 @@ const Gallery = (): JSX.Element => {
 
   const photos = useMemo(
     () =>
-      localizedData.pages?.flatMap(({ items }) =>
+      data?.pages?.flatMap(({ items }) =>
         items.map(
           (item) =>
             ({
               key: item.id,
               title: item.id,
-              src: item.image?.url ?? '/placeholder.png',
-              width: item.image?.width ?? 1665,
-              height: item.image?.height ?? 2048,
-              name: item.name ?? '',
-              publicId: item.image?.publicId ?? '',
-            }) satisfies ExtendedPhoto
+              src: item.image?.url ?? '',
+              width: item.image?.width ?? 0,
+              height: item.image?.height ?? 0,
+            }) satisfies Photo
         )
       ) || [],
-    [localizedData]
+    [data]
   )
 
   // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261

@@ -86,10 +86,6 @@ export const GalleryCursorQuerySchema = GalleryOffsetQuerySchema.omit({
   nextCursor: z.string().optional(),
 })
 
-export const GalleryQuerySchema = GalleryCursorQuerySchema.merge(
-  GalleryOffsetQuerySchema
-)
-
 export const i18nGalleryFormErrorCode = {
   required: 'required',
   alphanumeric: 'alphanumeric',

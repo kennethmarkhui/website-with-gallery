@@ -15,7 +15,6 @@ import { useTranslations } from 'next-intl'
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'
 
 import { cn } from 'lib/utils'
-import { GALLERY_LIMIT } from 'constants/gallery'
 
 interface PaginationProps {
   currentPage: number

@@ -14,7 +14,7 @@ const useCreate = () => {
       }
       formData.append('data', JSON.stringify(rest))
 
-      return fetcher('/api/gallery/create', {
+      return fetcher('/api/gallery/admin/create', {
         method: 'POST',
         body: formData,
       })

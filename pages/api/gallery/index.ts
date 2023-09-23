@@ -3,21 +3,36 @@ import { Prisma } from 'prisma/prisma-client'
 import { ZodError } from 'zod'
 
 import type {
+  GalleryCursorQuery,
   GalleryErrorResponse,
-  GalleryQuery,
   GalleryResponse,
 } from 'types/gallery'
 import { prisma } from 'lib/prisma'
-import { GalleryQuerySchema } from 'lib/validations'
+import { GalleryCursorQuerySchema } from 'lib/validations'
 import { GALLERY_LIMIT, GALLERY_ORDER_BY_DIRECTION } from 'constants/gallery'
+
+export async function fetchItem(id: string) {
+  return await prisma.item.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      image: {
+        select: {
+          url: true,
+          width: true,
+          height: true,
+        },
+      },
+    },
+  })
+}
 
 export async function fetchItems({
   nextCursor,
-  page,
   search,
   category,
   orderBy: orderByFilter,
-}: GalleryQuery) {
+}: GalleryCursorQuery) {
   // https://github.com/prisma/prisma/discussions/4888#discussioncomment-403826
   const orderBy = (
     orderByFilter
@@ -42,53 +57,26 @@ export async function fetchItems({
     ],
   } satisfies Prisma.ItemWhereInput
 
-  const [items, totalItems] = await prisma.$transaction([
-    prisma.item.findMany({
-      where,
-      take: GALLERY_LIMIT,
-      ...(page
-        ? {
-            skip: (+page - 1) * GALLERY_LIMIT,
-          }
-        : {
-            skip: nextCursor === '0' ? 0 : 1,
-            cursor: nextCursor === '0' ? undefined : { id: nextCursor },
-          }),
-      select: {
-        id: true,
-        category: { select: { id: true } },
-        image: {
-          select: {
-            url: true,
-            publicId: true,
-            width: true,
-            height: true,
-          },
+  const items = await prisma.item.findMany({
+    where,
+    take: GALLERY_LIMIT,
+    skip: nextCursor === '0' ? 0 : 1,
+    cursor: nextCursor === '0' ? undefined : { id: nextCursor },
+    select: {
+      id: true,
+      image: {
+        select: {
+          url: true,
+          width: true,
+          height: true,
         },
-        translations: {
-          select: {
-            name: true,
-            storage: true,
-            language: { select: { code: true } },
-          },
-        },
-        dateAdded: true,
-        updatedAt: true,
       },
-      orderBy,
-    }),
-    prisma.item.count({
-      where,
-    }),
-  ])
+    },
+    orderBy,
+  })
 
   return {
-    items: items.map((item) => ({
-      ...item,
-      category: item.category?.id ?? null,
-    })),
-    totalCount: totalItems,
-    page,
+    items,
     nextCursor:
       items.length === GALLERY_LIMIT ? items[GALLERY_LIMIT - 1].id : undefined,
   }
@@ -107,11 +95,11 @@ export default async function handler(
   }
 
   try {
-    const parsedGalleryQuery = GalleryQuerySchema.parse(req.query)
+    const parsedGalleryCursorQuery = GalleryCursorQuerySchema.parse(req.query)
 
-    const items = await fetchItems(parsedGalleryQuery)
+    const data = await fetchItems(parsedGalleryCursorQuery)
 
-    return res.status(200).json(items)
+    return res.status(200).json(data)
   } catch (error) {
     if (error instanceof ZodError) {
       return res.status(422).json({ error: { message: 'Invalid Input.' } })

@@ -16,7 +16,7 @@ import { HiChevronDown, HiOutlineSearch } from 'react-icons/hi'
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa'
 
 import type { GalleryFormFilters } from 'types/gallery'
-import { fetchItems } from 'pages/api/gallery'
+import { fetchAdminItems } from 'pages/api/gallery/admin'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import DataTable from '@/components/DataTable'
@@ -59,7 +59,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   await queryClient.fetchQuery({
     queryKey: ['gallery', 'offset', parsedQuery.data] as const,
     queryFn: ({ queryKey }) =>
-      fetchItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
+      fetchAdminItems({ ...queryKey[2], page: queryKey[2].page ?? '1' }),
   })
   await queryClient.fetchQuery({
     queryKey: ['categories'] as const,

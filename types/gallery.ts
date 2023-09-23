@@ -1,15 +1,15 @@
-import { Prisma, Item, Image, Category } from 'prisma/prisma-client'
+import { Prisma, Item, Image } from 'prisma/prisma-client'
 import { z } from 'zod'
 
 import { fetchItems } from 'pages/api/gallery'
+import { fetchAdminItems } from 'pages/api/gallery/admin'
 import { fetchCategories } from 'pages/api/gallery/category'
 import {
   GalleryCategoryFormFieldsSchema,
   GalleryCursorQuerySchema,
+  GalleryOffsetQuerySchema,
   GalleryFormFiltersSchema,
   GalleryFormFieldsSchema,
-  GalleryOffsetQuerySchema,
-  GalleryQuerySchema,
 } from 'lib/validations'
 
 export type GalleryItemKeys = keyof Item
@@ -21,10 +21,10 @@ export type GalleryItem = Pick<
   'items'
 >['items'][number]
 
-export type GalleryItems = {
-  items: GalleryItem[]
-  totalCount: number
-}
+export type GalleryAdminItem = Pick<
+  Awaited<ReturnType<typeof fetchAdminItems>>,
+  'items'
+>['items'][number]
 
 export type GalleryCategoryFormFields = z.infer<
   typeof GalleryCategoryFormFieldsSchema
@@ -42,21 +42,23 @@ export type NextCursor = string
 
 export type GalleryFormFilters = z.infer<typeof GalleryFormFiltersSchema>
 
-export type PaginationType = 'cursor' | 'offset'
-
 export type GalleryOffsetQuery = z.infer<typeof GalleryOffsetQuerySchema>
 
 export type GalleryCursorQuery = z.infer<typeof GalleryCursorQuerySchema>
-
-export type GalleryQuery = z.infer<typeof GalleryQuerySchema>
 
 export type GalleryOrderBy = [GalleryItemKeys, GalleryOrderByDirection]
 
 export type GalleryOrderByDirection = Prisma.SortOrder
 
-export type GalleryResponse = GalleryItems & {
-  page?: string
+export type GalleryResponse = {
+  items: GalleryItem[]
   nextCursor?: NextCursor
+}
+
+export type GalleryAdminResponse = {
+  items: GalleryAdminItem[]
+  totalCount: number
+  page: string
 }
 
 export type GalleryCategoryResponse = Awaited<
@@ -69,11 +71,4 @@ export type GalleryMutateResponse = {
 
 export type GalleryErrorResponse = {
   error: { message: string; target?: GalleryFormKeys }
-}
-
-// https://stackoverflow.com/a/73395247
-export type NonNullableRecursive<Type> = {
-  [Key in keyof Type]-?: Type[Key] extends object | undefined | null
-    ? NonNullableRecursive<NonNullable<Type[Key]>>
-    : NonNullable<Type[Key]>
 }

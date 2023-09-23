@@ -4,8 +4,8 @@ import { animated } from '@react-spring/web'
 import { HiX } from 'react-icons/hi'
 import { FaSpinner } from 'react-icons/fa'
 import { Dialog } from '@headlessui/react'
+import { Photo } from 'react-photo-album'
 
-import { ExtendedPhoto } from './ImageCard'
 import useImageViewer from 'hooks/gallery/useImageViewer'
 
 const AnimatedImage = animated(Image)
@@ -14,7 +14,7 @@ const AnimatedFaSpinner = animated(FaSpinner)
 // taken from https://github.com/rkusa/react-image-viewer-hook with some changes
 
 interface ImageViewerModalProps {
-  data: ExtendedPhoto
+  data: Photo
   close: () => void
 }
 

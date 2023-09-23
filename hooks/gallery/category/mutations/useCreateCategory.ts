@@ -11,7 +11,7 @@ import fetcher from 'lib/fetcher'
 const useCreateCategory = () => {
   return useMutation({
     mutationFn: (data: GalleryCategoryFormFields) => {
-      return fetcher('/api/gallery/category/create', {
+      return fetcher('/api/gallery/admin/category/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

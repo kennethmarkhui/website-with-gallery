@@ -17,7 +17,7 @@ const useUpdateCategory = () => {
       id: string
       name: GalleryCategoryFormFields['name']
     }) =>
-      fetcher(`/api/gallery/category/update?id=${id}`, {
+      fetcher(`/api/gallery/admin/category/update?id=${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),

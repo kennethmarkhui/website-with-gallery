@@ -14,7 +14,7 @@ const useUpdate = () => {
       }
       formData.append('data', JSON.stringify(rest))
 
-      return fetcher(`/api/gallery/update/${data.id}`, {
+      return fetcher(`/api/gallery/admin/update/${data.id}`, {
         method: 'PUT',
         body: formData,
       })

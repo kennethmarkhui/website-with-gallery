@@ -10,7 +10,9 @@ import fetcher from 'lib/fetcher'
 const useDeleteCategory = () => {
   return useMutation({
     mutationFn: (id: string) =>
-      fetcher(`/api/gallery/category/delete?id=${id}`, { method: 'DELETE' }),
+      fetcher(`/api/gallery/admin/category/delete?id=${id}`, {
+        method: 'DELETE',
+      }),
     onMutate: async (variables) => {
       await queryClient.cancelQueries(['categories'])
       const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([

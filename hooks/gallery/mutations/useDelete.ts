@@ -7,7 +7,7 @@ const useDelete = () => {
   return useMutation({
     mutationFn: (variables: { id: string; publicId?: string }) =>
       fetcher(
-        `/api/gallery/delete?id=${variables.id}${
+        `/api/gallery/admin/delete?id=${variables.id}${
           variables.publicId ? `&publicId=${variables.publicId}` : ''
         }`,
         { method: 'DELETE' }

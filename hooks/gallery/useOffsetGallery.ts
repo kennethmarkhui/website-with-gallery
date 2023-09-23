@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { GalleryOffsetQuery, GalleryResponse } from 'types/gallery'
+import type { GalleryAdminResponse, GalleryOffsetQuery } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 import { generateQueryStringFromObject } from 'lib/utils'
 import { useRouter } from 'next/router'
@@ -14,8 +14,8 @@ const useOffsetGallery = ({ filters }: UseOffsetGalleryProps) => {
   const { data, status, error, isPreviousData } = useQuery({
     queryKey: ['gallery', 'offset', filters] as const,
     queryFn: ({ queryKey }) =>
-      fetcher<GalleryResponse>(
-        '/api/gallery' +
+      fetcher<GalleryAdminResponse>(
+        '/api/gallery/admin' +
           generateQueryStringFromObject({
             ...queryKey[2],
             page: queryKey[2].page ?? '1',

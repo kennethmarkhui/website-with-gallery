@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import type { DefaultGalleryFormFields } from 'types/gallery'
-import { fetchItem } from 'pages/api/gallery/[id]'
+import { fetchAdminItem } from 'pages/api/gallery/admin/[id]'
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import GalleryForm from '@/components/gallery/Form'
@@ -43,7 +43,7 @@ export const getServerSideProps: GetServerSideProps<
 
   if (!queryData) {
     // fetch item if no query data provided
-    await queryClient.fetchQuery(['item', id], () => fetchItem(id))
+    await queryClient.fetchQuery(['item', id], () => fetchAdminItem(id))
     await queryClient.fetchQuery(['categories'], () => fetchCategories())
   }
 

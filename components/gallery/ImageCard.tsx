@@ -4,13 +4,6 @@ import { Photo, RenderPhotoProps } from 'react-photo-album'
 
 import { cn } from 'lib/utils'
 
-export interface ExtendedPhoto extends Photo {
-  name: string
-  publicId: string
-}
-
-type ImageCardProps = RenderPhotoProps<ExtendedPhoto>
-
 const cloudinaryLoader = ({
   src,
   width,
@@ -26,10 +19,14 @@ const cloudinaryLoader = ({
   return origin + newPathname.join('/')
 }
 
-const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
+const ImageCard = ({
+  photo,
+  imageProps,
+  wrapperStyle,
+}: RenderPhotoProps<Photo>) => {
   const [isLoading, setIsLoading] = useState(true)
 
-  const { width, height, publicId } = photo
+  const { width, height } = photo
   const { src, alt, title, sizes, className, onClick } = imageProps
 
   return (
@@ -42,12 +39,12 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
     >
       <Image
         loader={cloudinaryLoader}
-        src={src}
+        src={src || '/placeholder.png'}
         alt={alt}
         title={title}
         sizes={sizes}
-        width={width}
-        height={height}
+        width={width || 1665}
+        height={height || 2048}
         quality={50}
         className={cn(
           'duration-700 ease-in-out',
@@ -58,7 +55,7 @@ const ImageCard = ({ photo, imageProps, wrapperStyle }: ImageCardProps) => {
         )}
         onLoadingComplete={() => setIsLoading(false)}
         onClick={onClick}
-        unoptimized={publicId === ''}
+        unoptimized={src === ''}
       />
     </div>
   )

@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { useInfiniteQuery } from '@tanstack/react-query'
 
 import type { GalleryOffsetQuery, GalleryResponse } from 'types/gallery'
@@ -10,7 +9,6 @@ interface UseCursorGalleryProps {
 }
 
 const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
-  const { locale } = useRouter()
   const {
     data,
     status,
@@ -33,28 +31,8 @@ const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
     keepPreviousData: true,
   })
 
-  const localizedData = {
-    ...data,
-    pages: data?.pages.map((pageData) => ({
-      ...pageData,
-      items: pageData.items.map(({ id, category, image, translations }) => {
-        const localizedItem = translations.find(
-          ({ language }) => language.code === locale
-        )
-        return {
-          id,
-          category,
-          image,
-          name: localizedItem?.name ?? null,
-          storage: localizedItem?.storage ?? null,
-        }
-      }),
-    })),
-  }
-
   return {
     data,
-    localizedData,
     status,
     error,
     fetchNextPage,
