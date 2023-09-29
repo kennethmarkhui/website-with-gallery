@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import type { GetServerSideProps } from 'next'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations, useFormatter } from 'next-intl'
@@ -22,6 +23,7 @@ import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import DataTable from '@/components/DataTable'
 import FloatingLabelInput from '@/components/FloatingLabelInput'
 import Button from '@/components/Button'
+import { cloudinaryLoader } from '@/components/gallery/ImageCard'
 import useOffsetGallery from 'hooks/gallery/useOffsetGallery'
 import useCategory from 'hooks/gallery/category/useCategory'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
@@ -182,12 +184,21 @@ const TableFilterForm = ({
 }
 
 const Admin = (): JSX.Element => {
+  const router = useRouter()
   const t = useTranslations('gallery-admin')
   const tForm = useTranslations('form')
   const format = useFormatter()
   const now = new Date()
   // TODO: use ImageViewerModal to view the image
-  const { filters, setUrlGalleryFilters } = useUrlGalleryFilters()
+  const { filters, setUrlGalleryFilters } = useUrlGalleryFilters({
+    mode: 'offset',
+    query: router.query,
+    setUrlGalleryFiltersCallback: (filters) => {
+      router.push({ pathname: router.pathname, query: filters }, undefined, {
+        shallow: true,
+      })
+    },
+  })
 
   const { data, localizedData, status, error, isPreviousData } =
     useOffsetGallery({
@@ -204,9 +215,9 @@ const Admin = (): JSX.Element => {
           storage: storage ?? '',
           category: category ?? '',
           image: {
-            url: image?.url ?? '/placeholder.png',
-            width: image?.width ?? 1665,
-            height: image?.height ?? 2048,
+            url: image?.url ?? '',
+            width: image?.width ?? 0,
+            height: image?.height ?? 0,
             publicId: image?.publicId ?? '',
           },
           dateAdded,
@@ -262,16 +273,18 @@ const Admin = (): JSX.Element => {
               // https://github.com/TanStack/table/pull/4109
               const {
                 id,
-                image: { url, width, height },
+                image: { url },
               } = row.original
               return (
                 <div className="relative h-32 w-32">
                   <Image
-                    src={url}
+                    loader={cloudinaryLoader}
+                    src={url || '/placeholder.png'}
                     alt={id}
                     className="absolute inset-0 h-full w-full object-contain"
-                    width={width}
-                    height={height}
+                    width={128}
+                    height={128}
+                    quality={50}
                   />
                 </div>
               )

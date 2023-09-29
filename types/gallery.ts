@@ -38,9 +38,9 @@ export type DefaultGalleryFormFields = Omit<GalleryFormFields, 'image'> & {
 
 export type GalleryFormKeys = keyof GalleryFormFields
 
-export type NextCursor = string
-
 export type GalleryFormFilters = z.infer<typeof GalleryFormFiltersSchema>
+
+export type PaginationType = 'cursor' | 'offset'
 
 export type GalleryOffsetQuery = z.infer<typeof GalleryOffsetQuerySchema>
 
@@ -52,7 +52,7 @@ export type GalleryOrderByDirection = Prisma.SortOrder
 
 export type GalleryResponse = {
   items: GalleryItem[]
-  nextCursor?: NextCursor
+  nextCursor?: string
 }
 
 export type GalleryAdminResponse = {

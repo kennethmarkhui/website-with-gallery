@@ -10,6 +10,8 @@ interface UseImageViewerProps {
 const useImageViewer = ({ src, close }: UseImageViewerProps) => {
   const [isClosing, setClosing] = useState(false)
 
+  const isLoadingRef = useRef(false)
+
   const mode = useRef<null | 'dismiss' | 'pinch'>(null)
 
   const offset = useRef<[number, number]>([0, 0])
@@ -54,6 +56,7 @@ const useImageViewer = ({ src, close }: UseImageViewerProps) => {
   }))
 
   useEffect(() => {
+    isLoadingRef.current = true
     loadingApi.start(() => ({
       display: 'block',
       delay: 500,
@@ -113,6 +116,7 @@ const useImageViewer = ({ src, close }: UseImageViewerProps) => {
       display: 'none',
     })
 
+    isLoadingRef.current = false
     loadingApi.start({ display: 'none' })
   }, [imageApi, loadingApi, backdropApi, headerApi, isClosing, close])
 
@@ -135,7 +139,7 @@ const useImageViewer = ({ src, close }: UseImageViewerProps) => {
   }
 
   const handleDoubleClick = (e: MouseEvent) => {
-    if (isClosing) {
+    if (isClosing || isLoadingRef.current) {
       return
     }
 
@@ -187,6 +191,7 @@ const useImageViewer = ({ src, close }: UseImageViewerProps) => {
   }
 
   const handleLoadingComplete = () => {
+    isLoadingRef.current = false
     loadingApi.start(() => ({ display: 'none' }))
     imageApi.start(() => {
       return {

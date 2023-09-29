@@ -4,7 +4,7 @@ import { Photo, RenderPhotoProps } from 'react-photo-album'
 
 import { cn } from 'lib/utils'
 
-const cloudinaryLoader = ({
+export const cloudinaryLoader = ({
   src,
   width,
   quality,

@@ -61,7 +61,15 @@ const Gallery = (): JSX.Element => {
     modalDataRef.current = undefined
   }, [router.asPath])
 
-  const { filters } = useUrlGalleryFilters()
+  const { filters } = useUrlGalleryFilters({
+    mode: 'cursor',
+    query: router.query,
+    setUrlGalleryFiltersCallback: (filters) => {
+      router.push({ pathname: router.pathname, query: filters }, undefined, {
+        shallow: true,
+      })
+    },
+  })
 
   const {
     data,
@@ -137,7 +145,7 @@ const Gallery = (): JSX.Element => {
           router.push(
             { pathname: router.pathname, query: filters },
             { pathname: `${router.pathname}/${photo.title}` },
-            { locale: router.locale, shallow: true }
+            { shallow: true }
           )
         }}
       />
@@ -153,10 +161,7 @@ const Gallery = (): JSX.Element => {
                 query: filters,
               },
               undefined,
-              {
-                locale: router.locale,
-                shallow: true,
-              }
+              { shallow: true }
             )
           }}
         />

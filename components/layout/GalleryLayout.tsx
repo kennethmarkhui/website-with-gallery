@@ -24,11 +24,21 @@ const GalleryLayout = ({
   description,
   children,
 }: GalleryLayoutProps): JSX.Element => {
-  const { asPath, locales, defaultLocale } = useRouter()
+  const router = useRouter()
+
   const {
     filters: { search, category, orderBy },
     setUrlGalleryFilters,
-  } = useUrlGalleryFilters()
+  } = useUrlGalleryFilters({
+    mode: 'cursor',
+    query: router.query,
+    setUrlGalleryFiltersCallback: (filters) => {
+      router.push({ pathname: router.pathname, query: filters }, undefined, {
+        shallow: true,
+      })
+    },
+  })
+
   const { isOpen, openDrawer, closeDrawer } = useDrawer()
 
   return (
@@ -38,16 +48,16 @@ const GalleryLayout = ({
         <meta name="description" content={description} />
         <link
           rel="alternate"
-          href={`${process.env.NEXT_PUBLIC_BASE_URL}${asPath}`}
+          href={`${process.env.NEXT_PUBLIC_BASE_URL}${router.asPath}`}
           hrefLang="x-default"
         />
-        {locales?.map((locale) => (
+        {router.locales?.map((locale) => (
           <link
             key={locale}
             rel="alternate"
             href={`${process.env.NEXT_PUBLIC_BASE_URL}${
-              locale === defaultLocale ? '' : '/' + locale
-            }${asPath}`}
+              locale === router.defaultLocale ? '' : '/' + locale
+            }${router.asPath}`}
             hrefLang={locale}
           />
         ))}

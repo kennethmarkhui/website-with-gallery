@@ -1,31 +1,54 @@
-import { useRouter } from 'next/router'
+import { ParsedUrlQuery } from 'querystring'
 
-import { GalleryOffsetQuery } from 'types/gallery'
-import { GalleryOffsetQuerySchema } from 'lib/validations'
+import {
+  GalleryCursorQuery,
+  GalleryOffsetQuery,
+  PaginationType,
+} from 'types/gallery'
+import {
+  GalleryCursorQuerySchema,
+  GalleryOffsetQuerySchema,
+} from 'lib/validations'
 
-const useUrlGalleryFilters = () => {
-  const router = useRouter()
+interface UseUrlGalleryFiltersProps<TMode, TFilter> {
+  mode: TMode
+  query: ParsedUrlQuery
+  setUrlGalleryFiltersCallback: (filters: TFilter) => void
+}
 
-  const parsedFilters = GalleryOffsetQuerySchema.safeParse(router.query)
-  const filters = parsedFilters.success ? parsedFilters.data : {}
+type FilterMode<TMode extends PaginationType> = TMode extends 'cursor'
+  ? GalleryCursorQuery
+  : GalleryOffsetQuery
+
+const useUrlGalleryFilters = <
+  TMode extends PaginationType,
+  TFilter extends FilterMode<TMode>,
+>({
+  mode,
+  query,
+  setUrlGalleryFiltersCallback,
+}: UseUrlGalleryFiltersProps<TMode, TFilter>) => {
+  const parsedFilters =
+    mode === 'cursor'
+      ? GalleryCursorQuerySchema.safeParse(query)
+      : GalleryOffsetQuerySchema.safeParse(query)
+  const filters = parsedFilters.success
+    ? (parsedFilters.data as TFilter)
+    : ({} as TFilter)
 
   const setUrlGalleryFilters = (
     props:
-      | ((filters: GalleryOffsetQuery) => {
-          query: GalleryOffsetQuery
+      | ((filters: TFilter) => {
+          query: TFilter
         })
       | {
-          query: GalleryOffsetQuery
+          query: TFilter
         }
-  ) =>
-    router.push(
-      {
-        pathname: router.pathname,
-        query: typeof props === 'function' ? props(filters).query : props.query,
-      },
-      undefined,
-      { shallow: true }
+  ) => {
+    setUrlGalleryFiltersCallback(
+      typeof props === 'function' ? props(filters).query : props.query
     )
+  }
 
   return {
     filters,
