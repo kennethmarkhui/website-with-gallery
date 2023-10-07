@@ -1,5 +1,6 @@
 import type { GetServerSideProps } from 'next'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
+import { getServerSession } from 'next-auth'
 import { useTranslations } from 'next-intl'
 import { Tab } from '@headlessui/react'
 
@@ -8,14 +9,22 @@ import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
 import GalleryForm from '@/components/gallery/Form'
 import CategoryForm from '@/components/gallery/CategoryForm'
 import { cn, pick } from 'lib/utils'
+import { authOptions } from 'lib/auth'
 
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({
+  req,
+  res,
+  locale,
+}) => {
+  const session = await getServerSession(req, res, authOptions)
+
   const queryClient = new QueryClient()
 
   await queryClient.fetchQuery(['categories'], () => fetchCategories())
 
   return {
     props: {
+      session,
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',

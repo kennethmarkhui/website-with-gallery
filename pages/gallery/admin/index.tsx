@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getServerSession } from 'next-auth'
 import { useTranslations, useFormatter } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import {
@@ -32,6 +33,7 @@ import {
   GalleryFormFiltersSchema,
   GalleryOffsetQuerySchema,
 } from 'lib/validations'
+import { authOptions } from 'lib/auth'
 import { GALLERY_LIMIT } from 'constants/gallery'
 
 type TableFilterFormValues = Omit<GalleryFormFilters, 'orderBy'>
@@ -47,9 +49,13 @@ interface TableFilterFormProps {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({
+  req,
+  res,
   locale,
   query,
 }) => {
+  const session = await getServerSession(req, res, authOptions)
+
   const queryClient = new QueryClient()
 
   const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
@@ -70,6 +76,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   return {
     props: {
+      session,
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',
