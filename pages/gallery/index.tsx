@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
@@ -33,7 +33,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   await queryClient.fetchInfiniteQuery({
     queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
-    queryFn: ({ queryKey }) => fetchItems({ nextCursor: '0', ...queryKey[2] }),
+    queryFn: ({ queryKey }) => fetchItems(queryKey[2]),
     getNextPageParam: ({ nextCursor }) => nextCursor,
   })
   await queryClient.fetchQuery({
@@ -54,21 +54,28 @@ export const getServerSideProps: GetServerSideProps = async ({
 
 const Gallery = (): JSX.Element => {
   const t = useTranslations('gallery')
-  const modalDataRef = useRef<Photo>()
+  const [modalData, setModalData] = useState<Photo>()
   const router = useRouter()
 
-  useEffect(() => {
-    modalDataRef.current = undefined
-  }, [router.asPath])
+  const handleOpenModal = (data: Photo) => {
+    setModalData(data)
+    router.push(
+      { pathname: router.pathname, query: filters },
+      { pathname: `${router.pathname}/${data.title}` },
+      { shallow: true }
+    )
+  }
+
+  const handleCloseModal = () => {
+    setModalData(undefined)
+    router.push({ pathname: router.pathname, query: filters }, undefined, {
+      shallow: true,
+    })
+  }
 
   const { filters } = useUrlGalleryFilters({
     mode: 'cursor',
     query: router.query,
-    setUrlGalleryFiltersCallback: (filters) => {
-      router.push({ pathname: router.pathname, query: filters }, undefined, {
-        shallow: true,
-      })
-    },
   })
 
   const {
@@ -140,31 +147,11 @@ const Gallery = (): JSX.Element => {
             isPreviousData={isPreviousData}
           />
         )}
-        onClick={({ event, photo, index }) => {
-          modalDataRef.current = photo
-          router.push(
-            { pathname: router.pathname, query: filters },
-            { pathname: `${router.pathname}/${photo.title}` },
-            { shallow: true }
-          )
-        }}
+        onClick={({ event, photo, index }) => handleOpenModal(photo)}
       />
 
-      {modalDataRef.current && (
-        <ImageViewerModal
-          data={modalDataRef.current}
-          close={() => {
-            modalDataRef.current = undefined
-            router.push(
-              {
-                pathname: router.pathname,
-                query: filters,
-              },
-              undefined,
-              { shallow: true }
-            )
-          }}
-        />
+      {modalData && (
+        <ImageViewerModal data={modalData} close={handleCloseModal} />
       )}
     </GalleryLayout>
   )

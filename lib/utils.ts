@@ -7,7 +7,7 @@ export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 // https://stackoverflow.com/a/68167121
 export const pick = <
   T extends Record<string | number | symbol, T>,
-  K extends keyof T
+  K extends keyof T,
 >(
   object: T,
   keys: K[]
@@ -32,4 +32,10 @@ export const formatBytes = (bytes: number): string => {
 
 export const generateQueryStringFromObject = (
   queries: Record<string, string>
-): string => (queries ? '?' + new URLSearchParams(queries).toString() : '')
+): string => {
+  const filteredQuery = Object.entries(queries).filter(
+    ([_key, value]) => value !== undefined
+  )
+
+  return queries ? '?' + new URLSearchParams(filteredQuery).toString() : ''
+}

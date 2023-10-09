@@ -23,7 +23,7 @@ const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
       fetcher<GalleryResponse>(
         '/api/gallery' +
           generateQueryStringFromObject({
-            nextCursor: pageParam ?? 0,
+            nextCursor: pageParam,
             ...queryKey[2],
           })
       ),
