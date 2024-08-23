@@ -105,7 +105,7 @@ const ImagePage: NextPage<
             width={width}
             height={height}
             draggable={false}
-            onLoadingComplete={handleLoadingComplete}
+            onLoad={handleLoadingComplete}
             unoptimized
           />
         </animated.main>

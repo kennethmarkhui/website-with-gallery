@@ -102,7 +102,7 @@ const ImageViewerModal = ({
           width={data.width}
           height={data.height}
           draggable={false}
-          onLoadingComplete={handleLoadingComplete}
+          onLoad={handleLoadingComplete}
           unoptimized
         />
       </animated.main>

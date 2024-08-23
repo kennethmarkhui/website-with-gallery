@@ -53,7 +53,7 @@ const ImageCard = ({
             : 'scale-100 blur-0 grayscale-0',
           className
         )}
-        onLoadingComplete={() => setIsLoading(false)}
+        onLoad={() => setIsLoading(false)}
         onClick={onClick}
         unoptimized={src === ''}
       />

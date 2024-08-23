@@ -102,7 +102,6 @@ const Gallery = (): JSX.Element => {
       ) || [],
     [data]
   )
-  console.log(photos)
 
   // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261
   const maxWidth = Math.floor(
