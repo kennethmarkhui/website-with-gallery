@@ -10,7 +10,7 @@ interface GalleryContainerProps extends RenderContainerProps {
   fetchNextPage: () => void
   isFetchingNextPage: boolean
   hasNextPage?: boolean
-  isPreviousData?: boolean
+  isPlaceholderData?: boolean
 }
 
 const GalleryContainer = ({
@@ -21,7 +21,7 @@ const GalleryContainer = ({
   fetchNextPage,
   isFetchingNextPage,
   hasNextPage,
-  isPreviousData,
+  isPlaceholderData,
 }: GalleryContainerProps): JSX.Element => {
   const t = useTranslations('gallery')
   const { className } = containerProps
@@ -31,7 +31,7 @@ const GalleryContainer = ({
       {...containerProps}
       className={cn(
         className,
-        isPreviousData && 'pointer-events-none opacity-50'
+        isPlaceholderData && 'pointer-events-none opacity-50'
       )}
     >
       {isEmpty && (

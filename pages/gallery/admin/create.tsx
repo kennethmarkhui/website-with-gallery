@@ -20,7 +20,10 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   const queryClient = new QueryClient()
 
-  await queryClient.fetchQuery(['categories'], () => fetchCategories())
+  await queryClient.fetchQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetchCategories(),
+  })
 
   return {
     props: {

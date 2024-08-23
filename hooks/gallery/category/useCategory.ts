@@ -6,9 +6,10 @@ import fetcher from 'lib/fetcher'
 
 const useCategory = () => {
   const { locale } = useRouter()
-  const { data, status, error } = useQuery(['categories'], () =>
-    fetcher<GalleryCategoryResponse>('/api/gallery/category')
-  )
+  const { data, status, error } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetcher<GalleryCategoryResponse>('/api/gallery/category'),
+  })
 
   const localizedData = data?.map(({ id, translations }) => {
     const translatedName = translations.find((t) => t.language.code === locale)

@@ -207,7 +207,7 @@ const Admin = (): JSX.Element => {
     },
   })
 
-  const { data, localizedData, status, error, isPreviousData } =
+  const { data, localizedData, status, error, isPlaceholderData } =
     useOffsetGallery({
       filters,
     })
@@ -292,6 +292,7 @@ const Admin = (): JSX.Element => {
                     width={128}
                     height={128}
                     quality={50}
+                    unoptimized={url === ''}
                   />
                 </div>
               )
@@ -448,7 +449,7 @@ const Admin = (): JSX.Element => {
             }))
           },
         }}
-        isLoading={isPreviousData}
+        isLoading={isPlaceholderData}
       />
     </GalleryAdminLayout>
   )

@@ -3,7 +3,7 @@ import type { AppProps } from 'next/app'
 import { AbstractIntlMessages, NextIntlProvider } from 'next-intl'
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
-import { Hydrate, QueryClientProvider } from '@tanstack/react-query'
+import { HydrationBoundary, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import { NProgressBar } from '@/components/NProgressBar'
@@ -24,9 +24,9 @@ function MyApp({
     <QueryClientProvider client={queryClientState}>
       <NextIntlProvider messages={pageProps.messages}>
         <SessionProvider session={pageProps.session}>
-          <Hydrate state={pageProps.dehydratedState}>
+          <HydrationBoundary state={pageProps.dehydratedState}>
             <Component {...pageProps} />
-          </Hydrate>
+          </HydrationBoundary>
           <NProgressBar />
         </SessionProvider>
       </NextIntlProvider>

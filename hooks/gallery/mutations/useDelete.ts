@@ -33,7 +33,7 @@ const useDelete = () => {
       // queryClient.setQueryData(['gallery'], context?.snapshot)
     },
     onSuccess: (data, id, context) => {
-      queryClient.invalidateQueries(['gallery'])
+      queryClient.invalidateQueries({ queryKey: ['gallery'] })
     },
     onSettled: (data, error, item, context) => {},
   })

@@ -34,7 +34,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   await queryClient.fetchInfiniteQuery({
     queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
     queryFn: ({ queryKey }) => fetchItems(queryKey[2]),
-    getNextPageParam: ({ nextCursor }) => nextCursor,
+    initialPageParam: '0',
   })
   await queryClient.fetchQuery({
     queryKey: ['categories'] as const,
@@ -83,7 +83,7 @@ const Gallery = (): JSX.Element => {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isPreviousData,
+    isPlaceholderData,
   } = useCursorGallery({ filters })
 
   const photos = useMemo(
@@ -95,13 +95,14 @@ const Gallery = (): JSX.Element => {
               key: item.id,
               title: item.id,
               src: item.image?.url ?? '',
-              width: item.image?.width ?? 0,
-              height: item.image?.height ?? 0,
+              width: item.image?.width ?? 1665,
+              height: item.image?.height ?? 2048,
             }) satisfies Photo
         )
       ) || [],
     [data]
   )
+  console.log(photos)
 
   // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261
   const maxWidth = Math.floor(
@@ -144,7 +145,7 @@ const Gallery = (): JSX.Element => {
             fetchNextPage={fetchNextPage}
             isFetchingNextPage={isFetchingNextPage}
             hasNextPage={hasNextPage}
-            isPreviousData={isPreviousData}
+            isPlaceholderData={isPlaceholderData}
           />
         )}
         onClick={({ event, photo, index }) => handleOpenModal(photo)}

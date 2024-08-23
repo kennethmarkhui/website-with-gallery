@@ -43,8 +43,8 @@ const ImageCard = ({
         alt={alt}
         title={title}
         sizes={sizes}
-        width={width || 1665}
-        height={height || 2048}
+        width={width}
+        height={height}
         quality={50}
         className={cn(
           'duration-700 ease-in-out',

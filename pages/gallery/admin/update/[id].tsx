@@ -23,7 +23,7 @@ export const getServerSideProps: GetServerSideProps<
   UpdateProps,
   Params
 > = async ({ req, res, locale, query, params }) => {
-  const session = getServerSession(req, res, authOptions)
+  const session = await getServerSession(req, res, authOptions)
 
   const queryClient = new QueryClient()
 
@@ -47,8 +47,14 @@ export const getServerSideProps: GetServerSideProps<
 
   if (!queryData) {
     // fetch item if no query data provided
-    await queryClient.fetchQuery(['item', id], () => fetchAdminItem(id))
-    await queryClient.fetchQuery(['categories'], () => fetchCategories())
+    await queryClient.fetchQuery({
+      queryKey: ['item', id],
+      queryFn: () => fetchAdminItem(id),
+    })
+    await queryClient.fetchQuery({
+      queryKey: ['categories'],
+      queryFn: () => fetchCategories(),
+    })
   }
 
   return {
