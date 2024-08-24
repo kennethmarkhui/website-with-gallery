@@ -7,7 +7,13 @@ const nextConfig = {
     defaultLocale: 'en',
   },
   images: {
-    domains: ['res.cloudinary.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+      },
+    ],
     imageSizes: [128],
     deviceSizes: [320, 640, 1080, 2048, 3840],
   },

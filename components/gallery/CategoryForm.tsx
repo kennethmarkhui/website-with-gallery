@@ -32,10 +32,10 @@ const CategoryForm = (): JSX.Element => {
   const { mutate: deleteMutate, status: deleteStatus } = useDeleteCategory()
 
   const isLoading =
-    status === 'loading' ||
-    createStatus === 'loading' ||
-    updateStatus === 'loading' ||
-    deleteStatus === 'loading'
+    status === 'pending' ||
+    createStatus === 'pending' ||
+    updateStatus === 'pending' ||
+    deleteStatus === 'pending'
 
   const [categoryToUpdate, setCategoryToUpdate] =
     useState<Pick<Category, 'id'>>()
@@ -234,7 +234,7 @@ const CategoryForm = (): JSX.Element => {
         <DataTable
           columns={columns}
           data={localizedData ?? []}
-          isLoading={status === 'loading'}
+          isLoading={status === 'pending'}
         />
       </div>
     </>

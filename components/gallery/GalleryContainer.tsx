@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { RenderContainerProps } from 'react-photo-album'
 import { useTranslations } from 'next-intl'
 import { FaSpinner } from 'react-icons/fa'
@@ -10,56 +11,59 @@ interface GalleryContainerProps extends RenderContainerProps {
   fetchNextPage: () => void
   isFetchingNextPage: boolean
   hasNextPage?: boolean
-  isPreviousData?: boolean
+  isPlaceholderData?: boolean
 }
 
-const GalleryContainer = ({
-  containerProps,
-  containerRef,
-  children,
-  isEmpty,
-  fetchNextPage,
-  isFetchingNextPage,
-  hasNextPage,
-  isPreviousData,
-}: GalleryContainerProps): JSX.Element => {
-  const t = useTranslations('gallery')
-  const { className } = containerProps
-  return (
-    <div
-      ref={containerRef}
-      {...containerProps}
-      className={cn(
-        className,
-        isPreviousData && 'pointer-events-none opacity-50'
-      )}
-    >
-      {isEmpty && (
-        <PageStatus
-          title={t('no-results')}
-          description={t('no-results-description')}
-        />
-      )}
-      {!isEmpty && (
-        <>
-          {children}
-          <button
-            className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
-            disabled={!hasNextPage}
-            onClick={() => fetchNextPage()}
-          >
-            {isFetchingNextPage ? (
-              <FaSpinner className="animate-spin" />
-            ) : hasNextPage ? (
-              t('load-more')
-            ) : (
-              t('no-load-more')
+const GalleryContainer = forwardRef<HTMLDivElement, GalleryContainerProps>(
+  function GalleryContainer(
+    {
+      className,
+      children,
+      isEmpty,
+      fetchNextPage,
+      isFetchingNextPage,
+      hasNextPage,
+      isPlaceholderData,
+      ...rest
+    },
+    ref
+  ) {
+    const t = useTranslations('gallery')
+    return (
+      <div
+        ref={ref}
+        {...rest}
+        className={cn(
+          className,
+          isPlaceholderData && 'pointer-events-none opacity-50'
+        )}
+      >
+        {isEmpty && (
+          <PageStatus
+            title={t('no-results')}
+            description={t('no-results-description')}
+          />
+        )}
+        {!isEmpty && (
+          <>
+            {children}
+            {hasNextPage && (
+              <button
+                className="mt-4 flex w-full items-center justify-center rounded bg-gray-100 p-2 enabled:hover:bg-gray-200 md:p-4"
+                onClick={() => fetchNextPage()}
+              >
+                {isFetchingNextPage ? (
+                  <FaSpinner className="animate-spin" />
+                ) : (
+                  t('load-more')
+                )}
+              </button>
             )}
-          </button>
-        </>
-      )}
-    </div>
-  )
-}
+          </>
+        )}
+      </div>
+    )
+  }
+)
 
 export default GalleryContainer

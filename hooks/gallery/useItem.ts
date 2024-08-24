@@ -4,9 +4,10 @@ import type { GalleryAdminItem } from 'types/gallery'
 import fetcher from 'lib/fetcher'
 
 const useItem = (id: string) => {
-  const { data, status, error } = useQuery(['item', id], () =>
-    fetcher<GalleryAdminItem>('/api/gallery/admin/' + id)
-  )
+  const { data, status, error } = useQuery({
+    queryKey: ['item', id],
+    queryFn: () => fetcher<GalleryAdminItem>('/api/gallery/admin/' + id),
+  })
 
   return {
     data,

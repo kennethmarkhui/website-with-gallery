@@ -1,6 +1,10 @@
-import { Fragment } from 'react'
 import { useRouter } from 'next/router'
-import { Listbox, Transition } from '@headlessui/react'
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOptions,
+  ListboxOption,
+} from '@headlessui/react'
 import { HiChevronDown } from 'react-icons/hi'
 import { cn } from 'lib/utils'
 
@@ -13,7 +17,7 @@ const LocaleSwitcher = (): JSX.Element => {
   return (
     <Listbox onChange={(locale) => changeLocale(locale)} value={router.locale}>
       <div className="relative">
-        <Listbox.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+        <ListboxButton className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
           <span className="block truncate">{router.locale}</span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <HiChevronDown
@@ -21,44 +25,40 @@ const LocaleSwitcher = (): JSX.Element => {
               aria-hidden="true"
             />
           </span>
-        </Listbox.Button>
+        </ListboxButton>
 
-        <Transition
-          as={Fragment}
-          leave="transition ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+        <ListboxOptions
+          transition
+          className="transition ease-in duration-100 data-[closed]:scale-95 data-[closed]:opacity-0 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
         >
-          <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-            {router.locales?.map(
-              (locale): JSX.Element => (
-                <Listbox.Option
-                  className={({ active }) =>
-                    cn(
-                      'cursor-pointer py-2 pl-4 pr-4 text-gray-900',
-                      active && 'bg-gray-100'
-                    )
-                  }
-                  key={locale}
-                  value={locale}
-                >
-                  {({ selected }): JSX.Element => (
-                    <>
-                      <span
-                        className={cn(
-                          'block truncate',
-                          selected ? 'font-medium' : 'font-normal'
-                        )}
-                      >
-                        {locale}
-                      </span>
-                    </>
-                  )}
-                </Listbox.Option>
-              )
-            )}
-          </Listbox.Options>
-        </Transition>
+          {router.locales?.map(
+            (locale): JSX.Element => (
+              <ListboxOption
+                className={({ focus }) =>
+                  cn(
+                    'cursor-pointer py-2 pl-4 pr-4 text-gray-900',
+                    focus && 'bg-gray-100'
+                  )
+                }
+                key={locale}
+                value={locale}
+              >
+                {({ selected }): JSX.Element => (
+                  <>
+                    <span
+                      className={cn(
+                        'block truncate',
+                        selected ? 'font-medium' : 'font-normal'
+                      )}
+                    >
+                      {locale}
+                    </span>
+                  </>
+                )}
+              </ListboxOption>
+            )
+          )}
+        </ListboxOptions>
       </div>
     </Listbox>
   )

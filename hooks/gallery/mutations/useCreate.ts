@@ -25,7 +25,7 @@ const useCreate = () => {
     // If the mutation fails, use the context returned from onMutate to roll back
     onError: (error: GalleryErrorResponse, item, context) => {},
     onSuccess: (data, item, context) => {
-      queryClient.invalidateQueries(['gallery'])
+      queryClient.invalidateQueries({ queryKey: ['gallery'] })
     },
     onSettled: (data, error, item, context) => {},
   })

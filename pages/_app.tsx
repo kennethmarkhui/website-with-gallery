@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { AppProps } from 'next/app'
-import { AbstractIntlMessages, NextIntlProvider } from 'next-intl'
+import { useRouter } from 'next/router'
+import { AbstractIntlMessages, NextIntlClientProvider } from 'next-intl'
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
-import { Hydrate, QueryClientProvider } from '@tanstack/react-query'
+import { HydrationBoundary, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import { NProgressBar } from '@/components/NProgressBar'
@@ -15,6 +16,7 @@ function MyApp({
   pageProps,
 }: AppProps<{
   messages: AbstractIntlMessages | undefined
+  now: number
   session: Session | null | undefined
   dehydratedState: unknown
 }>) {
@@ -22,14 +24,19 @@ function MyApp({
 
   return (
     <QueryClientProvider client={queryClientState}>
-      <NextIntlProvider messages={pageProps.messages}>
+      <NextIntlClientProvider
+        locale={useRouter().locale}
+        messages={pageProps.messages}
+        now={new Date(pageProps.now)}
+        timeZone="HongKong"
+      >
         <SessionProvider session={pageProps.session}>
-          <Hydrate state={pageProps.dehydratedState}>
+          <HydrationBoundary state={pageProps.dehydratedState}>
             <Component {...pageProps} />
-          </Hydrate>
+          </HydrationBoundary>
           <NProgressBar />
         </SessionProvider>
-      </NextIntlProvider>
+      </NextIntlClientProvider>
       <ReactQueryDevtools />
     </QueryClientProvider>
   )

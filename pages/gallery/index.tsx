@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
-import PhotoAlbum, { Photo } from 'react-photo-album'
+import { RowsPhotoAlbum, Photo } from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import { fetchItems } from 'pages/api/gallery'
@@ -15,6 +15,8 @@ import useCursorGallery from 'hooks/gallery/useCursorGallery'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { pick } from 'lib/utils'
 import { GalleryOffsetQuerySchema } from 'lib/validations'
+
+import 'react-photo-album/rows.css'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
@@ -33,8 +35,8 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   await queryClient.fetchInfiniteQuery({
     queryKey: ['gallery', 'cursor', parsedQuery.data] as const,
-    queryFn: ({ queryKey }) => fetchItems({ nextCursor: '0', ...queryKey[2] }),
-    getNextPageParam: ({ nextCursor }) => nextCursor,
+    queryFn: ({ queryKey }) => fetchItems(queryKey[2]),
+    initialPageParam: '0',
   })
   await queryClient.fetchQuery({
     queryKey: ['categories'] as const,
@@ -54,21 +56,28 @@ export const getServerSideProps: GetServerSideProps = async ({
 
 const Gallery = (): JSX.Element => {
   const t = useTranslations('gallery')
-  const modalDataRef = useRef<Photo>()
+  const [modalData, setModalData] = useState<Photo>()
   const router = useRouter()
 
-  useEffect(() => {
-    modalDataRef.current = undefined
-  }, [router.asPath])
+  const handleOpenModal = (data: Photo) => {
+    setModalData(data)
+    router.push(
+      { pathname: router.pathname, query: filters },
+      { pathname: `${router.pathname}/${data.title}` },
+      { shallow: true }
+    )
+  }
+
+  const handleCloseModal = () => {
+    setModalData(undefined)
+    router.push({ pathname: router.pathname, query: filters }, undefined, {
+      shallow: true,
+    })
+  }
 
   const { filters } = useUrlGalleryFilters({
     mode: 'cursor',
     query: router.query,
-    setUrlGalleryFiltersCallback: (filters) => {
-      router.push({ pathname: router.pathname, query: filters }, undefined, {
-        shallow: true,
-      })
-    },
   })
 
   const {
@@ -76,7 +85,7 @@ const Gallery = (): JSX.Element => {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isPreviousData,
+    isPlaceholderData,
   } = useCursorGallery({ filters })
 
   const photos = useMemo(
@@ -88,30 +97,39 @@ const Gallery = (): JSX.Element => {
               key: item.id,
               title: item.id,
               src: item.image?.url ?? '',
-              width: item.image?.width ?? 0,
-              height: item.image?.height ?? 0,
+              width: item.image?.width ?? 1665,
+              height: item.image?.height ?? 2048,
             }) satisfies Photo
         )
       ) || [],
     [data]
   )
 
-  // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261
-  const maxWidth = Math.floor(
-    photos.reduce(
-      (acc, { width, height }) =>
-        acc + (width / height) * PHOTOALBUM_TARGET_ROW_HEIGHT * 1.2,
-      Math.max(10 * (photos.length - 1), 0)
-    )
-  )
-
   return (
     <GalleryLayout title={t('title')} description={t('description')}>
-      <PhotoAlbum
-        layout="rows"
+      <RowsPhotoAlbum
         photos={photos}
-        renderPhoto={ImageCard}
+        render={{
+          container: (renderContainerProps) => (
+            <GalleryContainer
+              {...renderContainerProps}
+              isEmpty={photos.length === 0}
+              fetchNextPage={fetchNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={hasNextPage}
+              isPlaceholderData={isPlaceholderData}
+            />
+          ),
+          button: ({ style, ...rest }, { photo: { src } }) => (
+            <button
+              {...rest}
+              style={{ pointerEvents: src ? 'auto' : 'none', ...style }}
+            />
+          ),
+          image: ImageCard,
+        }}
         targetRowHeight={PHOTOALBUM_TARGET_ROW_HEIGHT}
+        rowConstraints={{ singleRowMaxHeight: 250 }}
         sizes={{
           /**
            * 64px = container's padding
@@ -125,46 +143,14 @@ const Gallery = (): JSX.Element => {
             },
           ],
         }}
-        componentsProps={(containerWidth) =>
-          containerWidth && maxWidth && maxWidth <= containerWidth
-            ? { rowContainerProps: { style: { maxWidth } } }
-            : {}
-        }
-        renderContainer={(renderContainerProps) => (
-          <GalleryContainer
-            {...renderContainerProps}
-            isEmpty={photos.length === 0}
-            fetchNextPage={fetchNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            hasNextPage={hasNextPage}
-            isPreviousData={isPreviousData}
-          />
-        )}
         onClick={({ event, photo, index }) => {
-          modalDataRef.current = photo
-          router.push(
-            { pathname: router.pathname, query: filters },
-            { pathname: `${router.pathname}/${photo.title}` },
-            { shallow: true }
-          )
+          if (!photo.src) return
+          handleOpenModal(photo)
         }}
       />
 
-      {modalDataRef.current && (
-        <ImageViewerModal
-          data={modalDataRef.current}
-          close={() => {
-            modalDataRef.current = undefined
-            router.push(
-              {
-                pathname: router.pathname,
-                query: filters,
-              },
-              undefined,
-              { shallow: true }
-            )
-          }}
-        />
+      {modalData && (
+        <ImageViewerModal data={modalData} close={handleCloseModal} />
       )}
     </GalleryLayout>
   )

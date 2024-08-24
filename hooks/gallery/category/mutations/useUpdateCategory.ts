@@ -23,7 +23,7 @@ const useUpdateCategory = () => {
         body: JSON.stringify({ name }),
       }),
     onMutate: async (variables) => {
-      await queryClient.cancelQueries(['categories'])
+      await queryClient.cancelQueries({ queryKey: ['categories'] })
       const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
         'categories',
       ])
@@ -57,7 +57,7 @@ const useUpdateCategory = () => {
     },
     onSuccess: (data, variables, context) => {},
     onSettled: (data, error, variables, context) => {
-      queryClient.invalidateQueries(['categories'])
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
   })
 }

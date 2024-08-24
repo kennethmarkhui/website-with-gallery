@@ -98,10 +98,10 @@ function GalleryForm({
   const { mutate: deleteMutate, status: deleteStatus } = useDelete()
 
   const formIsLoading =
-    createStatus === 'loading' ||
-    updateStatus === 'loading' ||
-    deleteStatus === 'loading' ||
-    categoryStatus === 'loading'
+    createStatus === 'pending' ||
+    updateStatus === 'pending' ||
+    deleteStatus === 'pending' ||
+    categoryStatus === 'pending'
 
   const imageFileList = watch('image')
 
@@ -247,7 +247,7 @@ function GalleryForm({
           {...register('category')}
           defaultSelected={defaultFormValues?.category}
           options={localizedData}
-          loading={categoryStatus === 'loading'}
+          loading={categoryStatus === 'pending'}
         />
         <ImagePreviewInput
           id="image"
@@ -275,9 +275,9 @@ function GalleryForm({
         />
         <div className="flex gap-4">
           <Button type="submit" disabled={!isDirty}>
-            {createStatus === 'loading' || updateStatus === 'loading' ? (
+            {createStatus === 'pending' || updateStatus === 'pending' ? (
               <span className="flex items-center justify-center gap-1">
-                {createStatus === 'loading' ? t('creating') : t('updating')}
+                {createStatus === 'pending' ? t('creating') : t('updating')}
                 <FaSpinner className="animate-spin" />
               </span>
             ) : mode === 'create' ? (
@@ -308,7 +308,7 @@ function GalleryForm({
                 )
               }
             >
-              {deleteStatus === 'loading' ? (
+              {deleteStatus === 'pending' ? (
                 <span className="flex items-center justify-center gap-1">
                   {t('deleting')}
                   <FaSpinner className="animate-spin" />

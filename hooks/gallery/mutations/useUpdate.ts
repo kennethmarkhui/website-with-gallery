@@ -22,7 +22,7 @@ const useUpdate = () => {
     onMutate: async (item) => {},
     onError: (error: GalleryErrorResponse, item, context) => {},
     onSuccess: (data, item, context) => {
-      queryClient.invalidateQueries(['gallery'])
+      queryClient.invalidateQueries({ queryKey: ['gallery'] })
     },
     onSettled: (data, error, item, context) => {},
   })

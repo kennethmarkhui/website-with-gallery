@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getServerSession } from 'next-auth'
 import { useTranslations, useFormatter } from 'next-intl'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import {
@@ -12,7 +13,7 @@ import {
   UseControllerProps,
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Popover } from '@headlessui/react'
+import { Popover, PopoverPanel, PopoverButton } from '@headlessui/react'
 import { HiChevronDown, HiOutlineSearch } from 'react-icons/hi'
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa'
 
@@ -32,6 +33,7 @@ import {
   GalleryFormFiltersSchema,
   GalleryOffsetQuerySchema,
 } from 'lib/validations'
+import { authOptions } from 'lib/auth'
 import { GALLERY_LIMIT } from 'constants/gallery'
 
 type TableFilterFormValues = Omit<GalleryFormFilters, 'orderBy'>
@@ -47,9 +49,13 @@ interface TableFilterFormProps {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({
+  req,
+  res,
   locale,
   query,
 }) => {
+  const session = await getServerSession(req, res, authOptions)
+
   const queryClient = new QueryClient()
 
   const parsedQuery = GalleryOffsetQuerySchema.safeParse(query)
@@ -70,6 +76,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   return {
     props: {
+      session,
       messages: pick(await import(`../../../intl/${locale}.json`), [
         'gallery-admin',
         'auth',
@@ -100,13 +107,13 @@ const Checkboxes = ({
 
   return (
     <Popover className="relative inline-block">
-      <Popover.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+      <PopoverButton className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
         <span className="block truncate capitalize">{title}</span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </span>
-      </Popover.Button>
-      <Popover.Panel
+      </PopoverButton>
+      <PopoverPanel
         as="ul"
         className="absolute right-0 z-10 mt-2 max-h-44 w-28 origin-top-right overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
       >
@@ -128,7 +135,7 @@ const Checkboxes = ({
             </label>
           </li>
         ))}
-      </Popover.Panel>
+      </PopoverPanel>
     </Popover>
   )
 }
@@ -200,7 +207,7 @@ const Admin = (): JSX.Element => {
     },
   })
 
-  const { data, localizedData, status, error, isPreviousData } =
+  const { data, localizedData, status, error, isPlaceholderData } =
     useOffsetGallery({
       filters,
     })
@@ -285,6 +292,7 @@ const Admin = (): JSX.Element => {
                     width={128}
                     height={128}
                     quality={50}
+                    unoptimized={url === ''}
                   />
                 </div>
               )
@@ -441,7 +449,7 @@ const Admin = (): JSX.Element => {
             }))
           },
         }}
-        isLoading={isPreviousData}
+        isLoading={isPlaceholderData}
       />
     </GalleryAdminLayout>
   )

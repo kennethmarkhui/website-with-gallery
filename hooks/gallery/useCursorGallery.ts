@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, keepPreviousData } from '@tanstack/react-query'
 
 import type { GalleryOffsetQuery, GalleryResponse } from 'types/gallery'
 import fetcher from 'lib/fetcher'
@@ -16,19 +16,20 @@ const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isPreviousData,
+    isPlaceholderData,
   } = useInfiniteQuery({
     queryKey: ['gallery', 'cursor', filters] as const,
     queryFn: ({ pageParam, queryKey }) =>
       fetcher<GalleryResponse>(
         '/api/gallery' +
           generateQueryStringFromObject({
-            nextCursor: pageParam ?? 0,
+            ...(pageParam !== '0' && { nextCursor: pageParam }),
             ...queryKey[2],
           })
       ),
-    getNextPageParam: ({ nextCursor }) => nextCursor,
-    keepPreviousData: true,
+    initialPageParam: '0',
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    placeholderData: keepPreviousData,
   })
 
   return {
@@ -38,7 +39,7 @@ const useCursorGallery = ({ filters }: UseCursorGalleryProps) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isPreviousData,
+    isPlaceholderData,
   }
 }
 

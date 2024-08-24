@@ -13,7 +13,7 @@ import {
 interface UseUrlGalleryFiltersProps<TMode, TFilter> {
   mode: TMode
   query: ParsedUrlQuery
-  setUrlGalleryFiltersCallback: (filters: TFilter) => void
+  setUrlGalleryFiltersCallback?: (filters: TFilter) => void
 }
 
 type FilterMode<TMode extends PaginationType> = TMode extends 'cursor'
@@ -45,7 +45,7 @@ const useUrlGalleryFilters = <
           query: TFilter
         }
   ) => {
-    setUrlGalleryFiltersCallback(
+    setUrlGalleryFiltersCallback?.(
       typeof props === 'function' ? props(filters).query : props.query
     )
   }

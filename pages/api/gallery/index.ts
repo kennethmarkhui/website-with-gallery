@@ -60,8 +60,8 @@ export async function fetchItems({
   const items = await prisma.item.findMany({
     where,
     take: GALLERY_LIMIT,
-    skip: nextCursor === '0' ? 0 : 1,
-    cursor: nextCursor === '0' ? undefined : { id: nextCursor },
+    skip: nextCursor ? 1 : 0,
+    cursor: nextCursor ? { id: nextCursor } : undefined,
     select: {
       id: true,
       image: {

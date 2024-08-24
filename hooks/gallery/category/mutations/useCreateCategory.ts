@@ -18,7 +18,7 @@ const useCreateCategory = () => {
       })
     },
     onMutate: async (variables) => {
-      await queryClient.cancelQueries(['categories'])
+      await queryClient.cancelQueries({ queryKey: ['categories'] })
       const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
         'categories',
       ])
@@ -45,7 +45,7 @@ const useCreateCategory = () => {
     },
     onSuccess: (data, variables, context) => {},
     onSettled: (data, error, variables, context) => {
-      queryClient.invalidateQueries(['categories'])
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
   })
 }

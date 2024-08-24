@@ -14,7 +14,7 @@ const useDeleteCategory = () => {
         method: 'DELETE',
       }),
     onMutate: async (variables) => {
-      await queryClient.cancelQueries(['categories'])
+      await queryClient.cancelQueries({ queryKey: ['categories'] })
       const snapshot = queryClient.getQueryData<GalleryCategoryResponse>([
         'categories',
       ])
@@ -29,8 +29,8 @@ const useDeleteCategory = () => {
     },
     onSuccess: (data, variables, context) => {},
     onSettled: (data, error, variables, context) => {
-      queryClient.invalidateQueries(['categories'])
-      queryClient.invalidateQueries(['gallery'])
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['gallery'] })
     },
   })
 }
