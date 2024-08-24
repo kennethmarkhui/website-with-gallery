@@ -2,7 +2,7 @@ import type { GetServerSideProps } from 'next'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 import { getServerSession } from 'next-auth'
 import { useTranslations } from 'next-intl'
-import { Tab } from '@headlessui/react'
+import { Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react'
 
 import { fetchCategories } from 'pages/api/gallery/category'
 import GalleryAdminLayout from '@/components/layout/GalleryAdminLayout'
@@ -49,8 +49,8 @@ const Create = (): JSX.Element => {
 
   return (
     <GalleryAdminLayout title={t('create-title')}>
-      <Tab.Group as={'div'} defaultIndex={0} className="w-full">
-        <Tab.List className="flex w-full justify-around space-x-1 p-1">
+      <TabGroup as="div" defaultIndex={0} className="w-full">
+        <TabList className="flex w-full justify-around space-x-1 p-1">
           {tabs.map((tab) => (
             <Tab
               key={tab.name}
@@ -64,15 +64,15 @@ const Create = (): JSX.Element => {
               {tab.name}
             </Tab>
           ))}
-        </Tab.List>
-        <Tab.Panels className="mt-2">
+        </TabList>
+        <TabPanels className="mt-2">
           {tabs.map((tab, index) => (
-            <Tab.Panel key={index} className="focus:outline-none">
+            <TabPanel key={index} className="focus:outline-none">
               {tab.node}
-            </Tab.Panel>
+            </TabPanel>
           ))}
-        </Tab.Panels>
-      </Tab.Group>
+        </TabPanels>
+      </TabGroup>
     </GalleryAdminLayout>
   )
 }

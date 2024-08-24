@@ -13,7 +13,7 @@ import {
   UseControllerProps,
 } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Popover } from '@headlessui/react'
+import { Popover, PopoverPanel, PopoverButton } from '@headlessui/react'
 import { HiChevronDown, HiOutlineSearch } from 'react-icons/hi'
 import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa'
 
@@ -107,13 +107,13 @@ const Checkboxes = ({
 
   return (
     <Popover className="relative inline-block">
-      <Popover.Button className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+      <PopoverButton className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
         <span className="block truncate capitalize">{title}</span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
           <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
         </span>
-      </Popover.Button>
-      <Popover.Panel
+      </PopoverButton>
+      <PopoverPanel
         as="ul"
         className="absolute right-0 z-10 mt-2 max-h-44 w-28 origin-top-right overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
       >
@@ -135,7 +135,7 @@ const Checkboxes = ({
             </label>
           </li>
         ))}
-      </Popover.Panel>
+      </PopoverPanel>
     </Popover>
   )
 }
