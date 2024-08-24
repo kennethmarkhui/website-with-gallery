@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Image, { ImageLoaderProps } from 'next/image'
-import { Photo, RenderPhotoProps } from 'react-photo-album'
+import { RenderImageProps, RenderImageContext } from 'react-photo-album'
 
 import { cn } from 'lib/utils'
 
@@ -19,28 +19,24 @@ export const cloudinaryLoader = ({
   return origin + newPathname.join('/')
 }
 
-const ImageCard = ({
-  photo,
-  imageProps,
-  wrapperStyle,
-}: RenderPhotoProps<Photo>) => {
+const ImageCard = (
+  { alt = '', title, sizes, style, className, onClick }: RenderImageProps,
+  { photo: { src, width, height } }: RenderImageContext
+) => {
   const [isLoading, setIsLoading] = useState(true)
-
-  const { width, height } = photo
-  const { src, alt, title, sizes, className, onClick } = imageProps
 
   return (
     <div
       className={cn(
-        'group relative cursor-pointer overflow-hidden rounded bg-gray-200',
+        'group relative overflow-hidden rounded bg-gray-200',
         isLoading && 'animate-pulse'
       )}
-      style={wrapperStyle}
+      style={style}
     >
       <Image
         loader={cloudinaryLoader}
         src={src || '/placeholder.png'}
-        alt={alt}
+        alt={alt || ''}
         title={title}
         sizes={sizes}
         width={width}

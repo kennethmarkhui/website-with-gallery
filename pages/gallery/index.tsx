@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { GetServerSideProps } from 'next'
 import { useRouter } from 'next/router'
 import { useTranslations } from 'next-intl'
-import PhotoAlbum, { Photo } from 'react-photo-album'
+import { RowsPhotoAlbum, Photo } from 'react-photo-album'
 import { dehydrate, QueryClient } from '@tanstack/react-query'
 
 import { fetchItems } from 'pages/api/gallery'
@@ -15,6 +15,8 @@ import useCursorGallery from 'hooks/gallery/useCursorGallery'
 import useUrlGalleryFilters from 'hooks/gallery/useUrlGalleryFilters'
 import { pick } from 'lib/utils'
 import { GalleryOffsetQuerySchema } from 'lib/validations'
+
+import 'react-photo-album/rows.css'
 
 const PHOTOALBUM_TARGET_ROW_HEIGHT = 200
 
@@ -103,22 +105,31 @@ const Gallery = (): JSX.Element => {
     [data]
   )
 
-  // https://github.com/igordanchenko/react-photo-album/discussions/67#discussioncomment-4561261
-  const maxWidth = Math.floor(
-    photos.reduce(
-      (acc, { width, height }) =>
-        acc + (width / height) * PHOTOALBUM_TARGET_ROW_HEIGHT * 1.2,
-      Math.max(10 * (photos.length - 1), 0)
-    )
-  )
-
   return (
     <GalleryLayout title={t('title')} description={t('description')}>
-      <PhotoAlbum
-        layout="rows"
+      <RowsPhotoAlbum
         photos={photos}
-        renderPhoto={ImageCard}
+        render={{
+          container: (renderContainerProps) => (
+            <GalleryContainer
+              {...renderContainerProps}
+              isEmpty={photos.length === 0}
+              fetchNextPage={fetchNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              hasNextPage={hasNextPage}
+              isPlaceholderData={isPlaceholderData}
+            />
+          ),
+          button: ({ style, ...rest }, { photo: { src } }) => (
+            <button
+              {...rest}
+              style={{ pointerEvents: src ? 'auto' : 'none', ...style }}
+            />
+          ),
+          image: ImageCard,
+        }}
         targetRowHeight={PHOTOALBUM_TARGET_ROW_HEIGHT}
+        rowConstraints={{ singleRowMaxHeight: 250 }}
         sizes={{
           /**
            * 64px = container's padding
@@ -132,22 +143,10 @@ const Gallery = (): JSX.Element => {
             },
           ],
         }}
-        componentsProps={(containerWidth) =>
-          containerWidth && maxWidth && maxWidth <= containerWidth
-            ? { rowContainerProps: { style: { maxWidth } } }
-            : {}
-        }
-        renderContainer={(renderContainerProps) => (
-          <GalleryContainer
-            {...renderContainerProps}
-            isEmpty={photos.length === 0}
-            fetchNextPage={fetchNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            hasNextPage={hasNextPage}
-            isPlaceholderData={isPlaceholderData}
-          />
-        )}
-        onClick={({ event, photo, index }) => handleOpenModal(photo)}
+        onClick={({ event, photo, index }) => {
+          if (!photo.src) return
+          handleOpenModal(photo)
+        }}
       />
 
       {modalData && (

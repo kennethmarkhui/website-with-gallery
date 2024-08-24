@@ -38,7 +38,7 @@ const ImageViewerModal = ({
 
   return (
     <Dialog
-      open={!!data}
+      open={!!data.src}
       aria-label="image viewer"
       className="fixed inset-0 z-50 flex overflow-hidden"
       initialFocus={dialogInitialFocusRef}
