@@ -1,0 +1,413 @@
+'use client'
+
+import { useEffect, useMemo } from 'react'
+import { useFormatter, useLocale, useTranslations } from 'next-intl'
+import Image from 'next/image'
+import {
+  SubmitHandler,
+  useController,
+  UseControllerProps,
+  useForm,
+} from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { HiChevronDown, HiOutlineSearch } from 'react-icons/hi'
+import { FaSort, FaSortDown, FaSortUp } from 'react-icons/fa'
+
+import DataTable from '@/components/data-table'
+import FloatingLabelInput from '@/components/floating-label-input'
+import { cloudinaryLoader } from '@/components/gallery/image-card'
+import Button from '@/components/button'
+import { GALLERY_LIMIT } from '@/constants/gallery'
+import useCategory from '@/hooks/use-category'
+import useUrlGalleryFilters from '@/hooks/use-url-gallery-filters'
+import { useCapturedSearchParams } from '@/hooks/use-captured-search-params'
+import useOffsetGallery from '@/hooks/use-offset-gallery'
+import { i18n } from '@/i18n/config'
+import { Link, usePathname } from '@/i18n/routing'
+import { GalleryFormFiltersSchema } from '@/lib/validations'
+import { GalleryFormFilters } from '@/types/gallery'
+
+type TableFilterFormValues = Omit<GalleryFormFilters, 'orderBy'>
+
+interface DataTableCheckBoxesProps extends UseControllerProps {
+  title: string
+  options: { id: string; name: string }[]
+}
+
+interface TableFilterFormProps {
+  defaultValues: TableFilterFormValues
+  onSubmitCallback: (data: { id: string; value: string | string[] }[]) => void
+}
+
+const Checkboxes = ({
+  title,
+  options,
+  control,
+  name,
+}: DataTableCheckBoxesProps): JSX.Element => {
+  const { field } = useController({ control, name })
+  const checked = new Set(field.value as string)
+
+  const handleOnChange = (id: string) => {
+    if (checked.has(id)) {
+      checked.delete(id)
+    } else {
+      checked.add(id)
+    }
+    field.onChange(Array.from(checked))
+  }
+
+  return (
+    <Popover className="relative inline-block">
+      <PopoverButton className="relative cursor-pointer bg-white py-2 pl-3 pr-10 text-left">
+        <span className="block truncate capitalize">{title}</span>
+        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <HiChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+        </span>
+      </PopoverButton>
+      <PopoverPanel
+        as="ul"
+        className="absolute right-0 z-10 mt-2 max-h-44 w-28 origin-top-right overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+      >
+        {options.map(({ id, name }) => (
+          <li key={id} className="flex space-x-2 px-2 py-1">
+            <input
+              id={id}
+              type="checkbox"
+              checked={checked.has(id)}
+              className="cursor-pointer rounded border-gray-300 text-black transition focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75"
+              onChange={() => handleOnChange(id)}
+              value={id}
+            />
+            <label
+              htmlFor={id}
+              className="cursor-pointer truncate text-xs font-medium text-gray-500"
+            >
+              {name}
+            </label>
+          </li>
+        ))}
+      </PopoverPanel>
+    </Popover>
+  )
+}
+
+const TableFilterForm = ({
+  defaultValues,
+  onSubmitCallback,
+}: TableFilterFormProps) => {
+  const t = useTranslations('form')
+
+  const { localizedData } = useCategory()
+
+  const { register, formState, handleSubmit, reset, control } =
+    useForm<TableFilterFormValues>({
+      resolver: zodResolver(
+        GalleryFormFiltersSchema.pick({ search: true, category: true })
+      ),
+      defaultValues,
+    })
+
+  useEffect(() => {
+    reset(defaultValues)
+  }, [defaultValues, reset])
+
+  const onSubmit: SubmitHandler<TableFilterFormValues> = (data) => {
+    onSubmitCallback(
+      Object.entries(data).map(([id, value]) => {
+        if (id === 'search') {
+          return { id: 'id', value }
+        }
+        return { id, value }
+      })
+    )
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col items-center justify-between gap-4 p-2 sm:flex-row"
+    >
+      <FloatingLabelInput id={t('search')} {...register('search')} />
+      <Checkboxes
+        title={t('category')}
+        control={control}
+        name="category"
+        options={localizedData ?? []}
+      />
+      <Button disabled={!formState.isDirty} type="submit">
+        <HiOutlineSearch />
+      </Button>
+    </form>
+  )
+}
+
+export default function GalleryAdmin() {
+  const locale = useLocale()
+  const pathname = usePathname()
+  const searchParams = useCapturedSearchParams()
+
+  const t = useTranslations('gallery-admin')
+  const tForm = useTranslations('form')
+  const format = useFormatter()
+
+  const now = new Date()
+
+  const paramsObject = Object.fromEntries(searchParams.entries())
+  // TODO: use ImageViewerModal to view the image
+  const { filters, setUrlGalleryFilters } = useUrlGalleryFilters({
+    mode: 'offset',
+    query: paramsObject,
+    setUrlGalleryFiltersCallback: (filters) => {
+      const queryParams = new URLSearchParams(filters).toString()
+      const url = `${locale === i18n.defaultLocale ? '' : `/${locale}`}${pathname}${queryParams === '' ? '' : `?${queryParams}`}`
+      window.history.pushState(null, '', url)
+    },
+  })
+
+  const { data, localizedData, status, error, isPlaceholderData } =
+    useOffsetGallery({
+      filters,
+    })
+  const { localizedData: localizedCategoryData } = useCategory()
+
+  const items = useMemo(
+    () =>
+      localizedData.items?.map(
+        ({ id, name, storage, category, image, dateAdded, updatedAt }) => ({
+          id,
+          name: name ?? '',
+          storage: storage ?? '',
+          category: category ?? '',
+          image: {
+            url: image?.url ?? '',
+            width: image?.width ?? 0,
+            height: image?.height ?? 0,
+            publicId: image?.publicId ?? '',
+          },
+          dateAdded,
+          updatedAt,
+        })
+      ) || [],
+    [localizedData?.items]
+  )
+
+  const filterState = Object.entries(filters).flatMap(([id, value]) => {
+    if (id === 'search') {
+      return { id: 'id', value }
+    }
+    if (id === 'category') {
+      return {
+        id,
+        value: value.includes(',') ? value.split(',') : [value],
+      }
+    }
+    return []
+  })
+
+  return (
+    <DataTable
+      data={items}
+      columns={[
+        {
+          accessorKey: 'id',
+          header: ({ column }) => {
+            return (
+              <button
+                className="flex items-center gap-2"
+                onClick={column.getToggleSortingHandler()}
+              >
+                ID
+                {column.getIsSorted() === 'asc' ? (
+                  <FaSortUp />
+                ) : column.getIsSorted() === 'desc' ? (
+                  <FaSortDown />
+                ) : (
+                  <FaSort />
+                )}
+              </button>
+            )
+          },
+        },
+        {
+          accessorKey: 'image',
+          header: tForm('image'),
+          cell: ({ row }) => {
+            // TODO: getValue type is not inferred and is unknown
+            // https://github.com/TanStack/table/pull/4109
+            const {
+              id,
+              image: { url },
+            } = row.original
+            return (
+              <div className="relative h-32 w-32">
+                <Image
+                  loader={cloudinaryLoader}
+                  src={url || '/placeholder.png'}
+                  alt={id}
+                  className="absolute inset-0 h-full w-full object-contain"
+                  width={128}
+                  height={128}
+                  quality={50}
+                  unoptimized={url === ''}
+                />
+              </div>
+            )
+          },
+        },
+        { accessorKey: 'name', header: tForm('name') },
+        { accessorKey: 'storage', header: tForm('storage') },
+        {
+          accessorKey: 'category',
+          header: tForm('category'),
+          cell: ({ row }) => {
+            const category = localizedCategoryData?.find(
+              (data) => data.id === row.original.category
+            )
+            return (
+              <span className="rounded bg-gray-300 px-2 py-0.5 text-xs font-medium text-gray-800 empty:hidden">
+                {category?.name}
+              </span>
+            )
+          },
+        },
+        {
+          accessorKey: 'dateAdded',
+          header: ({ column }) => {
+            return (
+              <button
+                className="flex items-center gap-2"
+                onClick={column.getToggleSortingHandler()}
+              >
+                {tForm('dateAdded')}
+                {column.getIsSorted() === 'asc' ? (
+                  <FaSortUp />
+                ) : column.getIsSorted() === 'desc' ? (
+                  <FaSortDown />
+                ) : (
+                  <FaSort />
+                )}
+              </button>
+            )
+          },
+          cell: ({ row }) => {
+            return format.relativeTime(row.original.dateAdded, now)
+          },
+        },
+        {
+          accessorKey: 'updatedAt',
+          header: ({ column }) => {
+            return (
+              <button
+                className="flex items-center gap-2"
+                onClick={column.getToggleSortingHandler()}
+              >
+                {tForm('updatedAt')}
+                {column.getIsSorted() === 'asc' ? (
+                  <FaSortUp />
+                ) : column.getIsSorted() === 'desc' ? (
+                  <FaSortDown />
+                ) : (
+                  <FaSort />
+                )}
+              </button>
+            )
+          },
+          cell: ({ row }) => {
+            return format.relativeTime(row.original.updatedAt, now)
+          },
+        },
+        {
+          id: 'actions',
+          cell: ({ row }) => {
+            const { id } = row.original
+            const item = data?.items.find(({ id: dataId }) => dataId === id)
+            return (
+              <Link
+                href={{
+                  pathname: `/admin/update/${id}`,
+                  query: {
+                    data: JSON.stringify({
+                      category: item?.category,
+                      image: item?.image,
+                      translations: item?.translations,
+                    }),
+                  },
+                }}
+                className="font-medium text-gray-500 hover:text-black hover:underline"
+                aria-label="edit image"
+              >
+                {t('edit')}
+              </Link>
+            )
+          },
+        },
+      ]}
+      manualFiltering={{
+        state: filterState,
+        render: (table) => (
+          <TableFilterForm
+            defaultValues={{
+              search:
+                (typeof filters.search === 'string' && filters.search) || '',
+              category:
+                typeof filters.category === 'string'
+                  ? filters.category.includes(',')
+                    ? filters.category.split(',')
+                    : [filters.category]
+                  : [],
+            }}
+            onSubmitCallback={(data) => table.setColumnFilters(data)}
+          />
+        ),
+        onColumnFiltersChange: (state) => {
+          const query = state.reduce((prev, { id, value }) => {
+            return Object.assign(
+              prev,
+              Array.isArray(value)
+                ? value.length !== 0
+                  ? { [id]: value.join(',') }
+                  : {}
+                : id === 'id'
+                  ? { search: value }
+                  : {}
+            )
+          }, {})
+          setUrlGalleryFilters({ query })
+        },
+        filters: [{ id: 'category', data: localizedCategoryData ?? [] }],
+      }}
+      manualSorting={{
+        state:
+          typeof filters.orderBy === 'string'
+            ? [
+                {
+                  id: filters.orderBy.split(',')[0],
+                  desc: filters.orderBy.split(',')[1] === 'desc',
+                },
+              ]
+            : [],
+        onSortingChange: (state) => {
+          const orderBy = state[0]
+            ? `${state[0].id},${state[0].desc ? 'desc' : 'asc'}`
+            : undefined
+          setUrlGalleryFilters({ query: { ...(orderBy ? { orderBy } : {}) } })
+        },
+      }}
+      manualPagination={{
+        state: {
+          pageIndex: localizedData?.page ? +localizedData.page - 1 : 0,
+          pageSize: GALLERY_LIMIT,
+        },
+        dataCount: localizedData?.totalCount ?? 0,
+        onPaginationChange: ({ pageIndex }) => {
+          setUrlGalleryFilters((prev) => ({
+            query: { ...prev, page: pageIndex + 1 + '' },
+          }))
+        },
+      }}
+      isLoading={isPlaceholderData}
+    />
+  )
+}
