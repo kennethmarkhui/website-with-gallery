@@ -1,0 +1,48 @@
+import clsx, { type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
+
+// https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_pick
+// https://stackoverflow.com/a/68167121
+// export const pick = <
+//   T extends Record<string | number | symbol, T>,
+//   K extends keyof T,
+// >(
+//   object: T,
+//   keys: K[]
+// ): Pick<T, K> => {
+//   return Object.assign(
+//     {},
+//     ...keys.map((key: K) => {
+//       return { [key]: object[key] }
+//     })
+//   )
+// }
+
+// https://stackoverflow.com/a/18650828
+export const formatBytes = (bytes: number): string => {
+  if (bytes === 0) '0 Bytes'
+
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(0)) + ' ' + sizes[i]
+}
+
+// export const generateQueryStringFromObject = (
+//   queries: Record<string, string>
+// ): string => {
+//   const filteredQuery = Object.entries(queries).filter(
+//     ([_key, value]) => value !== undefined
+//   )
+
+//   return queries ? '?' + new URLSearchParams(filteredQuery).toString() : ''
+// }
+
+// https://community.cloudinary.com/discussion/723/nextjs-14-image-upload-with-server-actions
+export const fileToBase64 = async (file: File) => {
+  const fileBuffer = await file.arrayBuffer()
+  const base64Data = Buffer.from(fileBuffer).toString('base64')
+  return `data:${file.type};base64,${base64Data}`
+}

@@ -16,15 +16,21 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/components/*": ["components/*"]
-    }
+      "@/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "next-env.d.ts",
     "types/**/*.ts",
     "lib/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

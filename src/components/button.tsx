@@ -1,0 +1,27 @@
+import { ComponentPropsWithoutRef } from 'react'
+import { cn } from '@/lib/utils'
+
+interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
+  variant?: 'primary' | 'danger'
+  fullWidth?: boolean
+}
+
+export default function Button({
+  variant = 'primary',
+  fullWidth,
+  ...rest
+}: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        'flex items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-center text-sm font-medium text-gray-500 focus:outline-none',
+        variant === 'primary' &&
+          'enabled:hover:border-black enabled:hover:text-black',
+        variant === 'danger' &&
+          'enabled:hover:border-red-500 enabled:hover:text-red-500',
+        fullWidth ? 'w-full' : 'w-full sm:w-auto'
+      )}
+      {...rest}
+    />
+  )
+}
