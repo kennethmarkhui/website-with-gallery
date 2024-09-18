@@ -24,7 +24,7 @@ export async function getAdminItems({
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   const orderBy = (
@@ -97,7 +97,7 @@ export async function getAdminItem(id: string) {
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   const data = await db.item.findUnique({
@@ -144,7 +144,7 @@ export async function createItem(
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   const jsonData = formData.get('data')
@@ -239,7 +239,7 @@ export async function deleteItem({
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   // TODO: publicId must be provided if the item to be deleted have an image.
@@ -275,7 +275,7 @@ export async function updateItem(
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   const jsonData = formData.get('data')

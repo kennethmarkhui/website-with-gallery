@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, unstable_setRequestLocale } from 'next-intl/server'
 
 import Providers from './providers'
+import NProgressBar from '@/components/nprogress-bar'
 import { i18n } from '@/i18n/config'
 
 import '@/styles/globals.css'
@@ -25,6 +26,7 @@ export default async function RootLayout({
       <body>
         <Providers>
           <NextIntlClientProvider messages={messages}>
+            <NProgressBar />
             {children}
           </NextIntlClientProvider>
         </Providers>

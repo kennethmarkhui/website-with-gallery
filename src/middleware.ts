@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { withAuth } from 'next-auth/middleware'
 
+import { ALPHANUMERIC_REGEX } from './constants/gallery'
 import { i18n } from '@/i18n/config'
 
-const publicPages = ['/', '/about', '/gallery', '/login', '/auth-error']
+const publicPages = [
+  '/',
+  '/about',
+  '/gallery',
+  `/gallery/image/${ALPHANUMERIC_REGEX.source.replace(/(^\^|\$$)/g, '')}`,
+  '/login',
+  '/auth-error',
+]
 
 const intlMiddleware = createMiddleware(i18n)
 

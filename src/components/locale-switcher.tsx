@@ -18,7 +18,7 @@ export default function LocaleSwitcher() {
   const pathname = usePathname()
   const locale = useLocale()
 
-  const changeLocale = (locale: string) => router.push(pathname, { locale })
+  const changeLocale = (locale: string) => router.replace(pathname, { locale })
 
   return (
     <Listbox onChange={(locale) => changeLocale(locale)} value={locale}>

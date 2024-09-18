@@ -16,7 +16,7 @@ export async function createCategory(
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   const parsedBody = GalleryCategoryFormFieldsSchema.safeParse(data)
@@ -62,7 +62,7 @@ export async function deleteCategory(
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   if (typeof id !== 'string') {
@@ -90,7 +90,7 @@ export async function updateCategory({
   const session = await getServerAuth()
 
   if (!session || session.user.role !== 'ADMIN') {
-    throw new Error('You must be an admin to view the protected content.')
+    throw new Error('Unauthorized')
   }
 
   if (typeof id !== 'string' || !id.length) {
